@@ -159,30 +159,62 @@ deriving DecidableEq
 
 inductive ReverseTree where
 | root: ReverseTree
-| left: TreeData → ReverseTree → ReverseTree
-| right: TreeData → ReverseTree → ReverseTree
+| left: ReverseTree → ReverseTree
+| right: ReverseTree → ReverseTree
   deriving DecidableEq
-
-noncomputable def ReverseTree.getData: ReverseTree → TreeData
-| ReverseTree.root => {a := xSeq 0, b := xSeq 1}
-| ReverseTree.left data _ => data
-| ReverseTree.right data _ => data
-
-def treeDepth: ReverseTree → ℕ
-| ReverseTree.root => 0
-| ReverseTree.left _ t => 1 + treeDepth t
-| ReverseTree.right _ t => 1 + treeDepth t
 
 def newNum: ReverseTree → ℕ
   | ReverseTree.root => 2
-  | ReverseTree.left _ prev => 2 * (newNum prev) - 1
-  | ReverseTree.right _ prev => 2 * (newNum prev)
+  | ReverseTree.left prev => 2 * (newNum prev) - 1
+  | ReverseTree.right prev => 2 * (newNum prev)
 
-noncomputable def mkRoot: ReverseTree := ReverseTree.root
-noncomputable def mkLeft (base: ReverseTree): ReverseTree := ReverseTree.left {a := -base.getData.b, b := xSeq (newNum base)} base
-noncomputable def mkRight (base: ReverseTree): ReverseTree := ReverseTree.right {a := xSeq (newNum base), b := base.getData.a - base.getData.b} base
+noncomputable def ReverseTree.getData: ReverseTree → TreeData
+| ReverseTree.root => {a := xSeq 0, b := xSeq 1}
+| ReverseTree.left base => {a := -base.getData.b, b := xSeq (newNum base)}
+| ReverseTree.right base => {a := xSeq (newNum base), b := base.getData.a - base.getData.b}
+
+def treeDepth: ReverseTree → ℕ
+| ReverseTree.root => 0
+| ReverseTree.left t => 1 + treeDepth t
+| ReverseTree.right t => 1 + treeDepth t
+
+
+--noncomputable def mkRoot: ReverseTree := ReverseTree.root
+--noncomputable def mkLeft (base: ReverseTree): ReverseTree := ReverseTree.left {a := -base.getData.b, b := xSeq (newNum base)} base
+--noncomputable def mkRight (base: ReverseTree): ReverseTree := ReverseTree.right {a := xSeq (newNum base), b := base.getData.a - base.getData.b} base
 
 noncomputable def my_set: Finset G := ({xSeq 0, xSeq 1} : Finset G)
+
+lemma tree_linear_comb_left (t: ReverseTree): (∃ s: Finset ℕ, ∃ g: ℕ -> ℚ, t.getData.a = ∑ i ∈ s, g i • basis_n i) ∧ (∃ s: Finset ℕ, ∃ g: ℕ -> ℚ, t.getData.b = ∑ i ∈ s, g i • basis_n i)  := by
+  induction t with
+  | root =>
+    refine ⟨?_, ?_⟩
+
+    use {0, 1}
+    use fun i => if i = 0 then 1 else 0
+    simp
+    simp [ReverseTree.getData]
+    simp [xSeq, basis_n]
+
+    use {0, 1}
+    use fun i => if i = 0 then 0 else 1
+    simp
+    simp [ReverseTree.getData]
+    simp [xSeq, basis_n]
+  | left prev h_prev =>
+    simp [ReverseTree.getData]
+    refine ⟨?_,?_⟩
+    . obtain ⟨_, ⟨s, g, h_g⟩⟩ := h_prev
+      refine ⟨s, ?_, ?_⟩
+      use fun i => -1 * g i
+      simp
+      simp [basis_n] at h_g
+      apply h_g
+    . use {newNum prev}
+      use fun i => if i = newNum prev then 1 else 0
+      simp
+      simp [xSeq, basis_n]
+  | right prev => sorry
 
 lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by
   simp [LinearIndependent.pair_iff]
@@ -201,7 +233,11 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     rw [xSeq, basis_n] at eq_zero
     rw [xSeq, basis_n] at eq_zero
     exact basis_indep eq_zero
-  | left a prev => sorry
+  | left prev =>
+    simp [ReverseTree.getData] at eq_zero
+
+
+    sorry
   | right a prev => sorry
 
 

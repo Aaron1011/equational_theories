@@ -27,10 +27,11 @@ theorem foo: 1 = 1 := by
     obtain ⟨⟨k, e_k⟩, ⟨e_k_in_i, e_k_in_j⟩⟩ := this
 
 
-    have k_le_first: k ≤ 2^i := by
+    have k_le_first: 2^i ≤ k := by
+      simp [s_i] at e_k_in_i
       sorry
 
-    have k_le_second: k ≤ 2^j := by
+    have k_le_second: 2^j ≤ k := by
       sorry
 
     have e_k_in_i: k ≡ 2^i [MOD 2^(i + 1)] := by
@@ -41,21 +42,28 @@ theorem foo: 1 = 1 := by
       simp [s_i] at e_k_in_j
       exact e_k_in_j.2
 
+    apply Nat.ModEq.symm at e_k_in_i
     apply (Nat.modEq_iff_dvd' k_le_first).mp at e_k_in_i
     obtain ⟨c, hc⟩ := e_k_in_i
 
     have k_i_eq_sum: k = 2^i + 2^(i + 1) * c := by
-      sorry
+      apply Nat.eq_add_of_sub_eq k_le_first  at hc
+      rw [Nat.add_comm] at hc
+      exact hc
 
 
     have k_i_factor: k = 2^i * (1 + 2 * c) := by
       rw [k_i_eq_sum]
       ring
 
+    apply Nat.ModEq.symm at e_k_in_j
     apply (Nat.modEq_iff_dvd' k_le_second).mp at e_k_in_j
     obtain ⟨d, hd⟩ := e_k_in_j
+
     have k_j_eq_sum: k = 2^j + 2^(j + 1) * d := by
-      sorry
+      apply Nat.eq_add_of_sub_eq k_le_second at hd
+      rw [Nat.add_comm] at hd
+      exact hd
 
     have k_j_factor: k = 2^j * (1 + 2 * d) := by
       rw [k_j_eq_sum]

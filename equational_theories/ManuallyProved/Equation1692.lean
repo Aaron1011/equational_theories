@@ -100,11 +100,34 @@ theorem foo: 1 = 1 := by
     refine ⟨e_k_in_basis, ?_⟩
     by_cases k_even_odd: Even k
     . obtain ⟨j, hj⟩ := k_even_odd
+      have k_neq_zero: k ≠ 0 := by sorry
       have k_eq_2j: k = 2 * j := by
         rw [hj]
         linarith
-      use j
+      use k.log2
+      apply Nat.ModEq.symm
+      rw [Nat.modEq_iff_dvd']
+      refine ⟨?z, ?_⟩
       sorry
+
+
+
+
+      --apply Nat.sub_eq_of_eq_add
+
+
+
+
+
+      have k_factor: k = 2^(k.log2) * (k / 2^(k.log2)) := by
+
+        sorry
+
+
+
+      sorry
+      sorry
+      --apply Nat.log2_self_le k_neq_zero
     . have k_odd: Odd k := by
         exact Nat.not_even_iff_odd.mp k_even_odd
       obtain ⟨j, hj⟩ := k_odd

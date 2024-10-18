@@ -29,7 +29,23 @@ theorem foo: 1 = 1 := by
 
     have k_le_first: 2^i ≤ k := by
       simp [s_i] at e_k_in_i
-      sorry
+      obtain ⟨_, k_eq⟩ := e_k_in_i
+      rw [Nat.ModEq] at k_eq
+      have two_pow_lt: 2^i < 2^(i + 1) := by
+        apply Nat.pow_lt_pow_succ
+        simp
+      rw [Nat.mod_eq_of_lt two_pow_lt] at k_eq
+      have k_mod_lt: k % 2 ^ (i + 1)< (2^(i+1)) := by
+        apply Nat.mod_lt
+        simp
+
+      by_contra!
+      have k_lt_2i_plus: k < 2^(i+1) := by
+        exact Nat.lt_trans this two_pow_lt
+
+      have bar := Nat.mod_eq_of_lt k_lt_2i_plus
+      rw [bar] at k_eq
+      linarith
 
     have k_le_second: 2^j ≤ k := by
       sorry

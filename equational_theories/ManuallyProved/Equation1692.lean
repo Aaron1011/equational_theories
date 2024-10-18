@@ -84,4 +84,46 @@ theorem foo: 1 = 1 := by
     have j_factor := mod_imp_factor k j e_k_in_j
     rw [i_factor] at j_factor
     linarith
+
+  have si_union_basis: ⋃ i, s_i i = all_basis := by
+    ext ⟨k, e_k⟩
+    refine ⟨?_, ?_⟩
+    intro e_k_in_union
+    simp at e_k_in_union
+    obtain ⟨i, e_k_in_i⟩ := e_k_in_union
+    simp [s_i] at e_k_in_i
+    exact e_k_in_i.1
+
+    intro e_k_in_basis
+    rw [Set.mem_iUnion]
+    simp [s_i]
+    refine ⟨e_k_in_basis, ?_⟩
+    by_cases k_even_odd: Even k
+    . obtain ⟨j, hj⟩ := k_even_odd
+      have k_eq_2j: k = 2 * j := by
+        rw [hj]
+        linarith
+      use j
+      sorry
+    . have k_odd: Odd k := by
+        exact Nat.not_even_iff_odd.mp k_even_odd
+      obtain ⟨j, hj⟩ := k_odd
+      use 0
+      simp
+      have k_minus_eq: k - 1 = 2 * j := by
+        rw [hj]
+        simp
+      apply Nat.ModEq.symm
+      rw [Nat.modEq_iff_dvd']
+      have two_div: 2 ∣ k - 1 := by
+        exact Dvd.intro j (id (Eq.symm k_minus_eq))
+      exact two_div
+      linarith
+
+
+
+
+
+
+
   rfl

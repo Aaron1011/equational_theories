@@ -5,17 +5,15 @@ import Mathlib
 #synth AddGroup (∀ n: ℕ, ℤ)
 
 -- TODO -  only finitely many entries are non-zero?
-abbrev G := (∀ n: ℕ, ℚ)
+abbrev G := (ℕ →₀ ℚ)
+
+noncomputable abbrev n_q_basis := Finsupp.basisSingleOne (R := ℚ) (ι := ℕ)
+noncomputable abbrev basis_n := DFunLike.coe n_q_basis
+noncomputable abbrev all_basis := (λ n: ℕ => (n, basis_n n)) '' Set.univ
+
+-- lemma basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
 
 theorem foo: 1 = 1 := by
-  have is_group: AddGroup (G) := by infer_instance
-  have divsion_ring: DivisionRing ℚ := by infer_instance
-  have is_module: Module ℚ G := by infer_instance
-  have add_comm: AddCommGroup G := by infer_instance
-
-  let n_q_basis := Finsupp.basisSingleOne (R := ℚ) (ι := ℕ)
-  let basis_n := DFunLike.coe n_q_basis
-  let all_basis := (λ n: ℕ => (n, basis_n n)) '' Set.univ
   -- Actual start of proof
   let s_i := λ i: ℕ => {val ∈ all_basis | val.1 ≡ 2^i [MOD 2^(i + 1)] }
   have no_overlap: ∀ i j: ℕ, i < j → s_i i ∩ s_i j = ∅ := by
@@ -150,3 +148,71 @@ theorem foo: 1 = 1 := by
 
 
   rfl
+
+noncomputable def xSeq (n: ℕ): G := basis_n n
+
+class TreeData where
+  a: G
+  b: G
+
+deriving DecidableEq
+
+inductive ReverseTree where
+| root: ReverseTree
+| left: TreeData → ReverseTree → ReverseTree
+| right: TreeData → ReverseTree → ReverseTree
+  deriving DecidableEq
+
+noncomputable def ReverseTree.getData: ReverseTree → TreeData
+| ReverseTree.root => {a := xSeq 0, b := xSeq 1}
+| ReverseTree.left data _ => data
+| ReverseTree.right data _ => data
+
+def treeDepth: ReverseTree → ℕ
+| ReverseTree.root => 0
+| ReverseTree.left _ t => 1 + treeDepth t
+| ReverseTree.right _ t => 1 + treeDepth t
+
+def newNum: ReverseTree → ℕ
+  | ReverseTree.root => 2
+  | ReverseTree.left _ prev => 2 * (newNum prev) - 1
+  | ReverseTree.right _ prev => 2 * (newNum prev)
+
+noncomputable def mkRoot: ReverseTree := ReverseTree.root
+noncomputable def mkLeft (base: ReverseTree): ReverseTree := ReverseTree.left {a := -base.getData.b, b := xSeq (newNum base)} base
+noncomputable def mkRight (base: ReverseTree): ReverseTree := ReverseTree.right {a := xSeq (newNum base), b := base.getData.a - base.getData.b} base
+
+noncomputable def my_set: Finset G := ({xSeq 0, xSeq 1} : Finset G)
+
+lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by
+  simp [LinearIndependent.pair_iff]
+  intro p q eq_zero
+  cases t with
+  | root =>
+    simp [ReverseTree.getData] at eq_zero
+    have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
+    rw [linearIndependent_iff'] at basis_indep
+    specialize basis_indep {0, 1} fun g => if g = 0 then p else q
+    simp only [one_smul, Finset.mem_singleton, zero_ne_one,
+      not_false_eq_true, Finset.sum_insert, Finset.sum_singleton, Finset.mem_insert, one_ne_zero,
+      imp_false, not_or] at basis_indep
+    simp only [↓reduceIte, Finsupp.smul_single, smul_eq_mul, mul_one,
+      forall_eq_or_imp, forall_eq, one_ne_zero] at basis_indep
+    rw [xSeq, basis_n] at eq_zero
+    rw [xSeq, basis_n] at eq_zero
+    exact basis_indep eq_zero
+  | left a prev => sorry
+  | right a prev => sorry
+
+
+
+
+
+-- inductive MyTree {α: Type} where
+--   | root: TreeData (α := α) 0 → MyTree
+--   | left (n: ℕ) (hn: n > 0): TreeData (n - 1) → MyTree
+--   | right (n: ℕ) (hn: n > 0): TreeData (n - 1) → MyTree
+
+
+-- def treeAt(n: ℕ ): MyTree (α := String) :=
+--   MyTree.left { MyTree.root {a := "a", b := "b"}

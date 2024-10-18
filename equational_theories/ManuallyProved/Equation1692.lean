@@ -214,7 +214,21 @@ lemma tree_linear_comb_left (t: ReverseTree): (∃ s: Finset ℕ, ∃ g: ℕ -> 
       use fun i => if i = newNum prev then 1 else 0
       simp
       simp [xSeq, basis_n]
-  | right prev => sorry
+  | right prev h_prev =>
+    simp [ReverseTree.getData]
+    refine ⟨?_,?_⟩
+    . use {newNum prev}
+      use fun i => if i = newNum prev then 1 else 0
+      simp
+      simp [xSeq, basis_n]
+    have sub_in_span: (prev.getData.a - prev.getData.b) ∈ Submodule.span ℚ (Set.range basis_n) := by
+      apply Basis.mem_span
+    have foo := (Finsupp.mem_span_iff_linearCombination ℚ (Set.range basis_n) (prev.getData.a - prev.getData.b)).mp sub_in_span
+    obtain ⟨l, hl⟩ := foo
+    simp [Finsupp.linearCombination_apply] at hl
+    rw [Finsupp.sum] at hl
+
+
 
 lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by
   simp [LinearIndependent.pair_iff]

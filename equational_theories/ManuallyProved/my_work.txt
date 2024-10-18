@@ -1,0 +1,34 @@
+ f^2 (−f (h)) = h − f (h)
+ f(a) = b
+ f(-b) = c
+
+ implies:
+
+ f(c) = a - b
+
+ --------
+
+BAD:
+f^2(-f(c)) = c - f(c)
+f^2(-f(c)) = f(-b) - f(c)
+f^2(-f(c)) = f(-(f(a))) - f(c)
+
+f(c) = f(-f(a)) - f^2(-f(c))
+f(c) = f(-f(a)) - (c - f(c))
+f(c) = f(-f(a)) - c + f(c)
+
+
+-----
+
+
+f^2(-f(c)) = c - f(c)
+f(c) = c - f^2(-f(c))
+f(f(-b)) = c - f^2(-f(c))
+f(f(-(f(a)))) = c - f^2(-f(c))
+f^2(-f(a)) = c - f^2(-f(c))
+-- Functional equation application:
+a - f(a) = c - f^2(-f(c))
+a - b = c - f^2(-f(c))
+a - b = c - (c - f(c))
+a - b = c -c + f(c)
+a -b = f(c)

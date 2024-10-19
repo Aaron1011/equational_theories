@@ -227,13 +227,14 @@ lemma tree_linear_comb_left (t: ReverseTree): (∃ s: Finset ℕ, ∃ g: ℕ -> 
     obtain ⟨l, hl⟩ := foo
     simp [Finsupp.linearCombination_apply] at hl
     rw [Finsupp.sum] at hl
+    sorry
 
 
 
 lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by
   simp [LinearIndependent.pair_iff]
   intro p q eq_zero
-  cases t with
+  induction t generalizing p q with
   | root =>
     simp [ReverseTree.getData] at eq_zero
     have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
@@ -247,8 +248,11 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     rw [xSeq, basis_n] at eq_zero
     rw [xSeq, basis_n] at eq_zero
     exact basis_indep eq_zero
-  | left prev =>
+  | left prev h_prev =>
     simp [ReverseTree.getData] at eq_zero
+    specialize h_prev q (-p)
+    rw [add_comm] at h_prev
+
 
 
     sorry

@@ -206,14 +206,17 @@ lemma tree_linear_comb_left (t: ReverseTree): (∃ g: ℕ -> ℚ, t.getData.a = 
   | left prev h_prev =>
     simp [ReverseTree.getData]
     refine ⟨?_,?_⟩
-    . obtain ⟨_, ⟨s, g, h_max_le, h_g⟩⟩ := h_prev
-      refine ⟨s, ?_, ?_⟩
+    . obtain ⟨_, ⟨g, h_g⟩⟩ := h_prev
       rw [newNum]
+      have newnum_gt_two: 2 < newNum prev := by
+        sorry
       have prev_lt_mul: newNum prev < 2 * newNum prev - 1 := by
-        linarith
+        sorry
       use fun i => -1 * g i
       simp
       simp [basis_n] at h_g
+      --rw [← Finset.sum_extend_by_zero, ← Finset.sum_filter] at h_g
+      rw [← Finset.sum_extend_by_zero]
       apply h_g
     . use {newNum prev}
       use fun i => if i = newNum prev then 1 else 0

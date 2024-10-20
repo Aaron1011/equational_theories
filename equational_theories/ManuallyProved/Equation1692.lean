@@ -185,27 +185,32 @@ def treeDepth: ReverseTree → ℕ
 
 noncomputable def my_set: Finset G := ({xSeq 0, xSeq 1} : Finset G)
 
-lemma tree_linear_comb_left (t: ReverseTree): (∃ s: Finset ℕ, ∃ g: ℕ -> ℚ, t.getData.a = ∑ i ∈ s, g i • basis_n i) ∧ (∃ s: Finset ℕ, ∃ g: ℕ -> ℚ, t.getData.b = ∑ i ∈ s, g i • basis_n i)  := by
+lemma tree_linear_comb_left (t: ReverseTree): (∃ g: ℕ -> ℚ, t.getData.a = ∑ i ∈ Finset.range (newNum t), g i • basis_n i) ∧ (∃ g: ℕ -> ℚ, t.getData.b = ∑ i ∈ Finset.range (newNum t), g i • basis_n i) := by
   induction t with
   | root =>
     refine ⟨?_, ?_⟩
 
-    use {0, 1}
     use fun i => if i = 0 then 1 else 0
     simp
     simp [ReverseTree.getData]
     simp [xSeq, basis_n]
+    rw [newNum]
+    simp
 
-    use {0, 1}
-    use fun i => if i = 0 then 0 else 1
+    use fun i => if i = 1 then 1 else 0
     simp
     simp [ReverseTree.getData]
     simp [xSeq, basis_n]
+    rw [newNum]
+    simp
   | left prev h_prev =>
     simp [ReverseTree.getData]
     refine ⟨?_,?_⟩
-    . obtain ⟨_, ⟨s, g, h_g⟩⟩ := h_prev
+    . obtain ⟨_, ⟨s, g, h_max_le, h_g⟩⟩ := h_prev
       refine ⟨s, ?_, ?_⟩
+      rw [newNum]
+      have prev_lt_mul: newNum prev < 2 * newNum prev - 1 := by
+        linarith
       use fun i => -1 * g i
       simp
       simp [basis_n] at h_g
@@ -252,6 +257,7 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     simp [ReverseTree.getData] at eq_zero
     specialize h_prev q (-p)
     rw [add_comm] at h_prev
+
 
 
 

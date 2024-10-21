@@ -251,7 +251,6 @@ lemma tree_linear_comb_left (t: ReverseTree):
       have prev_lt_mul: newNum prev < 2 * newNum prev - 1 := by
         omega
 
-
       use fun i => -1 * if i ∈ Finset.range m then g i else 0
       use m
       simp [prev_lt_mul]
@@ -278,12 +277,15 @@ lemma tree_linear_comb_left (t: ReverseTree):
 
       rw [← Fin.sum_univ_eq_sum_range] at h_g
       exact h_g
-
-
-    . use {newNum prev}
+    . obtain ⟨_, ⟨g, m, m_le, h_g⟩⟩ := h_prev
+      rw [newNum]
       use fun i => if i = newNum prev then 1 else 0
+      use (newNum prev) + 1
+      refine ⟨?_, ?_⟩
+      have newnum_gt_one: 1 < newNum prev := newnem_gt_one prev
+      omega
       simp
-      simp [xSeq, basis_n]
+      simp [xSeq, basis_n, n_q_basis]
   | right prev h_prev =>
     simp [ReverseTree.getData]
     refine ⟨?_,?_⟩

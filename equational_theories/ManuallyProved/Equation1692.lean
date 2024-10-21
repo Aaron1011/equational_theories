@@ -265,7 +265,15 @@ lemma tree_linear_comb (t: ReverseTree):
       have prev_lt_mul: newNum prev < 2 * newNum prev - 1 := by
         omega
 
-      use fun i => -1 * if i ∈ Finset.range m then g i else 0
+      let f := λ i => -1 * if i ∈ Finset.range m then g i else 0
+      have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range m := by
+        simp only [f]
+        intro a ha
+        simp at ha
+        simp
+        exact ha.1
+
+      use Finsupp.onFinset _ f zero_outside
       use m
       simp [prev_lt_mul]
       simp only [basis_n] at h_g
@@ -277,34 +285,37 @@ lemma tree_linear_comb (t: ReverseTree):
       rw [← neg_one_zsmul]
       rw [← Finset.sum_zsmul]
       simp only [Finsupp.smul_single, smul_ite]
-      simp
       rw [← Fin.sum_univ_eq_sum_range]
-      simp
-
-
-
       rw [← Fin.sum_univ_eq_sum_range] at h_g
+      simp only [f]
+      simp
       exact h_g
     . obtain ⟨_, ⟨g, m, _⟩⟩ := h_prev
       rw [newNum]
-      use fun i => if i = newNum prev then 1 else 0
+      let f := λ i => if i = newNum prev then (1 : ℚ) else 0
+      have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range (newNum prev + 1) := by
+        simp [f]
+      use Finsupp.onFinset _ f (zero_outside)
       use (newNum prev) + 1
       refine ⟨?_, ?_⟩
       have newnum_gt_one: 1 < newNum prev := newnem_gt_one prev
       omega
-      simp
+      simp [f]
       simp [xSeq, basis_n, n_q_basis]
   | right prev h_prev =>
     simp only [ReverseTree.getData]
     refine ⟨?_,?_⟩
     . obtain ⟨_, ⟨g, m, _⟩⟩ := h_prev
       rw [newNum]
-      use fun i => if i = newNum prev then 1 else 0
+      let f := λ i => if i = newNum prev then (1 : ℚ) else 0
+      have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range (newNum prev + 1) := by
+        simp [f]
+      use Finsupp.onFinset _ f (zero_outside)
       use (newNum prev) + 1
       refine ⟨?_, ?_⟩
       have newnum_gt_one: 1 < newNum prev := newnem_gt_one prev
       omega
-      simp
+      simp [f]
       simp [xSeq, basis_n, n_q_basis]
     . obtain ⟨⟨g_l, m_l, m_l_le, h_g_l⟩, ⟨g, m, m_le, h_g⟩⟩ := h_prev
       have my_subset: Finset.range (m_l) ⊆ Finset.range (newNum prev) := by
@@ -326,7 +337,25 @@ lemma tree_linear_comb (t: ReverseTree):
       rw [← Finset.sum_sub_distrib]
       simp only [← ite_zero_smul]
       simp only [← sub_smul]
-      use fun x => (if x ∈ Finset.range m_l then g_l x else 0) - (if x ∈ Finset.range m then g x else 0)
+      let f := λ x => (if x ∈ Finset.range m_l then g_l x else 0) - (if x ∈ Finset.range m then g x else 0)
+      have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range (newNum prev) := by
+        simp only [f]
+        intro a ha
+        have one_nonzero: (if a ∈ Finset.range m_l then g_l a else 0) ≠ 0 ∨ (if a ∈ Finset.range m then g a else 0) ≠ 0 := by
+          by_contra!
+          obtain ⟨c, d⟩ := this
+          rw [c, d] at ha
+          simp at ha
+        cases one_nonzero with
+        | inl h_l =>
+          simp at h_l
+          simp
+          linarith
+        | inr h_r =>
+          simp at h_r
+          simp
+          linarith
+      use Finsupp.onFinset _ f (zero_outside)
       use (newNum prev)
       refine ⟨?_, ?_⟩
 

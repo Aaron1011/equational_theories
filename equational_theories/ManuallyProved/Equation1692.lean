@@ -221,6 +221,12 @@ lemma newnum_increasing (t: ReverseTree): newNum t < newNum (ReverseTree.left t)
     omega
     omega
 
+variable {M A : Type*}
+variable [Zero A] [SMulZeroClass M A]
+
+lemma other_smul_ite_zero (p : Prop) [Decidable p] (a : M) (b : A) :
+    (if p then a else 0) • b = if p then a • b else 0 := by split_ifs <;> simp
+
 lemma tree_linear_comb_left (t: ReverseTree):
   (∃ g: ℕ -> ℚ, ∃ m: ℕ, m ≤  newNum t ∧ t.getData.a = ∑ i ∈ Finset.range m, g i • basis_n i) ∧
   (∃ g: ℕ -> ℚ, ∃ m: ℕ, m ≤ newNum t ∧ t.getData.b = ∑ i ∈ Finset.range m, g i • basis_n i) := by
@@ -299,11 +305,34 @@ lemma tree_linear_comb_left (t: ReverseTree):
       simp
       simp [xSeq, basis_n, n_q_basis]
     . obtain ⟨⟨g_l, m_l, m_l_le, h_g_l⟩, ⟨g, m, m_le, h_g⟩⟩ := h_prev
+      have my_subset: Finset.range (m_l) ⊆ Finset.range (newNum prev) := by
+        refine Finset.range_subset.mpr ?_
+        linarith
 
+      have my_subset_right: Finset.range (m) ⊆ Finset.range (newNum prev) := by
+        refine Finset.range_subset.mpr ?_
+        linarith
+
+      rw [← Finset.sum_extend_by_zero] at h_g_l
+      rw [Finset.sum_subset my_subset] at h_g_l
+
+
+      rw [← Finset.sum_extend_by_zero] at h_g
+      rw [Finset.sum_subset my_subset_right] at h_g
+
+      rw [h_g_l, h_g]
+      rw [← Finset.sum_sub_distrib]
+      simp only [← ite_zero_smul]
+      simp only [← sub_smul]
+      use fun x => (if x ∈ Finset.range m_l then g_l x else 0) - (if x ∈ Finset.range m then g x else 0)
+      use (newNum prev)
+      refine ⟨?_, ?_⟩
       sorry
-
-
-
+      rfl
+      intro x hx m_lt_x
+      simp [m_lt_x]
+      intro x hx m_lt_x
+      simp [m_lt_x]
 
 
 

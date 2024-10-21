@@ -555,8 +555,8 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     have b_coord_zero_gt: ∀ n, b_max_num ≤ n → b_coords n = 0 := by
       sorry
 
-    have s_eq_zero := hs_t n
-    simp [n_neq_newnum, n_lt_newnum, n_lt_max] at s_eq_zero
+    have t_eq_zero := hs_t n
+    simp [n_neq_newnum, n_lt_newnum, n_lt_max] at t_eq_zero
     have coord_neq: a_coords n - b_coords n ≠ 0 := by
       exact sub_ne_zero_of_ne n_neq
     have diff_eq_zero: ((if n < a_max_num then a_coords n else 0) - if n < b_max_num then b_coords n else 0) ≠ 0 := by
@@ -582,8 +582,8 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
         . simp only [n_lt_b_max]
           simp
           simp [n_lt_a_max, n_lt_b_max] at n_lt_max
-    simp [diff_eq_zero] at s_eq_zero
-    exact s_eq_zero
+    simp [diff_eq_zero] at t_eq_zero
+    exact t_eq_zero
 
     intro x hx hx_not_in
     simp [hx_not_in]

@@ -329,10 +329,10 @@ lemma tree_linear_comb (t: ReverseTree):
 
 
 lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by
-  simp [LinearIndependent.pair_iff]
-  intro p q eq_zero
-  induction t generalizing p q with
+  induction t with
   | root =>
+    simp [LinearIndependent.pair_iff]
+    intro p q eq_zero
     simp [ReverseTree.getData] at eq_zero
     have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
     rw [linearIndependent_iff'] at basis_indep
@@ -346,9 +346,100 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     rw [xSeq, basis_n] at eq_zero
     exact basis_indep eq_zero
   | left prev h_prev =>
-    simp [ReverseTree.getData] at eq_zero
-    specialize h_prev q (-p)
-    rw [add_comm] at h_prev
+    simp [ReverseTree.getData]
+    simp [ReverseTree.getData] at h_prev
+    obtain ⟨_, ⟨b_coords, ⟨max_num, max_num_lt, b_eq⟩⟩⟩ := tree_linear_comb prev
+
+
+    have nonzero_b_coord: ∃n, n < max_num ∧ b_coords n ≠ 0 := by
+      by_contra!
+      have sum_eq_zero: ∑ i ∈ Finset.range max_num, b_coords i • basis_n i = 0 := by
+        apply Finset.sum_eq_zero
+        intro x hx
+        specialize this x (Finset.mem_range.mp hx)
+        simp [this]
+      rw [sum_eq_zero] at b_eq
+      rw [b_eq] at h_prev
+      have foo := LinearIndependent.ne_zero 1 h_prev
+      simp at foo
+
+    rw [b_eq]
+    rw [xSeq, basis_n]
+    simp only [LinearIndependent.pair_iff]
+    intro s t hs_t
+
+    have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
+    rw [linearIndependent_iff'] at basis_indep
+    rw [add_comm] at hs_t
+
+    let f := λ x => t • n_q_basis x
+
+    have ite_eq: (if (newNum prev) ∈ Finset.range (newNum prev + 1) then f (newNum prev) else 0) = t • n_q_basis (newNum prev) := by
+      simp
+
+    rw [← ite_eq] at hs_t
+    simp only [← Finset.sum_ite_eq] at hs_t
+    --let f := (λ x: ℕ => t • n_q_basis (newNum prev))
+    --have eq_f: t • n_q_basis (newNum prev) = f 0 := by
+    --  simp only [f]
+    --rw [eq_f] at hs_t
+    --rw [← Finset.sum_range_one f] at hs_t
+
+    have max_num_nonzero: 0 < max_num := by sorry
+
+    --have my_subset: Finset.range 1 ⊆ Finset.range max_num := by
+    --  refine Finset.range_subset.mpr ?_
+    --  linarith
+
+
+    have max_subset: Finset.range max_num ⊆ Finset.range (newNum prev + 1) := by
+      refine Finset.range_subset.mpr ?_
+      linarith
+
+    nth_rw 2 [← Finset.sum_extend_by_zero] at hs_t
+    rw [Finset.sum_subset max_subset] at hs_t
+
+    --rw [← Finset.sum_extend_by_zero] at hs_t
+    --rw [Finset.sum_subset my_subset] at hs_t
+    rw [← neg_one_zsmul] at hs_t
+    rw [← Finset.sum_zsmul] at hs_t
+    rw [Finset.smul_sum] at hs_t
+    rw [← Finset.sum_add_distrib] at hs_t
+    simp only [f] at hs_t
+    simp only [← ite_zero_smul] at hs_t
+    simp only [← smul_assoc] at hs_t
+    simp only [← add_smul] at hs_t
+
+    apply (basis_indep _) at hs_t
+    have s_eq_zero := hs_t 0
+
+    have newnum_prev_nonzero: 1 < newNum prev := by
+      exact newnem_gt_one prev
+
+    have neq_zero: newNum prev ≠ 0 := by
+      omega
+
+    simp [neq_zero] at s_eq_zero
+
+    have foo: ¬(newNum prev < max_num) := by
+      linarith
+
+    have t_eq_zero := hs_t (newNum prev)
+    simp [foo] at t_eq_zero
+    refine ⟨?_, t_eq_zero⟩
+    sorry
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

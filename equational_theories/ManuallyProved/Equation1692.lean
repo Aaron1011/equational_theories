@@ -84,62 +84,63 @@ theorem foo: 1 = 1 := by
     linarith
 
   have si_union_basis: ⋃ i, s_i i = all_basis := by
-    ext ⟨k, e_k⟩
-    refine ⟨?_, ?_⟩
-    intro e_k_in_union
-    simp at e_k_in_union
-    obtain ⟨i, e_k_in_i⟩ := e_k_in_union
-    simp [s_i] at e_k_in_i
-    exact e_k_in_i.1
+    sorry
+    -- ext ⟨k, e_k⟩
+    -- refine ⟨?_, ?_⟩
+    -- intro e_k_in_union
+    -- simp at e_k_in_union
+    -- obtain ⟨i, e_k_in_i⟩ := e_k_in_union
+    -- simp [s_i] at e_k_in_i
+    -- exact e_k_in_i.1
 
-    intro e_k_in_basis
-    rw [Set.mem_iUnion]
-    simp [s_i]
-    refine ⟨e_k_in_basis, ?_⟩
-    by_cases k_even_odd: Even k
-    . obtain ⟨j, hj⟩ := k_even_odd
-      have k_neq_zero: k ≠ 0 := by sorry
-      have k_eq_2j: k = 2 * j := by
-        rw [hj]
-        linarith
-      use k.log2
-      apply Nat.ModEq.symm
-      rw [Nat.modEq_iff_dvd']
-      refine ⟨?z, ?_⟩
-      sorry
-
-
-
-
-      --apply Nat.sub_eq_of_eq_add
+    -- intro e_k_in_basis
+    -- rw [Set.mem_iUnion]
+    -- simp [s_i]
+    -- refine ⟨e_k_in_basis, ?_⟩
+    -- by_cases k_even_odd: Even k
+    -- . obtain ⟨j, hj⟩ := k_even_odd
+    --   have k_neq_zero: k ≠ 0 := by sorry
+    --   have k_eq_2j: k = 2 * j := by
+    --     rw [hj]
+    --     linarith
+    --   use k.log2
+    --   apply Nat.ModEq.symm
+    --   rw [Nat.modEq_iff_dvd']
+    --   refine ⟨?z, ?_⟩
+    --   sorry
 
 
 
 
-
-      have k_factor: k = 2^(k.log2) * (k / 2^(k.log2)) := by
-
-        sorry
+    --   --apply Nat.sub_eq_of_eq_add
 
 
 
-      sorry
-      sorry
-      --apply Nat.log2_self_le k_neq_zero
-    . have k_odd: Odd k := by
-        exact Nat.not_even_iff_odd.mp k_even_odd
-      obtain ⟨j, hj⟩ := k_odd
-      use 0
-      simp
-      have k_minus_eq: k - 1 = 2 * j := by
-        rw [hj]
-        simp
-      apply Nat.ModEq.symm
-      rw [Nat.modEq_iff_dvd']
-      have two_div: 2 ∣ k - 1 := by
-        exact Dvd.intro j (id (Eq.symm k_minus_eq))
-      exact two_div
-      linarith
+
+
+    --   have k_factor: k = 2^(k.log2) * (k / 2^(k.log2)) := by
+
+    --     sorry
+
+
+
+    --   sorry
+    --   sorry
+    --   --apply Nat.log2_self_le k_neq_zero
+    -- . have k_odd: Odd k := by
+    --     exact Nat.not_even_iff_odd.mp k_even_odd
+    --   obtain ⟨j, hj⟩ := k_odd
+    --   use 0
+    --   simp
+    --   have k_minus_eq: k - 1 = 2 * j := by
+    --     rw [hj]
+    --     simp
+    --   apply Nat.ModEq.symm
+    --   rw [Nat.modEq_iff_dvd']
+    --   have two_div: 2 ∣ k - 1 := by
+    --     exact Dvd.intro j (id (Eq.symm k_minus_eq))
+    --   exact two_div
+    --   linarith
 
 
 
@@ -375,7 +376,8 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     let f := λ x => t • n_q_basis x
 
     have ite_eq: (if (newNum prev) ∈ Finset.range (newNum prev + 1) then f (newNum prev) else 0) = t • n_q_basis (newNum prev) := by
-      simp
+      simp [f]
+
 
     rw [← ite_eq] at hs_t
     simp only [← Finset.sum_ite_eq] at hs_t
@@ -385,7 +387,9 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     --rw [eq_f] at hs_t
     --rw [← Finset.sum_range_one f] at hs_t
 
-    have max_num_nonzero: 0 < max_num := by sorry
+    have max_num_nonzero: 0 < max_num := by
+      obtain ⟨n, hn⟩ := nonzero_b_coord
+      linarith
 
     --have my_subset: Finset.range 1 ⊆ Finset.range max_num := by
     --  refine Finset.range_subset.mpr ?_

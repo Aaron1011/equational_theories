@@ -411,7 +411,8 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     simp only [← add_smul] at hs_t
 
     apply (basis_indep _) at hs_t
-    have s_eq_zero := hs_t 0
+    obtain ⟨b_nonzero, h_b_lt, h_b_zeronzero⟩ := nonzero_b_coord
+    have s_eq_zero := hs_t b_nonzero
 
     have newnum_prev_nonzero: 1 < newNum prev := by
       exact newnem_gt_one prev
@@ -419,32 +420,24 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     have neq_zero: newNum prev ≠ 0 := by
       omega
 
-    simp [neq_zero] at s_eq_zero
+    have b_nonzero_lt: b_nonzero < newNum prev + 1 := by
+      linarith
 
+    have b_nonzero_lt_other: b_nonzero < newNum prev := by
+      linarith
+
+    have n_nonzero_neq: newNum prev ≠ b_nonzero := by
+      omega
+
+    simp [neq_zero, b_nonzero_lt, n_nonzero_neq, h_b_lt, h_b_zeronzero] at s_eq_zero
     have foo: ¬(newNum prev < max_num) := by
       linarith
 
     have t_eq_zero := hs_t (newNum prev)
     simp [foo] at t_eq_zero
-    refine ⟨?_, t_eq_zero⟩
-    sorry
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    sorry
+    refine ⟨s_eq_zero, t_eq_zero⟩
+    intro x hx hx_not_in
+    simp [hx_not_in]
   | right a prev => sorry
 
 

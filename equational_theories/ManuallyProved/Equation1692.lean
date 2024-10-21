@@ -442,8 +442,122 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     refine ⟨s_eq_zero, t_eq_zero⟩
     intro x hx hx_not_in
     simp [hx_not_in]
-  | right a prev => sorry
+  | right prev h_prev =>
+    simp [ReverseTree.getData]
+    simp [ReverseTree.getData] at h_prev
+    obtain ⟨⟨a_coords, ⟨a_max_num, a_max_num_lt, a_eq⟩⟩, ⟨b_coords, ⟨b_max_num, b_max_num_lt, b_eq⟩⟩⟩ := tree_linear_comb prev
 
+
+    rw [a_eq, b_eq]
+    rw [xSeq, basis_n]
+    simp only [LinearIndependent.pair_iff]
+    intro s t hs_t
+
+    nth_rw 1 [← Finset.sum_extend_by_zero] at hs_t
+    nth_rw 2 [← Finset.sum_extend_by_zero] at hs_t
+
+    have a_subset: Finset.range a_max_num ⊆ Finset.range (newNum prev + 1) := by
+      refine Finset.range_subset.mpr ?_
+      linarith
+
+    have b_subset: Finset.range b_max_num ⊆ Finset.range (newNum prev + 1) := by
+      refine Finset.range_subset.mpr ?_
+      linarith
+
+    let f := λ x => s • n_q_basis x
+    have ite_eq: (if (newNum prev) ∈ Finset.range (newNum prev + 1) then f (newNum prev) else 0) = s • n_q_basis (newNum prev) := by
+      simp [f]
+
+    have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
+    rw [linearIndependent_iff'] at basis_indep
+
+    rw [← ite_eq] at hs_t
+    simp only [← Finset.sum_ite_eq] at hs_t
+
+    rw [Finset.sum_subset a_subset] at hs_t
+    rw [Finset.sum_subset b_subset] at hs_t
+    rw [← Finset.sum_sub_distrib] at hs_t
+    simp only [← ite_zero_smul] at hs_t
+    simp only [← sub_smul] at hs_t
+    rw [Finset.smul_sum] at hs_t
+    rw [← Finset.sum_add_distrib] at hs_t
+    simp only [f] at hs_t
+    simp only [← ite_zero_smul] at hs_t
+    simp only [← smul_assoc] at hs_t
+    simp only [← add_smul] at hs_t
+
+    apply (basis_indep _) at hs_t
+    refine ⟨?_, ?_⟩
+
+    have a_max_num_lt: a_max_num < newNum prev + 1 := by
+      linarith
+
+    have not_lt_a: ¬ (newNum prev < a_max_num) := by
+      linarith
+
+    have not_lt_b: ¬ (newNum prev < b_max_num) := by
+      linarith
+
+    have s_eq_zero := hs_t (newNum prev)
+    simp [not_lt_a, not_lt_b] at s_eq_zero
+    exact s_eq_zero
+
+    have noneq_coord: ∃ n, n < (min a_max_num b_max_num) ∧ a_coords n ≠ b_coords n := by
+      by_contra!
+      have a_subset_max: Finset.range a_max_num ⊆ Finset.range (max a_max_num b_max_num) := by
+        refine Finset.range_subset.mpr ?_
+        simp
+
+      have b_subset_max: Finset.range b_max_num ⊆ Finset.range (max a_max_num b_max_num) := by
+        refine Finset.range_subset.mpr ?_
+        simp
+
+      rw [← Finset.sum_extend_by_zero] at a_eq
+      rw [Finset.sum_subset a_subset_max] at a_eq
+
+      rw [← Finset.sum_extend_by_zero] at b_eq
+      rw [Finset.sum_subset b_subset_max] at b_eq
+
+
+      have sums_eq: prev.getData.a = prev.getData.b := by
+        rw [a_eq, b_eq]
+        congr
+        funext x
+        rw [this]
+        by_cases nums_eq: a_max_num = b_max_num
+        rw [nums_eq]
+        sorry
+        sorry
+      sorry
+      sorry
+      sorry
+
+    obtain ⟨n, n_lt_max, n_neq⟩ := noneq_coord
+
+    have n_neq_newnum: newNum prev ≠ n := by
+      omega
+
+    have n_lt_newnum: n < newNum prev + 1 := by
+      omega
+
+    have n_lt_a_max: n < a_max_num := by
+      omega
+
+    have n_lt_b_max: n < b_max_num := by
+      omega
+
+    have s_eq_zero := hs_t n
+    simp [n_neq_newnum, n_lt_newnum, n_lt_max, n_lt_a_max, n_lt_b_max] at s_eq_zero
+    have coord_neq: a_coords n - b_coords n ≠ 0 := by
+      exact sub_ne_zero_of_ne n_neq
+    simp [coord_neq] at s_eq_zero
+    exact s_eq_zero
+
+    intro x hx hx_not_in
+    simp [hx_not_in]
+
+    intro x hx hx_not_in
+    simp [hx_not_in]
 
 
 

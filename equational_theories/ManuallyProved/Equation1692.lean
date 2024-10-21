@@ -187,6 +187,40 @@ def treeDepth: ReverseTree → ℕ
 
 noncomputable def my_set: Finset G := ({xSeq 0, xSeq 1} : Finset G)
 
+lemma newnem_gt_one (t: ReverseTree): 1 < newNum t := by
+  induction t with
+  | root =>
+    simp [newNum]
+  | left prev h_prev =>
+    simp [newNum]
+    omega
+  | right prev h_prev =>
+    simp [newNum]
+    linarith
+
+lemma newnum_increasing (t: ReverseTree): newNum t < newNum (ReverseTree.left t) ∧ newNum t < newNum (ReverseTree.right t) := by
+  induction t with
+  | root =>
+    simp [newNum]
+  | left prev h_prev =>
+    simp [newNum]
+    have gt_zero: 1 < newNum prev := by
+      exact newnem_gt_one prev
+    refine ⟨?_, ?_⟩
+    refine Nat.sub_lt_sub_right ?_ ?_
+    linarith
+    refine Nat.mul_lt_mul_of_pos_left ?left.refine_1.refine_2.h ?left.refine_1.refine_2.hk
+    omega
+    linarith
+    omega
+  | right prev h_prev =>
+    simp [newNum]
+    have gt_zero: 1 < newNum prev := by
+      exact newnem_gt_one prev
+    refine ⟨?_, ?_⟩
+    omega
+    omega
+
 lemma tree_linear_comb_left (t: ReverseTree):
   (∃ g: ℕ -> ℚ, ∃ m: ℕ, m ≤  newNum t ∧ t.getData.a = ∑ i ∈ Finset.range m, g i • basis_n i) ∧
   (∃ g: ℕ -> ℚ, ∃ m: ℕ, m ≤ newNum t ∧ t.getData.b = ∑ i ∈ Finset.range m, g i • basis_n i) := by
@@ -213,8 +247,10 @@ lemma tree_linear_comb_left (t: ReverseTree):
     refine ⟨?_,?_⟩
     . obtain ⟨_, ⟨g, m, m_le, h_g⟩⟩ := h_prev
       rw [newNum]
+      have newnum_gt_one: 1 < newNum prev := newnem_gt_one prev
       have prev_lt_mul: newNum prev < 2 * newNum prev - 1 := by
-        sorry
+        omega
+
 
       use fun i => -1 * if i ∈ Finset.range m then g i else 0
       use m

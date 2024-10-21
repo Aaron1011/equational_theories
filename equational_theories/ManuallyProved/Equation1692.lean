@@ -287,19 +287,23 @@ lemma tree_linear_comb_left (t: ReverseTree):
       simp
       simp [xSeq, basis_n, n_q_basis]
   | right prev h_prev =>
-    simp [ReverseTree.getData]
+    simp only [ReverseTree.getData]
     refine ⟨?_,?_⟩
-    . use {newNum prev}
+    . obtain ⟨_, ⟨g, m, m_le, h_g⟩⟩ := h_prev
+      rw [newNum]
       use fun i => if i = newNum prev then 1 else 0
+      use (newNum prev) + 1
+      refine ⟨?_, ?_⟩
+      have newnum_gt_one: 1 < newNum prev := newnem_gt_one prev
+      omega
       simp
-      simp [xSeq, basis_n]
-    have sub_in_span: (prev.getData.a - prev.getData.b) ∈ Submodule.span ℚ (Set.range basis_n) := by
-      apply Basis.mem_span
-    have foo := (Finsupp.mem_span_iff_linearCombination ℚ (Set.range basis_n) (prev.getData.a - prev.getData.b)).mp sub_in_span
-    obtain ⟨l, hl⟩ := foo
-    simp [Finsupp.linearCombination_apply] at hl
-    rw [Finsupp.sum] at hl
-    sorry
+      simp [xSeq, basis_n, n_q_basis]
+    . obtain ⟨⟨g_l, m_l, m_l_le, h_g_l⟩, ⟨g, m, m_le, h_g⟩⟩ := h_prev
+
+      sorry
+
+
+
 
 
 

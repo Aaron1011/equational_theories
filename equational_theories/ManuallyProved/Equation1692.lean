@@ -507,6 +507,9 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
       sorry
       by_contra!
 
+      have finsupp_linear_a: (Finsupp.linearCombination ℚ n_q_basis) a_coords = prev.getData.a := by
+        sorry
+
       have a_eq_b: prev.getData.a = prev.getData.b := by
         apply Basis.ext_elem n_q_basis
         have a_eq_repr := Basis.linearCombination_repr n_q_basis prev.getData.a

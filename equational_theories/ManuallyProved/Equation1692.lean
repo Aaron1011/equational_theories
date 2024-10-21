@@ -183,41 +183,67 @@ def treeDepth: ReverseTree → ℕ
 --noncomputable def mkLeft (base: ReverseTree): ReverseTree := ReverseTree.left {a := -base.getData.b, b := xSeq (newNum base)} base
 --noncomputable def mkRight (base: ReverseTree): ReverseTree := ReverseTree.right {a := xSeq (newNum base), b := base.getData.a - base.getData.b} base
 
+#synth Neg (ℕ →₀ ℚ)
+
 noncomputable def my_set: Finset G := ({xSeq 0, xSeq 1} : Finset G)
 
-lemma tree_linear_comb_left (t: ReverseTree): (∃ g: ℕ -> ℚ, t.getData.a = ∑ i ∈ Finset.range (newNum t), g i • basis_n i) ∧ (∃ g: ℕ -> ℚ, t.getData.b = ∑ i ∈ Finset.range (newNum t), g i • basis_n i) := by
+lemma tree_linear_comb_left (t: ReverseTree):
+  (∃ g: ℕ -> ℚ, ∃ m: ℕ, m ≤  newNum t ∧ t.getData.a = ∑ i ∈ Finset.range m, g i • basis_n i) ∧
+  (∃ g: ℕ -> ℚ, ∃ m: ℕ, m ≤ newNum t ∧ t.getData.b = ∑ i ∈ Finset.range m, g i • basis_n i) := by
   induction t with
   | root =>
     refine ⟨?_, ?_⟩
-
     use fun i => if i = 0 then 1 else 0
+    simp [newNum]
+    use 1
     simp
     simp [ReverseTree.getData]
     simp [xSeq, basis_n]
     rw [newNum]
-    simp
+    --simp only [Finsupp.coe_basisSingleOne, Finsupp.smul_single, smul_eq_mul, mul_one]
 
     use fun i => if i = 1 then 1 else 0
     simp
+    use 2
     simp [ReverseTree.getData]
     simp [xSeq, basis_n]
-    rw [newNum]
-    simp
+
   | left prev h_prev =>
-    simp [ReverseTree.getData]
+    simp only [ReverseTree.getData]
     refine ⟨?_,?_⟩
-    . obtain ⟨_, ⟨g, h_g⟩⟩ := h_prev
+    . obtain ⟨_, ⟨g, m, m_le, h_g⟩⟩ := h_prev
       rw [newNum]
-      have newnum_gt_two: 2 < newNum prev := by
-        sorry
       have prev_lt_mul: newNum prev < 2 * newNum prev - 1 := by
         sorry
-      use fun i => -1 * g i
+
+      use fun i => -1 * if i ∈ Finset.range m then g i else 0
+      use m
+      simp [prev_lt_mul]
+      simp only [basis_n] at h_g
+      have my_subset: Finset.range (m) ⊆ Finset.range (newNum prev) := by
+        refine Finset.range_subset.mpr ?_
+        linarith
+      --rw [← Finset.sum_extend_by_zero] at h_g
+      refine ⟨?_, ?_⟩
+      apply le_trans m_le (le_of_lt prev_lt_mul)
+
+      --rw [Finset.sum_subset my_subset] at h_g
+
+      simp at h_g
+      rw [neg_eq_iff_eq_neg]
+      rw [← neg_one_zsmul]
+      rw [← Finset.sum_zsmul]
+      simp only [Finsupp.smul_single, smul_ite]
       simp
-      simp [basis_n] at h_g
-      --rw [← Finset.sum_extend_by_zero, ← Finset.sum_filter] at h_g
-      rw [← Finset.sum_extend_by_zero]
-      apply h_g
+      rw [← Fin.sum_univ_eq_sum_range]
+      simp
+
+
+
+      rw [← Fin.sum_univ_eq_sum_range] at h_g
+      exact h_g
+
+
     . use {newNum prev}
       use fun i => if i = newNum prev then 1 else 0
       simp

@@ -226,28 +226,35 @@ variable {M A : Type*}
 variable [Zero A] [SMulZeroClass M A]
 
 lemma tree_linear_comb (t: ReverseTree):
-  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ t.getData.a = ∑ i ∈ Finset.range m, g i • basis_n i) ∧
-  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ t.getData.b = ∑ i ∈ Finset.range m, g i • basis_n i) := by
+  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.card = m ∧ t.getData.a = ∑ i ∈ Finset.range m, g i • basis_n i) ∧
+  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.card = m ∧t.getData.b = ∑ i ∈ Finset.range m, g i • basis_n i) := by
   induction t with
   | root =>
     refine ⟨?_, ?_⟩
-    let f := λ i => if i = 0 then (1 : ℚ) else 0
-    have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range 1 := by
+    . let f := λ i => if i = 0 then (1 : ℚ) else 0
+      have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range 1 := by
+        simp [f]
+      use Finsupp.onFinset (Finset.range 1) f zero_outside
+      let wrapped_f := Finsupp.onFinset (Finset.range 1) f zero_outside
+      have support_eq_one: wrapped_f.support = {1} := by
+        sorry
+      simp [wrapped_f, f] at support_eq_one
+      simp [newNum]
+      use 1
+      simp
+      simp [ReverseTree.getData]
+      simp [xSeq, basis_n]
       simp [f]
-    use Finsupp.onFinset (Finset.range 1) f zero_outside
-    simp [newNum]
-    use 1
-    simp
-    simp [ReverseTree.getData]
-    simp [xSeq, basis_n]
-    simp [f]
+      simp [support_eq_one]
 
     let f := λ i => if i = 1 then (1: ℚ) else 0
     have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range 2 := by
       simp [f]
 
-    use Finsupp.onFinset (Finset.range 2) f zero_outside
-    use 2
+    have f_supp: f.support = {1} := by
+      sorry
+    simp [f] at f_supp
+
     simp only [ReverseTree.getData]
     simp only [xSeq, basis_n, n_q_basis, f]
     refine ⟨?_, ?_⟩

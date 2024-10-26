@@ -395,7 +395,11 @@ lemma tree_linear_comb (t: ReverseTree):
       rw [newNum]
       linarith
       refine ⟨?_, ?_⟩
-      sorry
+      have support_subset: (Finsupp.onFinset (Finset.range (newNum prev)) f zero_outside).support ⊆ Finset.range (newNum prev) := by
+        simp
+      have card_le := Finset.card_le_card support_subset
+      simp at card_le
+      exact card_le
 
       rfl
       intro x _ m_lt_x

@@ -723,8 +723,65 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
             exact ne_of_eq_of_ne a_coords_zero (id (Ne.symm b_m_nonzero))
           specialize all_coords_eq m hm_lt_max
           contradiction
-        . sorry
+        -- BEGIN HORRIBLE COPY-PASTE
+        . have nonzero_gt_b: ∃ m, b_max_num ≤ m ∧ m < (max a_max_num b_max_num) ∧ a_coords m ≠ 0 := by
+            by_contra!
+            have eq_sum_smaller: ∑ i ∈ Finset.range b_max_num, a_coords i • basis_n i = ∑ i ∈ Finset.range a_max_num, a_coords i • basis_n i := by
+              apply Finset.sum_subset
+              simp
+              linarith
+              intro x hx
+              specialize this x
+              simp
+              intro x_gt_a
+              specialize this x_gt_a
+              simp at hx
+              have x_le_max: x < max a_max_num b_max_num := by
+                simp
+                left
+                exact hx
+              apply this x_le_max
+            rw [← eq_sum_smaller] at a_eq
+            have a_eq_b_sum: prev.getData.a = ∑ i ∈ Finset.range b_max_num, b_coords i • basis_n i := by
+              rw [a_eq]
+              apply Finset.sum_congr
+              rfl
+              intro x hx
+              simp at hx
+              specialize all_coords_eq x
+              have x_lt_max: x < max a_max_num b_max_num := by
+                simp
+                right
+                exact hx
+              rw [all_coords_eq]
+              exact x_lt_max
+            rw [← b_eq] at a_eq_b_sum
+            rw [LinearIndependent.pair_iff'] at h_prev
+            specialize h_prev 1
+            simp at h_prev
+            contradiction
 
+            -- Prove b neq zero
+            by_contra!
+            rw [this] at h_prev
+            have ne_zero := LinearIndependent.ne_zero 0 h_prev
+            simp at ne_zero
+          obtain ⟨m, hm_gt, hm_lt_max, a_m_nonzero⟩ := nonzero_gt_b
+          have b_coords_zero: b_coords m = 0 := by
+            have m_gt_max: b_coords.support.max < m := by
+              have hm_withbot: (b_max_num : WithBot ℕ) ≤ m := by
+                exact WithBot.coe_le_coe.mpr hm_gt
+              exact gt_of_ge_of_gt hm_withbot b_support_max
+
+            have n_not_supp: m ∉ b_coords.support := by
+              apply Finset.not_mem_of_max_lt_coe m_gt_max
+            exact Finsupp.not_mem_support_iff.mp n_not_supp
+          have coord_neq_a_b: b_coords m ≠ a_coords m := by
+            exact ne_of_eq_of_ne b_coords_zero (id (Ne.symm a_m_nonzero))
+          specialize all_coords_eq m hm_lt_max
+          rw [Eq.comm] at all_coords_eq
+          contradiction
+          -- END HORRIBLE COPY-PASTE-
 
 
     have bad_noneq_coord: ∃ n, n < (max a_max_num b_max_num) ∧ a_coords n ≠ b_coords n := by

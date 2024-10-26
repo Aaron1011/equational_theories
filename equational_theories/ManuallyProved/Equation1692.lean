@@ -226,8 +226,8 @@ variable {M A : Type*}
 variable [Zero A] [SMulZeroClass M A]
 
 lemma tree_linear_comb (t: ReverseTree):
-  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.card = m ∧ t.getData.a = ∑ i ∈ Finset.range m, g i • basis_n i) ∧
-  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.card = m ∧t.getData.b = ∑ i ∈ Finset.range m, g i • basis_n i) := by
+  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.card ≤ m ∧ t.getData.a = ∑ i ∈ Finset.range m, g i • basis_n i) ∧
+  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.card ≤ m ∧ t.getData.b = ∑ i ∈ Finset.range m, g i • basis_n i) := by
   induction t with
   | root =>
     refine ⟨?_, ?_⟩
@@ -237,7 +237,6 @@ lemma tree_linear_comb (t: ReverseTree):
         simp only [f] at ha
         simp [Finsupp.single_apply_ne_zero] at ha
         simpa
-
       use f
       let wrapped_f := Finsupp.onFinset (Finset.range 1) f zero_outside
       simp [newNum]
@@ -252,20 +251,27 @@ lemma tree_linear_comb (t: ReverseTree):
 
     let f := Finsupp.single 1 (1 : ℚ)
     have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range 2 := by
-      simp [f]
+      intro a ha
+      simp only [f] at ha
+      simp [Finsupp.single_apply_ne_zero] at ha
+      simp
+      linarith
 
-    have f_supp: f.support = {1} := by
-      sorry
-    simp [f] at f_supp
-
+    use f
+    use 2
     simp only [ReverseTree.getData]
     simp only [xSeq, basis_n, n_q_basis, f]
     refine ⟨?_, ?_⟩
     simp [newNum]
+    refine ⟨?_, ?_⟩
+    rw [Finsupp.support_single_ne_zero]
+    simp
+    simp
+
     ext n
     by_cases n_eq_one: n = 1
-    . simp [n_eq_one]
-    . simp [n_eq_one]
+    . simp [n_eq_one, Finsupp.single_apply]
+    . simp [n_eq_one, Finsupp.single_apply]
   | left prev h_prev =>
     simp only [ReverseTree.getData]
     refine ⟨?_,?_⟩

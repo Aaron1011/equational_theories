@@ -427,7 +427,7 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
   | left prev h_prev =>
     simp [ReverseTree.getData]
     simp [ReverseTree.getData] at h_prev
-    obtain ⟨_, ⟨b_coords, ⟨max_num, max_num_lt, b_eq⟩⟩⟩ := tree_linear_comb prev
+    obtain ⟨_, ⟨b_coords, ⟨max_num, max_num_lt, b_coord_card, b_eq⟩⟩⟩ := tree_linear_comb prev
 
 
     have nonzero_b_coord: ∃n, n < max_num ∧ b_coords n ≠ 0 := by
@@ -523,7 +523,7 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
   | right prev h_prev =>
     simp [ReverseTree.getData]
     simp [ReverseTree.getData] at h_prev
-    obtain ⟨⟨a_coords, ⟨a_max_num, a_max_num_lt, a_eq⟩⟩, ⟨b_coords, ⟨b_max_num, b_max_num_lt, b_eq⟩⟩⟩ := tree_linear_comb prev
+    obtain ⟨⟨a_coords, ⟨a_max_num, a_max_num_lt, a_card_le, a_eq⟩⟩, ⟨b_coords, ⟨b_max_num, b_max_num_lt, b_card_le, b_eq⟩⟩⟩ := tree_linear_comb prev
 
 
     rw [a_eq, b_eq]
@@ -637,8 +637,19 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     have n_lt_newnum: n < newNum prev + 1 := by
       omega
 
-    have a_coord_zero_gt: ∀ n, a_max_num ≤ n → a_coords n = 0 := by
+    have a_max_lt: a_coords.support.max < a_max_num := by
       sorry
+
+    have a_coord_zero_gt: ∀ n, a_max_num ≤ n → a_coords n = 0 := by
+      intro n hn
+      have hn_withbot: (a_max_num : WithBot ℕ) ≤ n := by
+        exact WithBot.coe_le_coe.mpr hn
+      have n_gt_max: a_coords.support.max < n := by
+        exact gt_of_ge_of_gt hn_withbot a_max_lt
+
+      have n_not_supp: n ∉ a_coords.support := by
+        apply Finset.not_mem_of_max_lt_coe n_gt_max
+      exact Finsupp.not_mem_support_iff.mp n_not_supp
 
     have b_coord_zero_gt: ∀ n, b_max_num ≤ n → b_coords n = 0 := by
       sorry

@@ -231,21 +231,20 @@ lemma tree_linear_comb (t: ReverseTree):
   induction t with
   | root =>
     refine ⟨?_, ?_⟩
-    . let f := λ i => if i = 0 then (1 : ℚ) else 0
+    . let f := Finsupp.single 0 (1 : ℚ)
       have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range 1 := by
         simp [f]
-      use Finsupp.onFinset (Finset.range 1) f zero_outside
+      use f
       let wrapped_f := Finsupp.onFinset (Finset.range 1) f zero_outside
-      have support_eq_one: wrapped_f.support = {1} := by
-        sorry
-      simp [wrapped_f, f] at support_eq_one
       simp [newNum]
       use 1
       simp
       simp [ReverseTree.getData]
       simp [xSeq, basis_n]
       simp [f]
-      simp [support_eq_one]
+      rw [Finsupp.support_single_ne_zero]
+      simp
+      simp
 
     let f := λ i => if i = 1 then (1: ℚ) else 0
     have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range 2 := by

@@ -637,6 +637,39 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     exact s_eq_zero
 
     have noneq_coord: ∃ n, n < (max a_max_num b_max_num) ∧ a_coords n ≠ b_coords n := by
+      by_cases a_eq_b: a_max_num = b_max_num
+      . by_contra!
+        rw [a_eq_b] at this
+        simp at this
+        rw [a_eq_b] at a_eq
+        have a_eq_sum_b: prev.getData.a = ∑ i ∈ Finset.range b_max_num, b_coords i • basis_n i := by
+          rw [a_eq]
+          apply Finset.sum_congr
+          rfl
+          intro x hx
+          have x_lt_b_max: x < b_max_num := by
+            exact Finset.mem_range.mp hx
+          specialize this x x_lt_b_max
+          rw [this]
+        rw [← b_eq] at a_eq_sum_b
+        rw [LinearIndependent.pair_iff'] at h_prev
+        specialize h_prev 1
+        simp at h_prev
+        contradiction
+
+        -- Prove a neq zero
+        by_contra!
+        rw [this] at h_prev
+        have ne_zero := LinearIndependent.ne_zero 0 h_prev
+        simp at ne_zero
+      . sorry
+
+
+
+
+
+
+    have bad_noneq_coord: ∃ n, n < (max a_max_num b_max_num) ∧ a_coords n ≠ b_coords n := by
       by_contra!
 
       have coords_nonempty: Finset.Nonempty a_coords.support := by

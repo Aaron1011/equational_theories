@@ -543,12 +543,19 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     exact s_eq_zero
 
     have noneq_coord: ∃ n, n < (max a_max_num b_max_num) ∧ a_coords n ≠ b_coords n := by
-      by_cases num_neq: a_max_num ≠  b_max_num
-      sorry
       by_contra!
 
-      have finsupp_linear_a: (Finsupp.linearCombination ℚ n_q_basis) a_coords = prev.getData.a := by
+      have coords_nonempty: Finset.Nonempty a_coords.support := by
         sorry
+
+      have g_eq_max_supp: a_max_num = a_coords.support.max' coords_nonempty  := by
+        sorry
+
+      have finsupp_linear_a: (Finsupp.linearCombination ℚ n_q_basis) a_coords = prev.getData.a := by
+        rw [a_eq]
+        rw [g_eq_max_supp]
+        simp
+
 
       have a_eq_b: prev.getData.a = prev.getData.b := by
         apply Basis.ext_elem n_q_basis
@@ -602,7 +609,7 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     simp [n_neq_newnum, n_lt_newnum, n_lt_max] at t_eq_zero
     have coord_neq: a_coords n - b_coords n ≠ 0 := by
       exact sub_ne_zero_of_ne n_neq
-    have diff_eq_zero: ((if n < a_max_num then a_coords n else 0) - if n < b_max_num then b_coords n else 0) ≠ 0 := by
+    have diff_neq_zero: ((if n < a_max_num then a_coords n else 0) - if n < b_max_num then b_coords n else 0) ≠ 0 := by
 
       by_cases n_lt_a_max: n < a_max_num
       . simp [n_lt_a_max]
@@ -625,7 +632,7 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
         . simp only [n_lt_b_max]
           simp
           simp [n_lt_a_max, n_lt_b_max] at n_lt_max
-    simp [diff_eq_zero] at t_eq_zero
+    simp [diff_neq_zero] at t_eq_zero
     exact t_eq_zero
 
     intro x hx hx_not_in

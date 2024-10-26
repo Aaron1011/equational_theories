@@ -226,8 +226,8 @@ variable {M A : Type*}
 variable [Zero A] [SMulZeroClass M A]
 
 lemma tree_linear_comb (t: ReverseTree):
-  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.card ≤ m ∧ t.getData.a = ∑ i ∈ Finset.range m, g i • basis_n i) ∧
-  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.card ≤ m ∧ t.getData.b = ∑ i ∈ Finset.range m, g i • basis_n i) := by
+  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.max < m ∧ t.getData.a = ∑ i ∈ Finset.range m, g i • basis_n i) ∧
+  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.max < m ∧ t.getData.b = ∑ i ∈ Finset.range m, g i • basis_n i) := by
   induction t with
   | root =>
     refine ⟨?_, ?_⟩
@@ -305,7 +305,12 @@ lemma tree_linear_comb (t: ReverseTree):
       refine ⟨?_, ?_⟩
       . have supp_subset := Finsupp.support_mapRange (f := neg_val) (hf := neg_val_zero) (g := g)
         have card_le := Finset.card_le_card supp_subset
-        linarith
+        have neg_val_injective: Function.Injective neg_val := by
+          simp [neg_val]
+          exact neg_injective
+        have maprange_supp_eq := Finsupp.support_mapRange_of_injective (he0 := neg_val_zero) g neg_val_injective
+        rw [maprange_supp_eq]
+        exact h_g.1
 
 
       simp only [Finsupp.mapRange_apply, neg_val]
@@ -324,10 +329,25 @@ lemma tree_linear_comb (t: ReverseTree):
       refine ⟨?_, ?_⟩
       . rw [Finsupp.support_single_ne_zero]
         simp
-        linarith
-      . simp [Finsupp.single_apply]
-        -- TODO - how does this work?
-        simp [apply_ite (Finsupp.single _)]
+        have newnum_gt_zero: 1 < newNum prev := by
+          exact newnem_gt_one prev
+        have one_eq_coe: @OfNat.ofNat (WithBot ℕ) 1 One.toOfNat1 = ↑(1: ℕ) := by
+          simp
+        rw [one_eq_coe]
+        have neq_bot: ↑(newNum prev) ≠ ⊥ := by
+          simp
+          linarith
+
+        have real_lt: newNum prev < newNum prev + 1 := by
+          linarith
+        have other := (WithBot.coe_lt_coe.mpr real_lt)
+        simp at other
+        exact other
+        simp
+
+      -- TODO - how does this work?
+      simp [Finsupp.single_apply]
+      simp [apply_ite (Finsupp.single _)]
         -- @Finset.sum n (n →₀ R) Finsupp.instAddCommMonoid Finset.univ fun x ↦ Finsupp.single x (if i = x then a else 0) : n →₀ R
         -- @Finset.sum ℕ (ℕ →₀ ℚ) Finsupp.instAddCommMonoid (Finset.range (newNum prev + 1)) fun x ↦
   | right prev h_prev =>
@@ -399,7 +419,27 @@ lemma tree_linear_comb (t: ReverseTree):
         simp
       have card_le := Finset.card_le_card support_subset
       simp at card_le
-      exact card_le
+      by_cases supp_empty: (Finsupp.onFinset (Finset.range (newNum prev)) f zero_outside).support = ∅
+      . rw [supp_empty]
+        simp
+        linarith
+      . have set_nonempty: Set.Nonempty ((Finsupp.onFinset (Finset.range (newNum prev)) f zero_outside).support: Set ℕ) := by
+          sorry
+        have foo := Finset.max'_subset set_nonempty support_subset
+        have newnum_gt_one := newnem_gt_one prev
+        have newnum_new_zero: newNum prev ≠ 0 := by linarith
+        have finset_nrage_nonempty: (Finset.range (newNum prev)).Nonempty := by
+          simp
+          linarith
+        have zero_lt_newnum: 0 < newNum prev := by
+          linarith
+        have maxprime_lt: (Finset.range (newNum prev)).max' finset_nrage_nonempty < (newNum prev) := by
+          simp
+
+
+
+
+
 
       rfl
       intro x _ m_lt_x

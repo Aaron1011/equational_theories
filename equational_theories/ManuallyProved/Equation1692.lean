@@ -247,7 +247,8 @@ lemma tree_linear_comb (t: ReverseTree):
       simp [f]
       rw [Finsupp.support_single_ne_zero]
       simp
-      simp
+      linarith
+
 
     let f := Finsupp.single 1 (1 : ℚ)
     have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range 2 := by
@@ -312,16 +313,23 @@ lemma tree_linear_comb (t: ReverseTree):
       exact h_g.2
     . obtain ⟨_, ⟨g, m, _⟩⟩ := h_prev
       rw [newNum]
-      let f := λ i => if i = newNum prev then (1 : ℚ) else 0
-      have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range (newNum prev + 1) := by
-        simp [f]
-      use Finsupp.onFinset _ f (zero_outside)
+      let f := Finsupp.single (newNum prev) (1 : ℚ)
+      use f
       use (newNum prev) + 1
       refine ⟨?_, ?_⟩
       have newnum_gt_one: 1 < newNum prev := newnem_gt_one prev
       omega
       simp [f]
       simp [xSeq, basis_n, n_q_basis]
+      refine ⟨?_, ?_⟩
+      . rw [Finsupp.support_single_ne_zero]
+        simp
+        linarith
+      . simp [Finsupp.single_apply]
+        -- TODO - how does this work?
+        simp [apply_ite (Finsupp.single _)]
+        -- @Finset.sum n (n →₀ R) Finsupp.instAddCommMonoid Finset.univ fun x ↦ Finsupp.single x (if i = x then a else 0) : n →₀ R
+        -- @Finset.sum ℕ (ℕ →₀ ℚ) Finsupp.instAddCommMonoid (Finset.range (newNum prev + 1)) fun x ↦
   | right prev h_prev =>
     simp only [ReverseTree.getData]
     refine ⟨?_,?_⟩

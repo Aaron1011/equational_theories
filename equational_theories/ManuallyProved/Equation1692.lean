@@ -366,7 +366,15 @@ lemma tree_linear_comb (t: ReverseTree):
       refine ⟨?_, ?_⟩
       . rw [Finsupp.support_single_ne_zero]
         simp
-        linarith
+
+        have real_lt: newNum prev < newNum prev + 1 := by
+          linarith
+        have other := (WithBot.coe_lt_coe.mpr real_lt)
+        simp at other
+        exact other
+
+        simp
+
       . simp [Finsupp.single_apply]
         simp [apply_ite (Finsupp.single _)]
 
@@ -422,7 +430,9 @@ lemma tree_linear_comb (t: ReverseTree):
       by_cases supp_empty: (Finsupp.onFinset (Finset.range (newNum prev)) f zero_outside).support = ∅
       . rw [supp_empty]
         simp
-        linarith
+        -- TODO - why can't we just use WithBot.bot_lt_coe
+        -- simp [WithBot.bot_lt_coe]
+        exact ⟨newNum prev, rfl, fun _ hb => (Option.not_mem_none _ hb).elim⟩
       . have set_nonempty: Set.Nonempty ((Finsupp.onFinset (Finset.range (newNum prev)) f zero_outside).support: Set ℕ) := by
           sorry
         have foo := Finset.max'_subset set_nonempty support_subset
@@ -435,6 +445,15 @@ lemma tree_linear_comb (t: ReverseTree):
           linarith
         have maxprime_lt: (Finset.range (newNum prev)).max' finset_nrage_nonempty < (newNum prev) := by
           simp
+        rw [← Finset.coe_max' set_nonempty]
+        simp
+
+        have desired: ((Finsupp.onFinset (Finset.range (newNum prev)) f zero_outside).support.max' set_nonempty) < newNum prev := by
+          linarith
+        have other := (WithBot.coe_lt_coe.mpr desired)
+        exact other
+
+
 
 
 

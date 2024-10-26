@@ -436,7 +436,7 @@ lemma tree_linear_comb (t: ReverseTree):
       . have set_nonempty: Set.Nonempty ((Finsupp.onFinset (Finset.range (newNum prev)) f zero_outside).support: Set ℕ) := by
           simp at supp_empty
           simp [Finset.coe_nonempty]
-          exact supp_empty
+          exact Finsupp.support_nonempty_iff.mpr supp_empty
 
         have foo := Finset.max'_subset set_nonempty support_subset
         have newnum_gt_one := newnem_gt_one prev
@@ -579,7 +579,7 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
   | right prev h_prev =>
     simp [ReverseTree.getData]
     simp [ReverseTree.getData] at h_prev
-    obtain ⟨⟨a_coords, ⟨a_max_num, a_max_num_lt, a_card_le, a_eq⟩⟩, ⟨b_coords, ⟨b_max_num, b_max_num_lt, b_card_le, b_eq⟩⟩⟩ := tree_linear_comb prev
+    obtain ⟨⟨a_coords, ⟨a_max_num, a_max_num_lt, a_support_max, a_eq⟩⟩, ⟨b_coords, ⟨b_max_num, b_max_num_lt, b_support_max, b_eq⟩⟩⟩ := tree_linear_comb prev
 
 
     rw [a_eq, b_eq]
@@ -693,22 +693,27 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     have n_lt_newnum: n < newNum prev + 1 := by
       omega
 
-    have a_max_lt: a_coords.support.max < a_max_num := by
-      sorry
-
     have a_coord_zero_gt: ∀ n, a_max_num ≤ n → a_coords n = 0 := by
       intro n hn
       have hn_withbot: (a_max_num : WithBot ℕ) ≤ n := by
         exact WithBot.coe_le_coe.mpr hn
       have n_gt_max: a_coords.support.max < n := by
-        exact gt_of_ge_of_gt hn_withbot a_max_lt
+        exact gt_of_ge_of_gt hn_withbot a_support_max
 
       have n_not_supp: n ∉ a_coords.support := by
         apply Finset.not_mem_of_max_lt_coe n_gt_max
       exact Finsupp.not_mem_support_iff.mp n_not_supp
 
     have b_coord_zero_gt: ∀ n, b_max_num ≤ n → b_coords n = 0 := by
-      sorry
+      intro n hn
+      have hn_withbot: (b_max_num : WithBot ℕ) ≤ n := by
+        exact WithBot.coe_le_coe.mpr hn
+      have n_gt_max: b_coords.support.max < n := by
+        exact gt_of_ge_of_gt hn_withbot b_support_max
+
+      have n_not_supp: n ∉ b_coords.support := by
+        apply Finset.not_mem_of_max_lt_coe n_gt_max
+      exact Finsupp.not_mem_support_iff.mp n_not_supp
 
     have t_eq_zero := hs_t n
     simp [n_neq_newnum, n_lt_newnum, n_lt_max] at t_eq_zero

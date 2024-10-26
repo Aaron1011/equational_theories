@@ -233,7 +233,11 @@ lemma tree_linear_comb (t: ReverseTree):
     refine ⟨?_, ?_⟩
     . let f := Finsupp.single 0 (1 : ℚ)
       have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range 1 := by
-        simp [f]
+        intro a ha
+        simp only [f] at ha
+        simp [Finsupp.single_apply_ne_zero] at ha
+        simpa
+
       use f
       let wrapped_f := Finsupp.onFinset (Finset.range 1) f zero_outside
       simp [newNum]
@@ -246,7 +250,7 @@ lemma tree_linear_comb (t: ReverseTree):
       simp
       simp
 
-    let f := λ i => if i = 1 then (1: ℚ) else 0
+    let f := Finsupp.single 1 (1 : ℚ)
     have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range 2 := by
       simp [f]
 

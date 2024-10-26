@@ -678,7 +678,15 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
         funext x
         rw [this]
         by_cases nums_eq: a_max_num = b_max_num
-        rw [nums_eq]
+        . rw [nums_eq]
+        . by_cases a_lt_b: a_max_num < b_max_num
+          . by_cases x_ge_a: a_max_num ≤ x
+            . simp
+              have x_not_lt: ¬(x < a_max_num) := by
+                linarith
+              simp [x_not_lt]
+            . sorry
+          . simp [a_lt_b]
         sorry
         sorry
       sorry

@@ -335,17 +335,22 @@ lemma tree_linear_comb (t: ReverseTree):
     refine ⟨?_,?_⟩
     . obtain ⟨_, ⟨g, m, _⟩⟩ := h_prev
       rw [newNum]
-      let f := λ i => if i = newNum prev then (1 : ℚ) else 0
-      have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range (newNum prev + 1) := by
-        simp [f]
-      use Finsupp.onFinset _ f (zero_outside)
+      let f := Finsupp.single (newNum prev) (1 : ℚ)
+      use f
       use (newNum prev) + 1
       refine ⟨?_, ?_⟩
       have newnum_gt_one: 1 < newNum prev := newnem_gt_one prev
       omega
       simp [f]
       simp [xSeq, basis_n, n_q_basis]
-    . obtain ⟨⟨g_l, m_l, m_l_le, h_g_l⟩, ⟨g, m, m_le, h_g⟩⟩ := h_prev
+      refine ⟨?_, ?_⟩
+      . rw [Finsupp.support_single_ne_zero]
+        simp
+        linarith
+      . simp [Finsupp.single_apply]
+        simp [apply_ite (Finsupp.single _)]
+
+    . obtain ⟨⟨g_l, m_l, m_l_le, g_l_card, h_g_l⟩, ⟨g, m, m_le, g_card, h_g⟩⟩ := h_prev
       have my_subset: Finset.range (m_l) ⊆ Finset.range (newNum prev) := by
         refine Finset.range_subset.mpr ?_
         linarith
@@ -389,13 +394,14 @@ lemma tree_linear_comb (t: ReverseTree):
 
       rw [newNum]
       linarith
+      refine ⟨?_, ?_⟩
+      sorry
 
       rfl
       intro x _ m_lt_x
       simp [m_lt_x]
       intro x _ m_lt_x
       simp [m_lt_x]
-
 
 lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by
   induction t with

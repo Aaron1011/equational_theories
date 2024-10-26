@@ -281,15 +281,12 @@ lemma tree_linear_comb (t: ReverseTree):
       have prev_lt_mul: newNum prev < 2 * newNum prev - 1 := by
         omega
 
-      let f := λ i => -1 * if i ∈ Finset.range m then g i else 0
-      have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range m := by
-        simp only [f]
-        intro a ha
-        simp at ha
-        simp
-        exact ha.1
+      let neg_val := λ i => (-1: ℚ) * i
+      have neg_val_zero: neg_val 0 = 0 := by
+        simp [neg_val]
+      let f := Finsupp.mapRange neg_val neg_val_zero g
 
-      use Finsupp.onFinset _ f zero_outside
+      use f
       use m
       simp [prev_lt_mul]
       simp only [basis_n] at h_g
@@ -304,8 +301,15 @@ lemma tree_linear_comb (t: ReverseTree):
       rw [← Fin.sum_univ_eq_sum_range]
       rw [← Fin.sum_univ_eq_sum_range] at h_g
       simp only [f]
+      refine ⟨?_, ?_⟩
+      . have supp_subset := Finsupp.support_mapRange (f := neg_val) (hf := neg_val_zero) (g := g)
+        have card_le := Finset.card_le_card supp_subset
+        linarith
+
+
+      simp only [Finsupp.mapRange_apply, neg_val]
       simp
-      exact h_g
+      exact h_g.2
     . obtain ⟨_, ⟨g, m, _⟩⟩ := h_prev
       rw [newNum]
       let f := λ i => if i = newNum prev then (1 : ℚ) else 0

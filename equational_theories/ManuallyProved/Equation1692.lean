@@ -223,7 +223,7 @@ lemma newnum_increasing (t: ReverseTree): newNum t < newNum (ReverseTree.left t)
     omega
 
 lemma newnum_injective (t1: ReverseTree) (t2: ReverseTree) (h_eq: newNum t1 = newNum t2): t1 = t2 := by
-  induction t1 with
+  induction t1 generalizing t2 with
   | root =>
     have t2_root: t2 = ReverseTree.root := by
       by_contra!
@@ -234,15 +234,7 @@ lemma newnum_injective (t1: ReverseTree) (t2: ReverseTree) (h_eq: newNum t1 = ne
         have even_sub: Even (2 * newNum prev - 1) := by
           rw [← h_eq]
           simp
-        have not_even: ¬Even (2 * newNum prev - 1) := by
-          have gt_one: 1 < newNum prev := by
-            exact newnem_gt_one prev
-          have gt_zero: 0 < newNum prev := by
-            linarith
-          have not_div := Nat.two_not_dvd_two_mul_sub_one gt_zero
-          apply even_iff_two_dvd.not.mpr at not_div
-          exact not_div
-        contradiction
+        omega
       | ReverseTree.right prev =>
         -- TODO - how is this simpliffying to `newNum prev = 1`?
         simp [newNum] at h_eq
@@ -252,7 +244,35 @@ lemma newnum_injective (t1: ReverseTree) (t2: ReverseTree) (h_eq: newNum t1 = ne
           linarith
         contradiction
     rw [t2_root]
-  | left prev h_prev => sorry
+  | left prev h_prev =>
+    have t2_left: ∃ d, t2 = ReverseTree.left d := by
+      by_contra!
+      match t2 with
+      | ReverseTree.root =>
+        simp [newNum] at h_eq
+        omega
+      | ReverseTree.left prev2 =>
+        specialize this prev2
+        contradiction
+      | ReverseTree.right prev2 =>
+        simp [newNum] at h_eq
+        have gt_one: 1 < newNum prev := by
+          exact newnem_gt_one prev
+        omega
+    obtain ⟨d, hd⟩ := t2_left
+
+    have d_num_eq: newNum prev = newNum d := by
+      rw [hd] at h_eq
+      simp [newNum] at h_eq
+      omega
+
+    have d_eq_prev: d = prev := by
+      specialize h_prev d d_num_eq
+      rw [Eq.comm] at h_prev
+      exact h_prev
+    rw [d_eq_prev] at hd
+    rw [Eq.comm] at hd
+    exact hd
   | right prev h_prev => sorry
 
 variable {M A : Type*}

@@ -931,7 +931,17 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     simp [hx_not_in]
 
 
-lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.b): t1 = t2 := by
+-- High-level idea:
+-- If we have two distinct tree nodes with the same 'a' value, then those trees have different 'newNum' values (since they're distinct)
+-- We can then write 'a' in two ways:
+
+-- ∑ i = 0..(newNum t1), t1_coord i * basis_n i
+-- ∑ i = 0..(newNum t2), t2_coord i * basis_n i
+
+-- This should give us a contradiction by the fact that the basis representation of 'a' is unique
+-- This requires that we actually have a nonzero t1_coord that's > (newNum t1), where newNum t1 < newNum t2
+-- I already did something like this in the linear independency proof, so I should be able to reuse that
+lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by
   sorry
 
 

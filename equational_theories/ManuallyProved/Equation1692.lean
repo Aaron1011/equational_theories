@@ -231,9 +231,6 @@ lemma newnum_injective (t1: ReverseTree) (t2: ReverseTree) (h_eq: newNum t1 = ne
       | ReverseTree.root => contradiction
       | ReverseTree.left prev =>
         simp [newNum] at h_eq
-        have even_sub: Even (2 * newNum prev - 1) := by
-          rw [← h_eq]
-          simp
         omega
       | ReverseTree.right prev =>
         -- TODO - how is this simpliffying to `newNum prev = 1`?

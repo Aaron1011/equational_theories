@@ -222,6 +222,39 @@ lemma newnum_increasing (t: ReverseTree): newNum t < newNum (ReverseTree.left t)
     omega
     omega
 
+lemma newnum_injective (t1: ReverseTree) (t2: ReverseTree) (h_eq: newNum t1 = newNum t2): t1 = t2 := by
+  induction t1 with
+  | root =>
+    have t2_root: t2 = ReverseTree.root := by
+      by_contra!
+      match t2 with
+      | ReverseTree.root => contradiction
+      | ReverseTree.left prev =>
+        simp [newNum] at h_eq
+        have even_sub: Even (2 * newNum prev - 1) := by
+          rw [← h_eq]
+          simp
+        have not_even: ¬Even (2 * newNum prev - 1) := by
+          have gt_one: 1 < newNum prev := by
+            exact newnem_gt_one prev
+          have gt_zero: 0 < newNum prev := by
+            linarith
+          have not_div := Nat.two_not_dvd_two_mul_sub_one gt_zero
+          apply even_iff_two_dvd.not.mpr at not_div
+          exact not_div
+        contradiction
+      | ReverseTree.right prev =>
+        -- TODO - how is this simpliffying to `newNum prev = 1`?
+        simp [newNum] at h_eq
+        have gt_one: 1 < newNum prev := by
+          exact newnem_gt_one prev
+        have not_eq_one: newNum prev ≠ 1 := by
+          linarith
+        contradiction
+    rw [t2_root]
+  | left prev h_prev => sorry
+  | right prev h_prev => sorry
+
 variable {M A : Type*}
 variable [Zero A] [SMulZeroClass M A]
 
@@ -850,6 +883,9 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     intro x hx hx_not_in
     simp [hx_not_in]
 
+
+lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.b): t1 = t2 := by
+  sorry
 
 
 -- inductive MyTree {α: Type} where

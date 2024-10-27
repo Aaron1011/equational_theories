@@ -273,7 +273,37 @@ lemma newnum_injective (t1: ReverseTree) (t2: ReverseTree) (h_eq: newNum t1 = ne
     rw [d_eq_prev] at hd
     rw [Eq.comm] at hd
     exact hd
-  | right prev h_prev => sorry
+
+  | right prev h_prev =>
+    have t2_right: ∃ d, t2 = ReverseTree.right d := by
+      by_contra!
+      match t2 with
+      | ReverseTree.root =>
+        simp [newNum] at h_eq
+        have gt_one: 1 < newNum prev := by
+          exact newnem_gt_one prev
+        omega
+      | ReverseTree.left prev2 =>
+        simp [newNum] at h_eq
+        have gt_one: 1 < newNum prev := by
+          exact newnem_gt_one prev
+        omega
+      | ReverseTree.right prev2 =>
+        specialize this prev2
+        contradiction
+    obtain ⟨d, hd⟩ := t2_right
+    have d_num_eq: newNum prev = newNum d := by
+      rw [hd] at h_eq
+      simp [newNum] at h_eq
+      omega
+
+    have d_eq_prev: d = prev := by
+      specialize h_prev d d_num_eq
+      rw [Eq.comm] at h_prev
+      exact h_prev
+    rw [d_eq_prev] at hd
+    rw [Eq.comm] at hd
+    exact hd
 
 variable {M A : Type*}
 variable [Zero A] [SMulZeroClass M A]

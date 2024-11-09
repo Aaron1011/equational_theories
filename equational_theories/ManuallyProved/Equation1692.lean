@@ -931,6 +931,28 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     simp [hx_not_in]
 
 
+
+-- Latest idea:
+-- Suppose two distinct nodes have the same 'a' value.
+-- If they're both right trees, contradiction - all right trees have unique 'a' values
+-- If one is left and the other is right, then we have a fresh basis element equal to the negation of some linear combination - this is impossible, by linear independence. Todo - what if we have -(-(a))
+-- So, they must both be left trees:
+-- * Now consider their parents, which look like (_, -a)
+--   * If both parents are left trees - we know that left trees have unique 'b' values so their parents must be the same node. But then our original nodes are left children of the same parents, so they're equal - contradiction
+--   * If one is left and the other is right, then we have a fresh basis (from the left tree) equal to 'p - q' (a lienar combination of basis elements),  which is a condiction (TODO - what if 'q' is zero?)
+--   So, both parents must be right trees.
+--   The parents look like (p, a) and (q, a).
+
+--   The grantparents are then (c, d) and (e, f) with c - d = a and e - f = a
+    -- If both the grandparents are right trees, then 
+-- Another bad idea:
+-- New proof idea:
+-- * A pair (a, b) always have disjoint basis elements (this is stronger than linear independency - e.g. two non-perpendiculatr vectors in the plane are linearly independent)
+--   Prove this by induction
+-- 
+
+
+-- BAD - highest index can decrease (e.g. x3 -> x1 + x2),  so this won't work
 -- High-level idea:
 -- If we have two distinct tree nodes with the same 'a' value, then those trees have different 'newNum' values (since they're distinct)
 -- We can then write 'a' in two ways:
@@ -941,7 +963,23 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
 -- This should give us a contradiction by the fact that the basis representation of 'a' is unique
 -- This requires that we actually have a nonzero t1_coord that's > (newNum t1), where newNum t1 < newNum t2
 -- I already did something like this in the linear independency proof, so I should be able to reuse that
+----------
+-- 
+
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by
+  by_contra!
+  have newnum_neq: newNum t1 ≠ newNum t2 := by
+    intro h_eq
+    have t1_eq_t2: t1 = t2 := by
+      apply newnum_injective
+      exact h_eq
+    contradiction
+  obtain ⟨⟨first_coords, first_m, h_first_m, first_m_supp, a_eq_first⟩, _⟩ := tree_linear_comb t1
+  obtain ⟨⟨second_coords, second_m, h_second_m, second_m_supp, a_eq_second⟩, _⟩ := tree_linear_comb t2
+
+  rw [h_a_eq] at a_eq_first
+  rw [a_eq_first] at a_eq_second
+
   sorry
 
 

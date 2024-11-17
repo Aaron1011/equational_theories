@@ -21,6 +21,8 @@ noncomputable abbrev all_basis := (λ n: ℕ => (n, basis_n n)) '' Set.univ
 
 -- 23424 = 2**7 + higher_order
 -- 23424 mod 2**8 = (2**7 + higher_order) mod 2**8 = 2**7 +
+-- let 'k' be position of least signficiant bit
+-- Take 'n mod (k + 1')
 
 theorem foo: 1 = 1 := by
   -- Actual start of proof
@@ -191,13 +193,19 @@ theorem foo: 1 = 1 := by
       .
         let bits := k.bits
         have first_one := List.findIdx? (fun b => b) bits
-        match first_one with
-        | none =>
-          have k_eq_zero: k = 0 := by
-            sorry
-
-        | some pos =>
+        have is_some: first_one.isSome := by
+          by_contra!
+          -- Use the fact that k is not zero
           sorry
+        let first_n := Option.get first_one is_some
+        simp [s_i]
+        use first_n
+        left
+        simp [all_basis] at e_k_in_basis
+        refine ⟨e_k_in_basis, ?_⟩
+        -- TODO - prove that 'k = 2^n mod 2^(n + 1)', where n is the smallest power of 2 dividing k
+        -- 2^(n+1) is always even, so the higher powers of 2 are multiples of it??
+
 
       -- Nat.digits_two_eq_bits
 
@@ -1429,6 +1437,17 @@ lemma bad_partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getDa
 
 -- def treeAt(n: ℕ ): MyTree (α := String) :=
 --   MyTree.left { MyTree.root {a := "a", b := "b"}
+
+noncomputable abbrev diamond (f: G → G) (x y: G) := x + (f (y - x))
+infix:50    " ⋄ " => diamond
+
+lemma first_equiv (f: G → G) (x y: G):
+  (diamond f (x + (y - x) + (f (-(y - x)))) (diamond f (x + (y - x) + (f (-(y - x)))) (x + y - x))) = x + (y - x) + (f (-(y - x))) + (f (f (- (f (- (y - x))))))  := by
+    simp
+
+lemma functional_equiv (f: G → G) (x y: G):
+  (f (f (-(f x))) = x - (f x)) ↔ (x = diamond f (x + (y - x) + (f (-(y - x)))) (diamond f (x + (y - x) + (f (-(y - x)))) (x + y - x))) := by
+  simp [diamond]
 
 
 noncomputable def total_function (x: G): G := by

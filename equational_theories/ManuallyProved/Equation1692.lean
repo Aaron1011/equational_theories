@@ -163,7 +163,7 @@ lemma xseq_injective: Function.Injective xSeq := by
   have injective_imp := @single_injective n_1 n_2
   exact injective_imp h_eq
 
-class TreeData where
+structure TreeData where
   a: G
   b: G
 
@@ -950,7 +950,9 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
   | .right t1_parent =>
     match t2 with
     | .root => sorry
-    | .left t2_parent => sorry
+    | .left t2_parent =>
+
+      sorry
     | .right t2_parent =>
       -- If they're both right trees, contradiction - all right trees have unique 'a' values
       simp [ReverseTree.getData] at h_a_eq

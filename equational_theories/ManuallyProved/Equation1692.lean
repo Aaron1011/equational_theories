@@ -941,6 +941,37 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     intro x hx hx_not_in
     simp [hx_not_in]
 
+
+lemma tree_supp_disjoint (t: ReverseTree): t.getData.b.support ∩ t.getData.a.support = ∅ := by
+  induction t with
+    | root =>
+      simp [ReverseTree.getData, xSeq]
+      have one_ne_zero: (1: ℚ) ≠ 0 := by
+        simp
+      rw [Finsupp.support_single_ne_zero 0 one_ne_zero]
+      rw [Finsupp.support_single_ne_zero 1 one_ne_zero]
+      simp
+    | left parent h_parent =>
+        simp [ReverseTree.getData, xSeq]
+        obtain ⟨_, g, m, m_le_newnum, m_supp_lt, b_linear_comb⟩ := tree_linear_comb parent
+        rw [b_linear_comb]
+        by_contra!
+        obtain ⟨x, hx⟩ := Finset.Nonempty.exists_mem (Finset.nonempty_of_ne_empty this)
+        have x_in_cur: x ∈ (fun₀ | newNum parent => (1: ℚ)).support := by
+          exact Finset.mem_of_mem_inter_left hx
+
+        have x_in_parent: x ∈ (∑ i ∈ Finset.range m, g i • basis_n i).support := by
+          exact Finset.mem_of_mem_inter_right hx
+
+        have one_ne_zero: (1 : ℚ) ≠ 0 := by
+          simp
+        have bar := Finsupp.support_single_ne_zero (newNum parent) one_ne_zero
+        simp [bar] at x_in_cur
+        have x_lt_m: x < m := by
+          sorry
+        linarith
+    | right parent h_parent => sorry
+
 #check LinearIndependent.eq_zero_of_pair
 
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by

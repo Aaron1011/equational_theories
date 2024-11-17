@@ -152,6 +152,17 @@ theorem foo: 1 = 1 := by
 
 noncomputable def xSeq (n: ℕ): G := basis_n n
 
+lemma xseq_injective: Function.Injective xSeq := by
+  simp [Function.Injective]
+  intro n_1 n_2 h_eq
+  simp [xSeq] at h_eq
+  have one_neq_zero: (1: ℚ) ≠ 0 := by
+    simp
+  have single_injective := Finsupp.single_left_injective (α := ℕ) one_neq_zero
+  simp [Function.Injective] at single_injective
+  have injective_imp := @single_injective n_1 n_2
+  exact injective_imp h_eq
+
 class TreeData where
   a: G
   b: G
@@ -931,6 +942,100 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     simp [hx_not_in]
 
 
+lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by
+  by_contra!
+  match t1 with
+  | .root => sorry
+  | .left t1_parent => sorry
+  | .right t1_parent =>
+    match t2 with
+    | .root => sorry
+    | .left t2_parent => sorry
+    | .right t2_parent =>
+      -- If they're both right trees, contradiction - all right trees have unique 'a' values
+      simp [ReverseTree.getData] at h_a_eq
+      apply xseq_injective at h_a_eq
+      apply newnum_injective at h_a_eq
+      simp [h_a_eq] at this
+
+
+
+
+
+
+-- The (a, b) values have disjoint coordinates (of basis elements) - prove this by induction
+
+-- FOR REAL?
+-- Suppose two distinct nodes have the same 'a' value. Let one of these nodes have minimal depth
+-- DONE: If they're both right trees, contradiction - all right trees have unique 'a' values
+-- IMPROVE: If one is left and the other is right:
+---  We have a = -b for some b. There are two cases:
+--    b is fresh - it must therefore come from a different node, which will therefore have a different basis element - contradiction.
+--    b = p - q for some p and q. We know that p and q have disjoint coordinates, and q is not zero, so we have two different representations for 'a' - impossible.
+--    OLD: We have a fresh basis element equal to the negation of some linear combination - this is impossible, by linear independence. Todo - what if we have -(-(a))
+-- So, they must both be left trees:
+-- * Now consider their parents, which look like (_, -a)
+--   * If both parents are left trees - we know that left trees have unique 'b' values so their parents must be the same node. But then our original nodes are left children of the same node, so they're again the same node - contradiction
+--   * If one is left and the other is right, then see the similar argument above: then we have a fresh basis (from the left tree) equal to 'p - q' (a lienar combination of basis elements),  which is a condiction (TODO - what if 'q' is zero?)
+--   So, both parents must be right trees.
+--   The parents have right nodes 'c - d = x - y':
+--   If the parents have the same 'a' value, then this would contradict the minimal depth of our starting node.
+--   So, the parents look like (c, d) and (x, y) with c ≠ x, We must also have d ≠ y to satisfy 'c - d = x - y'
+--   One element in each pair must be fresh - assume wlog that 'c' and 'x' are fresh.
+--     Then, in order for 'c - d = x - y', we must have 'x' occuring in 'd' and 'c' occuring in 'y'.
+--     This means depth(parent_one) >= depth(parent_two) and depth(parent_two) >= depth(parent_one), since each must have at least the depth where the other fresh element is first introduced.
+--     Thus, depth(parent_one) = depth(parent_two).
+--     The only way for this to work is if the parents look like (x_i, p) and (q, x_i) - that this, the same fresh node.
+--      Otherwise, one of the nodes will contain a fresh element that's not in the other node.
+--     This implies that the parents are the left/right children of the same node.
+--     Let this common ancestor be (f, g).
+--     Then, the parents are (-g, x_i) and (x_i, f - g),
+--     We have -g - x_i = x_i - (f - g)
+--              -g -x_i = x_i - f + g
+--              0 = 2x_i + 2g - f
+--     This is impossible, because x_i is fresh: g and/or f would need to contain x_i, which is impossible.
+--     DONE???
+--
+--
+--
+--   If they're both right children, then the 'c' and 'x' values are distinct fresh elements, so we can't have 'c - d = x - y'
+--   If they're both left children, then 'd' and 'y' values are distinct fresh elements, so we can't have 'c - d = x - y'
+--   If one is left and one is right, then wlog 'c' is fresh and 'y' is fresh, so we can't have 'c - d = x - y'
+--   We get a contradiction in all cases.
+---  DONE?
+--
+
+---- WRONG: we could have '(e_1 + e_2) - e_3 = (e_1) - (-e_2 + e_3)
+--         since the elements in the pair have disjoint coordinates, we must have c = x and d = y
+--      Then, the grandparents are (c, d) and (x, y). This gives us two nodes with the same 'a' value,
+--      one of which has a strictly smaller depth than our original node of minimal depth - contradictiob.
+
+
+
+
+
+
+--   The grantparents are then (c, d) and (e, f) with c - d = a and e - f = a
+    -- If both the grandparents are right trees, then
+-- Another bad idea:
+-- New proof idea:
+-- * A pair (a, b) always have disjoint basis elements (this is stronger than linear independency - e.g. two non-perpendiculatr vectors in the plane are linearly independent)
+--   Prove this by induction
+
+
+-- New idea:
+--  Each coefficient must be in {-1, 0, 1}.
+--  The values determine our path from the root to the node.
+--  The coefficient representation is unique (because it's the representation in our basis), so two nodes with the same 'a' value has the same coefficients,
+--  and therefore the same path, thus are the same node.
+
+-- Trying again:
+
+-- Suppose two distinct nodes have the same 'a' value.
+-- If they're both right trees, contradiction - all right trees have unique 'a' values
+-- If one is left and the other is right, we have a fresh basis element equal to something - this should be impossible, because the disjoint coordinates implies no cancellation.
+-- So, they must both be left trees:
+
 
 -- Latest idea:
 -- Suppose two distinct nodes have the same 'a' value.
@@ -944,12 +1049,12 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
 --   The parents look like (p, a) and (q, a).
 
 --   The grantparents are then (c, d) and (e, f) with c - d = a and e - f = a
-    -- If both the grandparents are right trees, then 
+    -- If both the grandparents are right trees, then
 -- Another bad idea:
 -- New proof idea:
 -- * A pair (a, b) always have disjoint basis elements (this is stronger than linear independency - e.g. two non-perpendiculatr vectors in the plane are linearly independent)
 --   Prove this by induction
--- 
+--
 
 
 -- BAD - highest index can decrease (e.g. x3 -> x1 + x2),  so this won't work
@@ -964,9 +1069,9 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
 -- This requires that we actually have a nonzero t1_coord that's > (newNum t1), where newNum t1 < newNum t2
 -- I already did something like this in the linear independency proof, so I should be able to reuse that
 ----------
--- 
+--
 
-lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by
+lemma bad_partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by
   by_contra!
   have newnum_neq: newNum t1 ≠ newNum t2 := by
     intro h_eq

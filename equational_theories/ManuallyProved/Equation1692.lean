@@ -174,7 +174,11 @@ theorem foo: 1 = 1 := by
       obtain ⟨i, e_k_in_i⟩ := e_k_in_union
       simp [s_i] at e_k_in_i
       simp [all_basis]
-      exact e_k_in_i.1
+      cases e_k_in_i with
+      | inl left =>
+        exact left.1
+      | inr right =>
+        rw [right.2.1, right.2.2]
     .
       let bits := k.bits
       have first_one := List.findIdx? (fun b => b) bits

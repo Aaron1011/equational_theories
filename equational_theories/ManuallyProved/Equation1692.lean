@@ -21,10 +21,18 @@ noncomputable abbrev all_basis := (λ n: ℕ => (n, basis_n n)) '' Set.univ
 
 -- 23424 = 2**7 + higher_order
 -- 23424 mod 2**8 = (2**7 + higher_order) mod 2**8 = 2**7 +
--- let 'k' be position of least signficiant bit
--- Take 'n mod (k + 1')
+
+-- theorem bar (x: ℚ) : 1 =1 := by
+--   let foo: Set ℝ := ∅
+--   have wrong: ∀ y ∈ foo, 1 = 2 := by
+--     simp [foo]
+
+--   have foo: ∀ y ∈ {5, 6}, x = 1 := by sorry
+--   have other: x = 1 := by
+--     simp_all only [Set.mem_univ, true_implies, forall_const]
 
 theorem foo: 1 = 1 := by
+
   -- Actual start of proof
   -- Hack - include the basis element 0, since the proof pdf starts numbering them at 1
   let s_i := λ i: ℕ => {val ∈ all_basis | val.1 ≡ 2^i [MOD 2^(i + 1)] } ∪ (if i = 0 then {(0, basis_n 0)} else {})
@@ -191,20 +199,79 @@ theorem foo: 1 = 1 := by
         rw [e_k_in_basis]
         simp
       .
-        let bits := k.bits
-        have first_one := List.findIdx? (fun b => b) bits
-        have is_some: first_one.isSome := by
-          by_contra!
-          -- Use the fact that k is not zero
-          sorry
-        let first_n := Option.get first_one is_some
+        let digits := Nat.digits 2 k
+        have k_eq_digits := Nat.ofDigits_digits 2 k
+        rw [Nat.ofDigits_eq_sum_mapIdx] at k_eq_digits
+        have digits_nonempty := (Nat.digits_ne_nil_iff_ne_zero (b := 2)).mpr is_k_zero
+        have digit_nonzero := Nat.getLast_digit_ne_zero 2 is_k_zero
+        have exists_elem: ∃ (x: ℕ), x ∈ digits ∧ x = 1 := by
+          use (Nat.digits 2 k).getLast digits_nonempty
+          refine ⟨List.getLast_mem digits_nonempty, ?_⟩
+          have digit_lt_2: (Nat.digits 2 k).getLast digits_nonempty < 2 := by
+            apply Nat.digits_lt_base
+            simp
+            apply List.getLast_mem digits_nonempty
+          have real_digit_nonzero: (Nat.digits 2 k).getLast digits_nonempty ≠ 0 := by
+            apply digit_nonzero
+          have le_1: (Nat.digits 2 k).getLast digits_nonempty ≤ 1 := by
+            linarith
+          rw [Nat.le_one_iff_eq_zero_or_eq_one] at le_1
+          simp [real_digit_nonzero] at le_1
+          exact le_1
+        have idx_lt_length: List.findIdx (fun d => d = 1) (Nat.digits 2 k) < (Nat.digits 2 k).length := by
+          rw [List.findIdx_lt_length]
+          simp only [decide_eq_true_eq]
+          exact exists_elem
+
+        let first_one := List.findIdx (fun d => d = 1) (Nat.digits 2 k)
         simp [s_i]
-        use first_n
+        use first_one
         left
         simp [all_basis] at e_k_in_basis
         refine ⟨e_k_in_basis, ?_⟩
+        rw [← k_eq_digits]
+        rw [List.mapIdx_eq_enum_map]
+        rw [Finset.sum_list_map_count]
+        rw [Nat.ModEq]
+        rw [Finset.sum_nat_mod]
+        simp
+
+        have two_pow_lt: 2^first_one < 2^(first_one + 1) := by
+          apply Nat.pow_lt_pow_succ
+          simp
+        rw [Nat.mod_eq_of_lt two_pow_lt]
+        simp [Function.uncurry]
+
+
+        have higher_power_mod_eq_zero: ∀ x: ℕ × ℕ, first_one < x.1 ∧ x.2 ≤ 1 → Function.uncurry (fun i a ↦ a * 2 ^ i) x % 2 ^ (first_one + 1) = 0 := by
+          intro x hx
+          obtain ⟨x_pos, x_digit⟩ := hx
+          simp [Function.uncurry]
+          by_cases x_digit_eq: x.2 = 0
+          . simp [x_digit_eq]
+          . rw [Nat.le_one_iff_eq_zero_or_eq_one] at x_digit
+            simp [x_digit_eq] at x_digit
+            simp [x_digit]
+            have two_div: 2^(first_one + 1) ∣ 2^(x.1) := by
+              apply Nat.pow_dvd_pow
+              linarith
+            rw [Nat.dvd_iff_mod_eq_zero] at two_div
+            exact two_div
+
+
         -- TODO - prove that 'k = 2^n mod 2^(n + 1)', where n is the smallest power of 2 dividing k
         -- 2^(n+1) is always even, so the higher powers of 2 are multiples of it??
+
+-- S_i = {e_j ∈ B : j ≡ 2^i (mod 2^(i+1))}
+
+-- let 'k' be position of least signficiant bit
+-- Take 'n mod (k + 1')
+-- 'n' looks like '2^k + 2^(k + 1+a_i) + 2^(k + 1 + a_j) + ... = 2^(k+1) ( 2^a_i + 2^a_j + ... )'
+-- This is a multiple of 2^(k+1), so it's 0 mod 2^(k+1)
+-- The remainder is just '2^k, which is what we want
+
+
+
 
 
       -- Nat.digits_two_eq_bits

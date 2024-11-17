@@ -66,15 +66,13 @@ theorem foo: 1 = 1 := by
         --have new_j_mod := Nat.mod_eq_of_modEq j_mod pow_montone
 
         rw [Nat.modEq_iff_dvd] at j_mod
-        have j_mod_better: (2 ^ (j + 1)) ∣ (2 ^ j) - k := by
-          sorry
         have j_plus_ne: j + 1 ≠ 0 := by
           linarith
         have two_dvd_pow: 2 ∣ (((2 : ℕ)^((j + 1): ℕ)) : ℕ)  := by
           exact dvd_pow_self 2 j_plus_ne
 
         have coerce: (2 : ℤ) ∣ ↑((2: ℕ) ^ (j + 1)) := by
-          sorry
+          exact Int.ofNat_dvd_right.mpr two_dvd_pow
 
         have tmp_dvd := Dvd.dvd.trans coerce j_mod
 
@@ -86,9 +84,13 @@ theorem foo: 1 = 1 := by
           have other := add_neg_eq_of_eq_add bar.symm
           exact other
 
-        rw [← mul_pow_sub_one j_neq_zero] at rearrange
-        have factor_2: 2*(2 ^ (j - 1) - c) = ↑k := by
+        have cast_z: 2^j - 2*c = k := by
           rw [← rearrange]
+          simp
+
+        rw [← mul_pow_sub_one j_neq_zero] at cast_z
+        have factor_2: 2*(2 ^ (j - 1) - c) = ↑k := by
+          rw [← cast_z]
           ring
         have two_dvd_k: (2: ℤ) ∣ k := by
           exact Dvd.intro (2 ^ (j - 1) - c) factor_2

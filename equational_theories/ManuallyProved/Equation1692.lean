@@ -962,7 +962,29 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
           have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
           simp [n_q_basis] at basis_indep
           have linear_indep: LinearIndependent ℚ ![fun₀ | (newNum t1_parent) => (1 : ℚ), fun₀ | (newNum t2_parent_parent) => 1] := by
-            sorry
+            apply LinearIndependent.pair_iff.mpr
+            intro s t h_sum_zero
+
+            simp [linearIndependent_iff'] at basis_indep
+            specialize basis_indep {newNum t1_parent, newNum t2_parent_parent}
+            have nums_not_eq: newNum t1_parent ≠  newNum t2_parent_parent := by
+              sorry
+            have num_reverse: newNum t2_parent_parent ≠ newNum t1_parent := by
+              exact id (Ne.symm nums_not_eq)
+            let g : ℕ → ℚ := fun n => if n = newNum t1_parent then s else if n = newNum t2_parent_parent then t else 0
+            have finsum_to_pair := Finset.sum_pair (f := fun x => fun₀ | x => g x) nums_not_eq
+            specialize basis_indep g
+            simp only [g] at basis_indep
+            simp [g] at finsum_to_pair
+            simp only [finsum_to_pair] at basis_indep
+            simp only [num_reverse] at basis_indep
+            simp at h_sum_zero
+            specialize basis_indep h_sum_zero
+            have s_eq_zero := basis_indep (newNum t1_parent)
+            simp at s_eq_zero
+            have t_eq_zero := basis_indep (newNum t2_parent_parent)
+            simp [num_reverse] at t_eq_zero
+            exact ⟨s_eq_zero, t_eq_zero⟩
           simp [LinearIndependent.pair_iff] at linear_indep
           specialize linear_indep 1 1 h_a_eq
           contradiction

@@ -108,7 +108,7 @@ theorem foo: 1 = 1 := by
     obtain ⟨⟨k, e_k⟩, ⟨e_k_in_i, e_k_in_j⟩⟩ := this
 
     have e_k_in_i: k ≡ 2^i [MOD 2^(i + 1)] := by
-      simp [s_i, i_eq_zero] at e_k_in_i
+      simp [s_i, i_neq_zero] at e_k_in_i
       exact e_k_in_i.2
 
     have e_k_in_j: k ≡ 2^j [MOD 2^(j + 1)] := by

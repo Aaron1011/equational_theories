@@ -1008,14 +1008,22 @@ lemma tree_supp_disjoint (t: ReverseTree): t.getData.b.support ∩ t.getData.a.s
           simp at x_in_range
           exact x_in_range
         linarith
-    | right parent h_parent => sorry
+    | right parent h_parent =>
+      simp [ReverseTree.getData, xSeq]
+      sorry
 
 #check LinearIndependent.eq_zero_of_pair
 
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by
   by_contra!
   match t1 with
-  | .root => sorry
+  | .root =>
+    match t2 with
+    | .root => contradiction
+    | .left t2_parent =>
+      simp [ReverseTree.getData] at h_a_eq
+      sorry
+    | .right t2_parent => sorry
   | .left t1_parent =>
     match t2 with
     | .root => sorry
@@ -1076,7 +1084,7 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
         simp [ReverseTree.getData, xSeq] at h_a_eq
 
         have coord_intersect: t2_parent_parent.getData.b.support ∩ t2_parent_parent.getData.a.support = ∅ := by
-          sorry
+          apply tree_supp_disjoint t2_parent_parent
         have coord_disjoint: Disjoint t2_parent_parent.getData.b.support t2_parent_parent.getData.a.support := by
           exact Finset.disjoint_iff_inter_eq_empty.mpr coord_intersect
         have a_neq_zero: t2_parent_parent.getData.a ≠ 0 := by

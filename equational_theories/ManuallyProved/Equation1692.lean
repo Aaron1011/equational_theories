@@ -28,21 +28,21 @@ theorem foo: 1 = 1 := by
   let s_i := λ i: ℕ => {val ∈ all_basis | val.1 ≡ 2^i [MOD 2^(i + 1)] } ∪ (if i = 0 then {(0, basis_n 0)} else {})
   have no_overlap: ∀ i j: ℕ, i < j → s_i i ∩ s_i j = ∅ := by
     intro i j i_lt_j
-    by_cases i_eq_zero: i = 0
-    .
+    by_contra!
+    have i_neq_zero: i ≠ 0 := by
+      by_contra! i_eq_zero
       have j_neq_zero: j ≠ 0 := by
         linarith
-      simp only [s_i, i_eq_zero]
-      simp only [↓reduceIte]
-      rw [Set.inter_def]
-      by_contra!
+
+      rw [Set.inter_def] at this
+      simp only [s_i, i_eq_zero] at this
       simp at this
       obtain ⟨⟨k, e_k⟩, ⟨e_k_in_i, e_k_in_j⟩⟩ := this
       simp [j_neq_zero] at e_k_in_j
+      simp [i_eq_zero] at e_k_in_i
       cases e_k_in_i with
       | inl left =>
-        have k_eq_zero: k = 0 := by
-          apply (Prod.mk.inj_iff.mp left).1
+        have k_eq_zero: k = 0 := left.1
         rw [k_eq_zero] at e_k_in_j
         obtain ⟨_, bad_zero⟩ := e_k_in_j
         have bar := Nat.modEq_zero_iff_dvd.mp (bad_zero.symm)
@@ -56,15 +56,44 @@ theorem foo: 1 = 1 := by
         have smaller := (Nat.le_of_dvd gt_zero) bar
         linarith
       | inr right =>
-        sorry
+        have pow_montone:  2 ^ j < 2 ^ (j + 1) := by
+          apply Nat.pow_lt_pow_succ
+          simp
+        have one_lt: 1 < 2 := by simp
+        have k_mod := Nat.mod_eq_of_modEq right.2 one_lt
+        rw [← Nat.odd_iff] at k_mod
+        have j_mod := e_k_in_j.2
+        --have new_j_mod := Nat.mod_eq_of_modEq j_mod pow_montone
 
-
+        rw [Nat.modEq_iff_dvd] at j_mod
+        have j_plus_ne: j + 1 ≠ 0 := by
+          linarith
+        have two_dvd_pow: (2 : ℤ) ∣ (2^(j + 1): ℤ) := by
+          exact dvd_pow_self 2 j_plus_ne
+        have two_dvd: (2 : ℤ) ∣ (((2^j))  - (k : ℤ)) := by
+          -- apply Dvd.dvd.trans two_dvd_pow j_mod
+          sorry
+        rw [Int.dvd_def] at two_dvd
+        obtain ⟨c, hc⟩ := two_dvd
+        have rearrange: 2 ^ j - 2 * c = ↑k := by
+          linarith
+        rw [← mul_pow_sub_one j_neq_zero] at rearrange
+        have factor_2: 2*(2 ^ (j - 1) - c) = ↑k := by
+          rw [← rearrange]
+          ring
+        have two_dvd_k: (2: ℤ) ∣ k := by
+          exact Dvd.intro (2 ^ (j - 1) - c) factor_2
+        have k_even: Even (k: ℤ) := by
+          apply even_iff_two_dvd.mpr two_dvd_k
+        have odd_k: Odd (k: ℤ) := by
+          exact (Int.odd_coe_nat k).mpr k_mod
+        rw [← Int.not_odd_iff_even] at k_even
+        contradiction
 
 
     have j_neq_zero: j ≠ 0 := by
       linarith
-    rw [Set.inter_def]
-    by_contra!
+    rw [Set.inter_def] at this
     simp at this
     obtain ⟨⟨k, e_k⟩, ⟨e_k_in_i, e_k_in_j⟩⟩ := this
 
@@ -135,7 +164,7 @@ theorem foo: 1 = 1 := by
       obtain ⟨i, e_k_in_i⟩ := e_k_in_union
       simp [s_i] at e_k_in_i
       simp [all_basis]
-      exact e_k_in_i
+      exact e_k_in_i.1
     .
       let bits := k.bits
       have first_one := List.findIdx? (fun b => b) bits

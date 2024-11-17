@@ -1011,9 +1011,13 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
         have coord_disjoint: Disjoint t2_parent_parent.getData.b.support t2_parent_parent.getData.a.support := by
           exact Finset.disjoint_iff_inter_eq_empty.mpr coord_intersect
         have a_neq_zero: t2_parent_parent.getData.a ≠ 0 := by
-          sorry
+          have bar := LinearIndependent.ne_zero 0 (tree_linear_independent t2_parent_parent)
+          simp at bar
+          assumption
         have b_neq_zero: t2_parent_parent.getData.b ≠ 0 := by
-          sorry
+          have bar := LinearIndependent.ne_zero 1 (tree_linear_independent t2_parent_parent)
+          simp at bar
+          assumption
         have one_ne_zero: (1 : ℚ) ≠ 0 := by
           simp
         have single_card_one: (fun₀ | newNum t1_parent => (1 : ℚ)).support.card = 1 := by

@@ -180,15 +180,24 @@ theorem foo: 1 = 1 := by
       | inr right =>
         rw [right.2.1, right.2.2]
     .
-      let bits := k.bits
-      have first_one := List.findIdx? (fun b => b) bits
-      match first_one with
-      | none =>
-        have k_eq_zero: k = 0 := by
-          sorry
+      intro e_k_in_basis
+      by_cases is_k_zero: k = 0
+      . simp [is_k_zero, s_i]
+        use 0
+        right
+        simp [all_basis, is_k_zero] at e_k_in_basis
+        rw [e_k_in_basis]
+        simp
+      .
+        let bits := k.bits
+        have first_one := List.findIdx? (fun b => b) bits
+        match first_one with
+        | none =>
+          have k_eq_zero: k = 0 := by
+            sorry
 
-      | some pos =>
-        sorry
+        | some pos =>
+          sorry
 
       -- Nat.digits_two_eq_bits
 

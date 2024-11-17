@@ -13,23 +13,67 @@ noncomputable abbrev all_basis := (λ n: ℕ => (n, basis_n n)) '' Set.univ
 
 -- lemma basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
 
+-- 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23
+-- 2, 6, 10, 14, 18, 22
+-- 4, 12, 20, 28
+-- 8, 24, 40, 56,
+-- 16, 48, 80, 112
+
+-- 23424 = 2**7 + higher_order
+-- 23424 mod 2**8 = (2**7 + higher_order) mod 2**8 = 2**7 +
+
 theorem foo: 1 = 1 := by
   -- Actual start of proof
-  let s_i := λ i: ℕ => {val ∈ all_basis | val.1 ≡ 2^i [MOD 2^(i + 1)] }
+  -- Hack - include the basis element 0, since the proof pdf starts numbering them at 1
+  let s_i := λ i: ℕ => {val ∈ all_basis | val.1 ≡ 2^i [MOD 2^(i + 1)] } ∪ (if i = 0 then {(0, basis_n 0)} else {})
   have no_overlap: ∀ i j: ℕ, i < j → s_i i ∩ s_i j = ∅ := by
     intro i j i_lt_j
+    by_cases i_eq_zero: i = 0
+    .
+      have j_neq_zero: j ≠ 0 := by
+        linarith
+      simp only [s_i, i_eq_zero]
+      simp only [↓reduceIte]
+      rw [Set.inter_def]
+      by_contra!
+      simp at this
+      obtain ⟨⟨k, e_k⟩, ⟨e_k_in_i, e_k_in_j⟩⟩ := this
+      simp [j_neq_zero] at e_k_in_j
+      cases e_k_in_i with
+      | inl left =>
+        have k_eq_zero: k = 0 := by
+          apply (Prod.mk.inj_iff.mp left).1
+        rw [k_eq_zero] at e_k_in_j
+        obtain ⟨_, bad_zero⟩ := e_k_in_j
+        have bar := Nat.modEq_zero_iff_dvd.mp (bad_zero.symm)
+        have gt_zero: 0 < 2^j := by
+          apply Nat.pow_pos
+          linarith
+        have larger: 2^j < 2^(j + 1) := by
+          apply Nat.pow_lt_pow_succ
+          simp
 
+        have smaller := (Nat.le_of_dvd gt_zero) bar
+        linarith
+      | inr right =>
+        sorry
+
+
+
+
+    have j_neq_zero: j ≠ 0 := by
+      linarith
     rw [Set.inter_def]
     by_contra!
     simp at this
     obtain ⟨⟨k, e_k⟩, ⟨e_k_in_i, e_k_in_j⟩⟩ := this
 
     have e_k_in_i: k ≡ 2^i [MOD 2^(i + 1)] := by
-      simp [s_i] at e_k_in_i
+      simp [s_i, i_eq_zero] at e_k_in_i
       exact e_k_in_i.2
 
     have e_k_in_j: k ≡ 2^j [MOD 2^(j + 1)] := by
-      simp [s_i] at e_k_in_j
+      simp [s_i, j_neq_zero] at e_k_in_j
       exact e_k_in_j.2
 
     have mod_imp_factor: ∀ k i : ℕ, k ≡ 2^i [MOD 2^(i + 1)] → k.factorization 2 = i := by
@@ -84,14 +128,27 @@ theorem foo: 1 = 1 := by
     linarith
 
   have si_union_basis: ⋃ i, s_i i = all_basis := by
-    sorry
-    -- ext ⟨k, e_k⟩
-    -- refine ⟨?_, ?_⟩
-    -- intro e_k_in_union
-    -- simp at e_k_in_union
-    -- obtain ⟨i, e_k_in_i⟩ := e_k_in_union
-    -- simp [s_i] at e_k_in_i
-    -- exact e_k_in_i.1
+    ext ⟨k, e_k⟩
+    refine ⟨?_, ?_⟩
+    . intro e_k_in_union
+      simp at e_k_in_union
+      obtain ⟨i, e_k_in_i⟩ := e_k_in_union
+      simp [s_i] at e_k_in_i
+      simp [all_basis]
+      exact e_k_in_i
+    .
+      let bits := k.bits
+      have first_one := List.findIdx? (fun b => b) bits
+      match first_one with
+      | none =>
+        have k_eq_zero: k = 0 := by
+          sorry
+
+      | some pos =>
+        sorry
+
+      -- Nat.digits_two_eq_bits
+
 
     -- intro e_k_in_basis
     -- rw [Set.mem_iUnion]
@@ -1010,8 +1067,9 @@ lemma tree_supp_disjoint (t: ReverseTree): t.getData.b.support ∩ t.getData.a.s
         linarith
     | right parent h_parent =>
       simp [ReverseTree.getData, xSeq]
+      obtain ⟨⟨a_g, a_m, a_m_le_newnum, a_m_supp_lt, a_linear_comb⟩, b_g, b_m, b_m_le_newnum, b_m_supp_lt, b_linear_comb⟩ := tree_linear_comb parent
+      rw [a_linear_comb, b_linear_comb]
       sorry
-
 #check LinearIndependent.eq_zero_of_pair
 
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by
@@ -1306,6 +1364,7 @@ lemma bad_partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getDa
 
   rw [h_a_eq] at a_eq_first
   rw [a_eq_first] at a_eq_second
+  -- have foo := nonempty_denumerable_iff
 
   sorry
 
@@ -1318,3 +1377,12 @@ lemma bad_partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getDa
 
 -- def treeAt(n: ℕ ): MyTree (α := String) :=
 --   MyTree.left { MyTree.root {a := "a", b := "b"}
+
+
+noncomputable def total_function (x: G): G := by
+  by_cases x_in_tree: ∃ t: ReverseTree, x = t.getData.a
+  . let t := Classical.choose x_in_tree
+    have ht:= Classical.choose_spec x_in_tree
+    exact t.getData.b
+  . exact total_function x
+    -- nonempty_denumerable_iff

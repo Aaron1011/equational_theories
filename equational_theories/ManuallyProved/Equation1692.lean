@@ -968,7 +968,9 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
             simp [linearIndependent_iff'] at basis_indep
             specialize basis_indep {newNum t1_parent, newNum t2_parent_parent}
             have nums_not_eq: newNum t1_parent ≠  newNum t2_parent_parent := by
-              sorry
+              have parents_neq: t1_parent ≠ t2_parent_parent := by
+                sorry
+              apply Function.Injective.ne newnum_injective parents_neq
             have num_reverse: newNum t2_parent_parent ≠ newNum t1_parent := by
               exact id (Ne.symm nums_not_eq)
             let g : ℕ → ℚ := fun n => if n = newNum t1_parent then s else if n = newNum t2_parent_parent then t else 0

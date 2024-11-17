@@ -941,6 +941,7 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     intro x hx hx_not_in
     simp [hx_not_in]
 
+#check LinearIndependent.eq_zero_of_pair
 
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by
   by_contra!
@@ -951,7 +952,21 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
     match t2 with
     | .root => sorry
     | .left t2_parent =>
-
+      simp [ReverseTree.getData] at h_a_eq
+      match t2_parent with
+      | .root => sorry
+      | .left t2_parent_parent =>
+          -- b is fresh - it must therefore come from a different node, which will therefore have a different basis element - contradiction.
+          simp [ReverseTree.getData, xSeq] at h_a_eq
+          apply eq_neg_iff_add_eq_zero.mp at h_a_eq
+          have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
+          simp [n_q_basis] at basis_indep
+          have linear_indep: LinearIndependent ℚ ![fun₀ | (newNum t1_parent) => (1 : ℚ), fun₀ | (newNum t2_parent_parent) => 1] := by
+            sorry
+          simp [LinearIndependent.pair_iff] at linear_indep
+          specialize linear_indep 1 1 h_a_eq
+          contradiction
+      | .right t2_parent_parent => sorry
       sorry
     | .right t2_parent =>
       -- If they're both right trees, contradiction - all right trees have unique 'a' values

@@ -257,6 +257,35 @@ theorem foo: 1 = 1 := by
               linarith
             rw [Nat.dvd_iff_mod_eq_zero] at two_div
             exact two_div
+        have first_mod_eq_self: Function.uncurry (fun i a ↦ a * 2 ^ i) (first_one, 1) % 2 ^ (first_one + 1) = 2^(first_one) := by
+          simp [Function.uncurry]
+          rw [Nat.mod_eq_of_lt two_pow_lt]
+
+        let pow_fun := fun (x: ℕ × ℕ) => List.count x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1) %
+    2 ^ (first_one + 1)
+
+        let nonzero_digit_subset := {x ∈ (Nat.digits 2 k).enum.toFinset | x.2 = 1}
+        have zero_when_outside: ∀ x ∈ (Nat.digits 2 k).enum.toFinset, x ∉ nonzero_digit_subset → pow_fun x = 0 := by
+          intro x hx x_not_in
+          simp [nonzero_digit_subset] at x_not_in
+          have x_in_digits_enum: x ∈ (Nat.digits 2 k).enum := by
+            exact List.mem_dedup.mp hx
+          specialize x_not_in x_in_digits_enum
+          have x_2_in_digits: x.2 ∈ (Nat.digits 2 k) := by
+            exact List.snd_mem_of_mem_enum x_in_digits_enum
+          have x_2_lt_two: x.2 < 2 := by
+            apply Nat.digits_lt_base
+            simp
+            exact x_2_in_digits
+          have x_2_le_one: x.2 ≤ 1 := by
+            linarith
+          rw [Nat.le_one_iff_eq_zero_or_eq_one] at x_2_le_one
+          simp [x_not_in] at x_2_le_one
+          simp [pow_fun, x_2_le_one]
+
+
+        rw [Finset.insert_erase]
+        simp [← Finset.sum_cons]
 
 
         -- TODO - prove that 'k = 2^n mod 2^(n + 1)', where n is the smallest power of 2 dividing k

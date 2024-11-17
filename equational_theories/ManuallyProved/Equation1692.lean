@@ -967,8 +967,46 @@ lemma tree_supp_disjoint (t: ReverseTree): t.getData.b.support ∩ t.getData.a.s
           simp
         have bar := Finsupp.support_single_ne_zero (newNum parent) one_ne_zero
         simp [bar] at x_in_cur
+
+        have x_lt_max := Finset.le_max x_in_parent
+        have support_subset := Finsupp.support_finset_sum (s := Finset.range m) (f := fun i => g i • basis_n i)
+        --simp [basis_n] at support_subset
+
+        have supp_single: ∀ x ∈ Finset.range m, ((g x) • (Finsupp.single x 1 : ℕ →₀ ℚ)).support ⊆ Finset.range m := by
+          intro x hx
+          have foo := Finsupp.support_single_subset (a := x) (b := ( 1: ℚ))
+          have x_single_subset: {x} ⊆ Finset.range m := by
+            simp
+            simp at hx
+            exact hx
+          have mul_support := Finsupp.support_smul (b := g x) (g := fun₀ | x => (1: ℚ))
+          have first_trans := Finset.Subset.trans mul_support foo
+          have second_trans := Finset.Subset.trans first_trans x_single_subset
+          exact second_trans
+
+
+        have mul_supp_subset: ∀ i ∈ Finset.range m, (g i • basis_n i).support ⊆ (basis_n i).support := by
+          intro i hi
+          exact Finsupp.support_smul
+
+        simp only [basis_n, Finsupp.coe_basisSingleOne, Finsupp.smul_single,
+          smul_eq_mul, mul_one] at mul_supp_subset
+
+
+
+
+
+        have bar := (Finset.biUnion_subset (s := Finset.range m) (t := fun x => (g x • (Finsupp.single x 1 : ℕ →₀ ℚ)).support)).mpr supp_single
+        have x_in_biunion: x ∈ ((Finset.range m).biUnion fun x ↦ (g x • basis_n x).support) := by
+          apply Finset.mem_of_subset support_subset x_in_parent
+
+        simp only [basis_n, Finsupp.coe_basisSingleOne] at x_in_biunion
+        have x_in_range: x ∈ Finset.range m := by
+          apply Finset.mem_of_subset bar x_in_biunion
+
         have x_lt_m: x < m := by
-          sorry
+          simp at x_in_range
+          exact x_in_range
         linarith
     | right parent h_parent => sorry
 

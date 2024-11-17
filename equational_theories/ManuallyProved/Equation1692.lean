@@ -972,7 +972,9 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
               simp [other_parents_eq] at h_a_eq
               simp [add_eq_zero_iff_eq_neg] at h_a_eq
               have eq_zero: (fun₀ | newNum t2_parent_parent => 1) = 0 := by
-                sorry
+                simp [← Finsupp.single_neg] at h_a_eq
+                simp [Finsupp.single] at h_a_eq
+                contradiction
               simp at eq_zero
 
             have nums_not_eq: newNum t1_parent ≠  newNum t2_parent_parent := by
@@ -997,7 +999,6 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
           specialize linear_indep 1 1 h_a_eq
           contradiction
       | .right t2_parent_parent => sorry
-      sorry
     | .right t2_parent =>
       -- If they're both right trees, contradiction - all right trees have unique 'a' values
       simp [ReverseTree.getData] at h_a_eq

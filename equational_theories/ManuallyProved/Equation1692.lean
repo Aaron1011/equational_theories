@@ -66,17 +66,26 @@ theorem foo: 1 = 1 := by
         --have new_j_mod := Nat.mod_eq_of_modEq j_mod pow_montone
 
         rw [Nat.modEq_iff_dvd] at j_mod
+        have j_mod_better: (2 ^ (j + 1)) ∣ (2 ^ j) - k := by
+          sorry
         have j_plus_ne: j + 1 ≠ 0 := by
           linarith
-        have two_dvd_pow: (2 : ℤ) ∣ (2^(j + 1): ℤ) := by
+        have two_dvd_pow: 2 ∣ (((2 : ℕ)^((j + 1): ℕ)) : ℕ)  := by
           exact dvd_pow_self 2 j_plus_ne
-        have two_dvd: (2 : ℤ) ∣ (((2^j))  - (k : ℤ)) := by
-          -- apply Dvd.dvd.trans two_dvd_pow j_mod
+
+        have coerce: (2 : ℤ) ∣ ↑((2: ℕ) ^ (j + 1)) := by
           sorry
-        rw [Int.dvd_def] at two_dvd
-        obtain ⟨c, hc⟩ := two_dvd
-        have rearrange: 2 ^ j - 2 * c = ↑k := by
-          linarith
+
+        have tmp_dvd := Dvd.dvd.trans coerce j_mod
+
+        rw [Int.dvd_def] at tmp_dvd
+        obtain ⟨c, hc⟩ := tmp_dvd
+        have rearrange: (((2: ℕ) ^ (j: ℕ)): ℕ) - 2 * c = ↑k := by
+          rw [Eq.comm, sub_eq_neg_add] at hc
+          have bar := add_eq_of_eq_neg_add hc
+          have other := add_neg_eq_of_eq_add bar.symm
+          exact other
+
         rw [← mul_pow_sub_one j_neq_zero] at rearrange
         have factor_2: 2*(2 ^ (j - 1) - c) = ↑k := by
           rw [← rearrange]
@@ -89,7 +98,6 @@ theorem foo: 1 = 1 := by
           exact (Int.odd_coe_nat k).mpr k_mod
         rw [← Int.not_odd_iff_even] at k_even
         contradiction
-
 
     have j_neq_zero: j ≠ 0 := by
       linarith

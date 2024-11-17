@@ -1014,9 +1014,9 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
           sorry
         have b_neq_zero: t2_parent_parent.getData.b ≠ 0 := by
           sorry
-        have one_ne_zero: 1 ≠ 0 := by
+        have one_ne_zero: (1 : ℚ) ≠ 0 := by
           simp
-        have single_card_one: (fun₀ | newNum t1_parent => 1).support.card = 1 := by
+        have single_card_one: (fun₀ | newNum t1_parent => (1 : ℚ)).support.card = 1 := by
           rw [Finsupp.support_single_ne_zero (newNum t1_parent) one_ne_zero]
           simp
 
@@ -1039,30 +1039,56 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
               have bar := i_2.isLt
               omega
             simp [i_1_eq, i_2_eq]
-            exact coord_disjoint
+            exact coord_disjoint.symm
+
+
+        have support_sum := Finsupp.support_sum_eq_biUnion s g_supp_disjoint
+        simp [s, g] at support_sum
+        rw [← sub_eq_add_neg] at support_sum
+
+        have a_supp_card: 1 ≤ t2_parent_parent.getData.a.support.card := by
+          have bar := Finsupp.card_support_eq_zero.not.mpr a_neq_zero
+          exact Nat.one_le_iff_ne_zero.mpr bar
+        have b_supp_card: 1 ≤ t2_parent_parent.getData.b.support.card := by
+          have bar := Finsupp.card_support_eq_zero.not.mpr b_neq_zero
+          exact Nat.one_le_iff_ne_zero.mpr bar
+
+        have card_union_sum := Finset.card_union_eq_card_add_card.mpr coord_disjoint
+
+
+        have card_sum_le: 2 ≤ (t2_parent_parent.getData.b.support ∪ t2_parent_parent.getData.a.support).card := by
+          rw [Finset.card_union_eq_card_add_card.mpr coord_disjoint]
+          linarith
+
+        rw [Finsupp.ext_iff'] at h_a_eq
+        obtain ⟨support_eq, _⟩ := h_a_eq
+        have card_eq: (fun₀ | newNum t1_parent => (1 : ℚ)).support.card = (t2_parent_parent.getData.b - t2_parent_parent.getData.a).support.card := by
+          rw [support_eq]
+
+        rw [single_card_one] at card_eq
+        rw [support_sum, card_union_sum] at card_eq
+        linarith
 
 
 
+        -- apply (Basis.ext_elem_iff n_q_basis).mp at h_a_eq
 
+        -- rw [← Basis.repr_self n_q_basis (newNum t1_parent)] at h_a_eq
+        -- rw [← Basis.repr_linearCombination n_q_basis t2_parent_parent.getData.b, ← Basis.repr_linearCombination n_q_basis t2_parent_parent.getData.a] at h_a_eq
+        -- have sum_eq: n_q_basis.repr ((Finsupp.linearCombination ℚ ⇑n_q_basis) t2_parent_parent.getData.b) - n_q_basis.repr ((Finsupp.linearCombination ℚ ⇑n_q_basis) t2_parent_parent.getData.a) =  n_q_basis.repr (((Finsupp.linearCombination ℚ ⇑n_q_basis) t2_parent_parent.getData.b) - ((Finsupp.linearCombination ℚ ⇑n_q_basis) t2_parent_parent.getData.a)) := by
+        --   -- TODO - how does this work???
+        --   exact rfl
+        -- rw [sum_eq] at h_a_eq
 
-        apply (Basis.ext_elem_iff n_q_basis).mp at h_a_eq
-
-        rw [← Basis.repr_self n_q_basis (newNum t1_parent)] at h_a_eq
-        rw [← Basis.repr_linearCombination n_q_basis t2_parent_parent.getData.b, ← Basis.repr_linearCombination n_q_basis t2_parent_parent.getData.a] at h_a_eq
-        have sum_eq: n_q_basis.repr ((Finsupp.linearCombination ℚ ⇑n_q_basis) t2_parent_parent.getData.b) - n_q_basis.repr ((Finsupp.linearCombination ℚ ⇑n_q_basis) t2_parent_parent.getData.a) =  n_q_basis.repr (((Finsupp.linearCombination ℚ ⇑n_q_basis) t2_parent_parent.getData.b) - ((Finsupp.linearCombination ℚ ⇑n_q_basis) t2_parent_parent.getData.a)) := by
-          -- TODO - how does this work???
-          exact rfl
-        rw [sum_eq] at h_a_eq
-
-        simp [Basis.repr_injective] at h_a_eq
-        obtain ⟨support_one, val_eq⟩ := Finsupp.eq_single_iff.mp h_a_eq.symm
-        apply Finsupp.support_subset_singleton.mp at support_one
-        rw [val_eq] at support_one
-        have apply_eq: (fun₀ | newNum t1_parent => (1 : ℚ)) (newNum t1_parent) = (((Finsupp.linearCombination ℚ fun i ↦ fun₀ | i => 1) t2_parent_parent.getData.b - (Finsupp.linearCombination ℚ fun i ↦ fun₀ | i => (1 : ℚ)) t2_parent_parent.getData.a) : (ℕ →₀ ℚ)) (newNum t1_parent) := by
-          exact congrFun (congrArg DFunLike.coe h_a_eq) (newNum t1_parent)
-        simp at apply_eq
-        rw [Finsupp.linearCombination_apply] at apply_eq
-        rw [Finsupp.linearCombination_apply] at apply_eq
+        -- simp [Basis.repr_injective] at h_a_eq
+        -- obtain ⟨support_one, val_eq⟩ := Finsupp.eq_single_iff.mp h_a_eq.symm
+        -- apply Finsupp.support_subset_singleton.mp at support_one
+        -- rw [val_eq] at support_one
+        -- have apply_eq: (fun₀ | newNum t1_parent => (1 : ℚ)) (newNum t1_parent) = (((Finsupp.linearCombination ℚ fun i ↦ fun₀ | i => 1) t2_parent_parent.getData.b - (Finsupp.linearCombination ℚ fun i ↦ fun₀ | i => (1 : ℚ)) t2_parent_parent.getData.a) : (ℕ →₀ ℚ)) (newNum t1_parent) := by
+        --   exact congrFun (congrArg DFunLike.coe h_a_eq) (newNum t1_parent)
+        -- simp at apply_eq
+        -- rw [Finsupp.linearCombination_apply] at apply_eq
+        -- rw [Finsupp.linearCombination_apply] at apply_eq
 
 
 

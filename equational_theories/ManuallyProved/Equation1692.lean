@@ -947,7 +947,11 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
   by_contra!
   match t1 with
   | .root => sorry
-  | .left t1_parent => sorry
+  | .left t1_parent =>
+    match t2 with
+    | .root => sorry
+    | .left t2_parent => sorry
+    | .right t2_parent => sorry
   | .right t1_parent =>
     match t2 with
     | .root => sorry
@@ -998,7 +1002,24 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
           simp [LinearIndependent.pair_iff] at linear_indep
           specialize linear_indep 1 1 h_a_eq
           contradiction
-      | .right t2_parent_parent => sorry
+      | .right t2_parent_parent =>
+        --  b = p - q for some p and q. We know that p and q have disjoint coordinates, and q is not zero, so we have two different representations for 'a' - impossible.
+        simp [ReverseTree.getData, xSeq] at h_a_eq
+        rw [← Basis.repr_self n_q_basis (newNum t1_parent)] at h_a_eq
+        rw [← Basis.repr_linearCombination n_q_basis t2_parent_parent.getData.b, ← Basis.repr_linearCombination n_q_basis t2_parent_parent.getData.a] at h_a_eq
+        have sum_eq: n_q_basis.repr ((Finsupp.linearCombination ℚ ⇑n_q_basis) t2_parent_parent.getData.b) - n_q_basis.repr ((Finsupp.linearCombination ℚ ⇑n_q_basis) t2_parent_parent.getData.a) =  n_q_basis.repr (((Finsupp.linearCombination ℚ ⇑n_q_basis) t2_parent_parent.getData.b) - ((Finsupp.linearCombination ℚ ⇑n_q_basis) t2_parent_parent.getData.a)) := by
+          -- TODO - how does this work???
+          exact rfl
+        rw [sum_eq] at h_a_eq
+        simp [Basis.repr_injective] at h_a_eq
+        obtain ⟨support_one, val_eq⟩ := Finsupp.eq_single_iff.mp h_a_eq.symm
+        apply Finsupp.support_subset_singleton.mp at support_one
+        rw [val_eq] at support_one
+        have apply_eq: (fun₀ | newNum t1_parent => (1 : ℚ)) (newNum t1_parent) = (((Finsupp.linearCombination ℚ fun i ↦ fun₀ | i => 1) t2_parent_parent.getData.b - (Finsupp.linearCombination ℚ fun i ↦ fun₀ | i => (1 : ℚ)) t2_parent_parent.getData.a) : (ℕ →₀ ℚ)) (newNum t1_parent) := by
+          exact congrFun (congrArg DFunLike.coe h_a_eq) (newNum t1_parent)
+
+
+
     | .right t2_parent =>
       -- If they're both right trees, contradiction - all right trees have unique 'a' values
       simp [ReverseTree.getData] at h_a_eq

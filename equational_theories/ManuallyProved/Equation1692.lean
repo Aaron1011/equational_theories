@@ -200,7 +200,7 @@ theorem foo: 1 = 1 := by
   have s_i_infinite: ∀ i, (s_i i).Infinite := by
     intro i
     let n_to_multiple := fun n => (2^i + n*2^(i+1), basis_n (2^i + n*2^(i+1)))
-    have image_subset: n_to_multiple '' Set.univ ⊆ (s_i i) := by
+    have image_subset: Set.range n_to_multiple ⊆ (s_i i) := by
       simp only [n_to_multiple, s_i]
       rw [Set.subset_def]
       intro x hx
@@ -221,7 +221,6 @@ theorem foo: 1 = 1 := by
     have range_infinite := Set.infinite_range_of_injective  injective_fun
     simp only [n_to_multiple] at image_subset
     apply Set.Infinite.mono image_subset range_infinite
-
 
 
 
@@ -1185,7 +1184,16 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
     | .right t2_parent => sorry
   | .right t1_parent =>
     match t2 with
-    | .root => sorry
+    | .root =>
+        simp [ReverseTree.getData] at h_a_eq
+        have newnum_gt_one := newnem_gt_one t1_parent
+        simp [xSeq] at h_a_eq
+        have one_ne_zero: (1 : ℚ) ≠ 0 := by
+          simp
+        have single_injective := Finsupp.single_left_injective (α := ℕ) one_ne_zero
+        simp [Function.Injective] at single_injective
+        specialize @single_injective (newNum t1_parent) 0 h_a_eq
+        linarith
     | .left t2_parent =>
       simp [ReverseTree.getData] at h_a_eq
       match t2_parent with

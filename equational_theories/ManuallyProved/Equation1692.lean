@@ -31,6 +31,7 @@ noncomputable abbrev all_basis := (λ n: ℕ => (n, basis_n n)) '' Set.univ
 --   have other: x = 1 := by
 --     simp_all only [Set.mem_univ, true_implies, forall_const]
 
+
 --set_option pp.instances false
 --set_option pp.coercions false
 --set_option pp.all true
@@ -179,6 +180,89 @@ theorem foo: 1 = 1 := by
     have j_factor := mod_imp_factor k j e_k_in_j
     rw [i_factor] at j_factor
     linarith
+
+-- BAD - this is for intersction, not the whole union
+-- Simpler idea: What happens if j = 2^a mod 2^(a+1) and j = 2^b mod 2^(b+1) for a ≠ b?
+-- c*2^(a+1) + 2^a = j
+-- d*2^(b+1) + 2^b = j
+
+-- c*2^(a+1) + 2^a = d*2^(b+1) + 2^b
+-- wlog a < b
+-- c*2^(1) + 1 = d*2^(b+1-a) + 2^(b-a)
+-- LHS is odd, RHS is even
+-- contradiction
+
+-- New idea:
+-- Let 2^a be the largest power of 2 dividing j
+-- Then, j = 2^a + (j - 2^a)
+--
+
+  have new_si_union_basis: ⋃ i, s_i i = all_basis := by
+    ext ⟨k, e_k⟩
+    refine ⟨?_, ?_⟩
+    . intro e_k_in_union
+      simp at e_k_in_union
+      obtain ⟨i, e_k_in_i⟩ := e_k_in_union
+      simp [s_i] at e_k_in_i
+      simp [all_basis]
+      cases e_k_in_i with
+      | inl left =>
+        exact left.1
+      | inr right =>
+        rw [right.2.1, right.2.2]
+    .
+      intro e_k_in_basis
+      by_cases is_k_zero: k = 0
+      . simp [is_k_zero, s_i]
+        use 0
+        right
+        simp [all_basis, is_k_zero] at e_k_in_basis
+        rw [e_k_in_basis]
+        simp
+      .
+        simp [is_k_zero, s_i]
+        by_cases two_div_k: 2 ∣ k
+        .
+          have pow_two_div_k := Nat.dvd_ord_proj_of_dvd is_k_zero Nat.prime_two two_div_k
+
+          have k_pow_two: k = 2^(k.factorization 2) * ( k / 2^(k.factorization 2)) := by
+            exact Eq.symm (Nat.ord_proj_mul_ord_compl_eq_self k 2)
+
+          have two_not_div := Nat.not_dvd_ord_compl Nat.prime_two is_k_zero
+
+          have odd_val: Odd (k / 2 ^ k.factorization 2) := by
+            refine Nat.odd_iff.mpr ?_
+            rw [Nat.two_dvd_ne_zero] at two_not_div
+            exact two_not_div
+
+          obtain ⟨f, hf⟩ := odd_val
+          rw [hf] at k_pow_two
+
+          have dummy := calc
+            (k: ℤ) - (2^(k.factorization 2): ℕ) = (2 ^ k.factorization 2 * (2 * f + 1) : ℕ) - 2^(k.factorization 2) := by
+              nth_rewrite 1 [k_pow_two]
+              norm_cast
+            _ = (2 ^ k.factorization 2 * (2 * f + 1) : ℕ)  -2^(k.factorization 2)*1 := by ring
+            _ = (2 ^ k.factorization 2 * ((2 * f + 1) - 1) : ℕ) := by
+              push_cast
+              ring
+            _ = 2 ^ k.factorization 2 * (2 * f) := by simp
+            _ = (2 ^ (1 + k.factorization 2) : ℕ) * (f : ℤ) := by
+              norm_cast
+              ring
+
+          have sub_div: (((2 ^ (1 + k.factorization 2)) : ℕ ) : ℤ) ∣ (k: ℤ) - ((2 ^ k.factorization 2): ℕ) := by
+            exact Dvd.intro f (id (Eq.symm dummy))
+
+          have k_mod: 2 ^ k.factorization 2 ≡ k [MOD 2 ^ (1 + k.factorization 2)] := by
+            exact Nat.modEq_of_dvd sub_div
+
+
+
+            -- Nat.not_dvd_ordCompl
+          sorry
+        . sorry
+
 
   have si_union_basis: ⋃ i, s_i i = all_basis := by
     ext ⟨k, e_k⟩

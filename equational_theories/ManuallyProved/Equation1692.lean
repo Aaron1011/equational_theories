@@ -231,7 +231,16 @@ theorem foo: 1 = 1 := by
           simp [digits] at x_digit
           exact x_digit
 
-        let first_one := List.indexOf 1 (Nat.digits 2 k)
+        have one_in_digits: 1 ∈ (Nat.digits 2 k) := by
+          obtain ⟨x, x_digit, x_1⟩ := exists_elem
+          rw [x_1] at x_digit
+          simp [digits] at x_digit
+          exact x_digit
+
+
+        let first_one_option := (List.indexesOf 1 (Nat.digits 2 k)).min?
+        have first_one_is_some := List.isSome_min?_of_mem (List.indexOf_mem_indexesOf one_in_digits)
+        let first_one := Option.get (first_one_option) first_one_is_some
         simp [s_i]
         use first_one
         left
@@ -327,9 +336,14 @@ theorem foo: 1 = 1 := by
           rw [Nat.le_one_iff_eq_zero_or_eq_one] at x_2_le_one
           simp [hx.1.2] at x_2_le_one
 
+
+          have in_index := List.indexOf_mem_indexesOf one_in_digits
           have x1_gt_first: first_one < x.1 := by
-            simp [first_one]
-            sorry
+            simp [first_one, first_one_option]
+            by_contra!
+            simp [first_one, first_one_option] at hx
+            simp [le_iff_lt_or_eq] at this
+            simp [hx.2] at this
 
           have first_one_plus_le: first_one + 1 ≤ x.1 := by
             linarith
@@ -346,10 +360,6 @@ theorem foo: 1 = 1 := by
           rw [Nat.dvd_iff_mod_eq_zero] at div_larger
           rw [← mul_assoc]
           exact div_larger
-
-
-
-
 
         rw [Finset.sum_filter]
 

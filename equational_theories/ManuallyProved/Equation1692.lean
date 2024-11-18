@@ -197,6 +197,34 @@ theorem foo: 1 = 1 := by
 -- Then, j = 2^a + (j - 2^a)
 --
 
+  have s_i_infinite: ∀ i, (s_i i).Infinite := by
+    intro i
+    let n_to_multiple := fun n => (2^i + n*2^(i+1), basis_n (2^i + n*2^(i+1)))
+    have image_subset: n_to_multiple '' Set.univ ⊆ (s_i i) := by
+      simp only [n_to_multiple, s_i]
+      rw [Set.subset_def]
+      intro x hx
+      simp at hx
+      obtain ⟨y, hy⟩ := hx
+      simp
+      left
+      refine ⟨?_, ?_⟩
+      use 2 ^ i + y * 2 ^ (i + 1)
+      rw [← hy]
+      simp [Nat.ModEq]
+
+
+    have injective_fun: Function.Injective (fun n => (2^i + n*2^(i+1), basis_n (2^i + n*2^(i+1)))) := by
+      -- ???: How does this simp work
+      simp [Function.Injective]
+
+    have range_infinite := Set.infinite_range_of_injective  injective_fun
+    simp only [n_to_multiple] at image_subset
+    apply Set.Infinite.mono image_subset range_infinite
+
+
+
+
   have new_si_union_basis: ⋃ i, s_i i = all_basis := by
     ext ⟨k, e_k⟩
     refine ⟨?_, ?_⟩
@@ -269,7 +297,6 @@ theorem foo: 1 = 1 := by
         . simp [all_basis] at e_k_in_basis
           refine ⟨e_k_in_basis, ?_⟩
           use 0
-          simp
           simp_all only [Nat.two_dvd_ne_zero]
           exact two_div_k
 

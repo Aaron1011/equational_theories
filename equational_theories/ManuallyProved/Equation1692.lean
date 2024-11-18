@@ -356,6 +356,64 @@ theorem foo: 1 = 1 := by
 
         simp [non_first_digit_sum]
 
+        have le_first_imp_eq: ∀ x ∈ (Nat.digits 2 k).enum.toFinset, x.2 = 1 ∧ x.1 ≤ first_one → x.1 = first_one := by
+          intro x hx other_hx
+          obtain ⟨x_2_one, x_1_le⟩ := other_hx
+          by_contra!
+          rw [le_iff_lt_or_eq] at x_1_le
+          simp [this] at x_1_le
+          simp [first_one, first_one_option] at x_1_le
+          have x1_lt_len: x.1 < (Nat.digits 2 k).length := by
+            sorry
+          have x_2_digit_one: (Nat.digits 2 k)[x.1]'x1_lt_len = 1 := by
+            sorry
+          have x1_in_indexes: x.1 ∈ List.indexesOf 1 (Nat.digits 2 k) := by
+            simp [List.indexesOf, List.findIdxs, List.foldrIdx]
+            sorry
+          sorry
+
+
+        have le_first_sum: (∑ x ∈ Finset.filter (fun x ↦ x.1 ≤ first_one) (Finset.filter (fun x ↦ ¬x.2 = 0) (Nat.digits 2 k).enum.toFinset), @List.count _ instBEqOfDecidableEq x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1)) = (∑ x ∈ Finset.filter (fun x ↦ x.1 ≤ first_one) (Finset.filter (fun x ↦ ¬x.2 = 0) (Nat.digits 2 k).enum.toFinset), 2 ^ first_one) := by
+          apply Finset.sum_congr rfl
+          intro x hx
+          simp at hx
+          obtain ⟨x_digit, x1_le_first⟩ := hx
+          have x_in_finset: x ∈ (Nat.digits 2 k).enum.toFinset := by
+            refine List.mem_toFinset.mpr ?_
+            exact x_digit.1
+
+          have x_in_digit: x.2 ∈ (Nat.digits 2 k) := by
+            exact List.snd_mem_of_mem_enum x_digit.1
+
+          have x_2_lt_two: x.2 < 2 := by
+            apply Nat.digits_lt_base
+            simp
+            exact x_in_digit
+          have x_2_le_one: x.2 ≤ 1 := by
+            linarith
+          rw [Nat.le_one_iff_eq_zero_or_eq_one] at x_2_le_one
+          simp [x_digit.2] at x_2_le_one
+          specialize le_first_imp_eq x x_in_finset ⟨x_2_le_one, x1_le_first⟩
+
+          have count_eq_one: @List.count _ instBEqOfDecidableEq x (Nat.digits 2 k).enum = 1 := by
+            sorry
+
+          simp [le_first_imp_eq, x_2_le_one, count_eq_one]
+          have first_pow_le: 2^first_one < 2^(first_one + 1) := by
+            exact two_pow_lt
+          apply Nat.mod_eq_of_lt first_pow_le
+
+        rw [le_first_sum]
+
+
+
+
+        rw [Finset.sum_filter]
+        rw [Finset.sum_filter]
+
+        -- List.nodup_enum_map_fst
+
+
 
         -- have other_sum_one: (∑ a ∈ (Nat.digits 2 k).enum.toFinset, if ¬a.2 = 0 then @List.count _ instBEqOfDecidableEq a (Nat.digits 2 k).enum * (a.2 * 2 ^ a.1) % 2 ^ (first_one + 1) else 0) = (∑ x ∈ (Nat.digits 2 k).enum.toFinset, @List.count _ instBEqOfDecidableEq  x (Nat.digits 2 k).enum * (2 ^ x.1) % 2 ^ (first_one + 1)) := by
         --   apply Finset.sum_congr rfl

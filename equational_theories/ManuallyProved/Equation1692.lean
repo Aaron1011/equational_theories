@@ -314,11 +314,11 @@ theorem foo: 1 = 1 := by
         rw [zero_sum_eq]
         simp
 
-        have sum_split_first_digit := Finset.sum_filter_add_sum_filter_not (Finset.filter (fun x ↦ ¬x.2 = 0) (Nat.digits 2 k).enum.toFinset) (fun d => d.1 = first_one) pow_fun
+        have sum_split_first_digit := Finset.sum_filter_add_sum_filter_not (Finset.filter (fun x ↦ ¬x.2 = 0) (Nat.digits 2 k).enum.toFinset) (fun d => first_one < d.1) pow_fun
         simp only [pow_fun] at sum_split_first_digit
         rw [← sum_split_first_digit]
 
-        have non_first_digit_sum: (∑ x ∈ Finset.filter (fun x ↦ ¬x.1 = first_one) (Finset.filter (fun x ↦ ¬x.2 = 0) (Nat.digits 2 k).enum.toFinset), List.count x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1)) = (∑ x ∈ Finset.filter (fun x ↦ ¬x.1 = first_one) (Finset.filter (fun x ↦ ¬x.2 = 0) (Nat.digits 2 k).enum.toFinset), 0) := by
+        have non_first_digit_sum: (∑ x ∈ Finset.filter (fun x ↦ first_one < x.1) (Finset.filter (fun x ↦ ¬x.2 = 0) (Nat.digits 2 k).enum.toFinset), @List.count _ instBEqOfDecidableEq x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1)) = (∑ x ∈ Finset.filter (fun x ↦ first_one < x.1) (Finset.filter (fun x ↦ ¬x.2 = 0) (Nat.digits 2 k).enum.toFinset), 0) := by
           apply Finset.sum_congr rfl
           intro x hx
           simp at hx
@@ -338,13 +338,6 @@ theorem foo: 1 = 1 := by
 
 
           have in_index := List.indexOf_mem_indexesOf one_in_digits
-          have x1_gt_first: first_one < x.1 := by
-            simp [first_one, first_one_option]
-            by_contra!
-            simp [first_one, first_one_option] at hx
-            simp [le_iff_lt_or_eq] at this
-            simp [hx.2] at this
-
           have first_one_plus_le: first_one + 1 ≤ x.1 := by
             linarith
           have two_gt_zero: 2 > 0 := by
@@ -355,30 +348,31 @@ theorem foo: 1 = 1 := by
           have two_div: 2^(first_one + 1) ∣ 2^(x.1) := by
             apply Nat.pow_dvd_pow
             linarith
-          have div_larger: 2^(first_one + 1) ∣ ((List.count x (Nat.digits 2 k).enum * x.2) * 2 ^ x.1) := by
+          have div_larger: 2^(first_one + 1) ∣ ((@List.count _ instBEqOfDecidableEq x (Nat.digits 2 k).enum * x.2) * 2 ^ x.1) := by
             apply Dvd.dvd.mul_left two_div
           rw [Nat.dvd_iff_mod_eq_zero] at div_larger
           rw [← mul_assoc]
           exact div_larger
 
-        rw [Finset.sum_filter]
+        simp [non_first_digit_sum]
 
-        have other_sum_one: (∑ a ∈ (Nat.digits 2 k).enum.toFinset, if ¬a.2 = 0 then @List.count _ instBEqOfDecidableEq a (Nat.digits 2 k).enum * (a.2 * 2 ^ a.1) % 2 ^ (first_one + 1) else 0) = (∑ x ∈ (Nat.digits 2 k).enum.toFinset, @List.count _ instBEqOfDecidableEq  x (Nat.digits 2 k).enum * (2 ^ x.1) % 2 ^ (first_one + 1)) := by
-          apply Finset.sum_congr rfl
-          intro x hx
-          have x_in_digits_enum: x ∈ (Nat.digits 2 k).enum := by
-            exact List.mem_dedup.mp hx
-          have x_2_in_digits: x.2 ∈ (Nat.digits 2 k) := by
-            exact List.snd_mem_of_mem_enum x_in_digits_enum
-          have x_2_lt_two: x.2 < 2 := by
-            apply Nat.digits_lt_base
-            simp
-            exact x_2_in_digits
-          have x_2_le_one: x.2 ≤ 1 := by
-            linarith
-          rw [Nat.le_one_iff_eq_zero_or_eq_one] at x_2_le_one
-          by_cases x_2_eq: x.2 = 0
-          simp [x_2_eq]
+
+        -- have other_sum_one: (∑ a ∈ (Nat.digits 2 k).enum.toFinset, if ¬a.2 = 0 then @List.count _ instBEqOfDecidableEq a (Nat.digits 2 k).enum * (a.2 * 2 ^ a.1) % 2 ^ (first_one + 1) else 0) = (∑ x ∈ (Nat.digits 2 k).enum.toFinset, @List.count _ instBEqOfDecidableEq  x (Nat.digits 2 k).enum * (2 ^ x.1) % 2 ^ (first_one + 1)) := by
+        --   apply Finset.sum_congr rfl
+        --   intro x hx
+        --   have x_in_digits_enum: x ∈ (Nat.digits 2 k).enum := by
+        --     exact List.mem_dedup.mp hx
+        --   have x_2_in_digits: x.2 ∈ (Nat.digits 2 k) := by
+        --     exact List.snd_mem_of_mem_enum x_in_digits_enum
+        --   have x_2_lt_two: x.2 < 2 := by
+        --     apply Nat.digits_lt_base
+        --     simp
+        --     exact x_2_in_digits
+        --   have x_2_le_one: x.2 ≤ 1 := by
+        --     linarith
+        --   rw [Nat.le_one_iff_eq_zero_or_eq_one] at x_2_le_one
+        --   by_cases x_2_eq: x.2 = 0
+        --   simp [x_2_eq]
 
 
 

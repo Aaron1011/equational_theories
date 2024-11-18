@@ -257,10 +257,15 @@ theorem foo: 1 = 1 := by
           have k_mod: 2 ^ k.factorization 2 ≡ k [MOD 2 ^ (1 + k.factorization 2)] := by
             exact Nat.modEq_of_dvd sub_div
 
+          have k_mod_reverse: k ≡ 2 ^ k.factorization 2 [MOD 2 ^ (1 + k.factorization 2)] := by
+            exact Nat.ModEq.symm k_mod
 
+          have k_mod_swap: k ≡ 2 ^ k.factorization 2 [MOD 2 ^ (k.factorization 2 + 1)] := by
+            rwa [Nat.add_comm]
 
-            -- Nat.not_dvd_ordCompl
-          sorry
+          simp [all_basis] at e_k_in_basis
+          refine ⟨e_k_in_basis, ?_⟩
+          use k.factorization 2
         . sorry
 
 

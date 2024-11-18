@@ -31,6 +31,10 @@ noncomputable abbrev all_basis := (λ n: ℕ => (n, basis_n n)) '' Set.univ
 --   have other: x = 1 := by
 --     simp_all only [Set.mem_univ, true_implies, forall_const]
 
+set_option pp.instances false
+set_option pp.coercions false
+set_option pp.all true
+
 theorem foo: 1 = 1 := by
 
   -- Actual start of proof
@@ -261,8 +265,7 @@ theorem foo: 1 = 1 := by
           simp [Function.uncurry]
           rw [Nat.mod_eq_of_lt two_pow_lt]
 
-        let pow_fun := fun (x: ℕ × ℕ) => List.count x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1) %
-    2 ^ (first_one + 1)
+        let pow_fun := fun (x: ℕ × ℕ) => List.count x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1)
 
         let nonzero_digit_subset := {x ∈ (Nat.digits 2 k).enum.toFinset | x.2 = 1}
         have zero_when_outside: ∀ x ∈ (Nat.digits 2 k).enum.toFinset, x ∉ nonzero_digit_subset → pow_fun x = 0 := by
@@ -282,6 +285,29 @@ theorem foo: 1 = 1 := by
           rw [Nat.le_one_iff_eq_zero_or_eq_one] at x_2_le_one
           simp [x_not_in] at x_2_le_one
           simp [pow_fun, x_2_le_one]
+
+        have nonzero_subset: nonzero_digit_subset ⊆ (Nat.digits 2 k).enum.toFinset := by
+          simp [nonzero_digit_subset]
+
+        have bar := Finset.sum_subset nonzero_subset zero_when_outside
+        simp_rw [nonzero_digit_subset, pow_fun] at bar
+        rw [Eq.comm] at bar
+        rw [bar]
+
+        --  ∑ x ∈ (Nat.digits (OfNat.ofNat 2) k).enum.toFinset, List.count x (Nat.digits (OfNat.ofNat 2) k).enum * (x.2 * OfNat.ofNat 2 ^ x.1) % OfNat.ofNat 2 ^ (first_one + OfNat.ofNat 1) =
+        -- (∑ x ∈ (Nat.digits (OfNat.ofNat 2) k).enum.toFinset, List.count x (Nat.digits (OfNat.ofNat 2) k).enum * (x.2 * OfNat.ofNat 2 ^ x.1) % OfNat.ofNat 2 ^ (first_one + OfNat.ofNat 1)
+
+
+        -- (∑ x ∈ (Nat.digits 2 k).enum.toFinset, List.count x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1)) % 2 ^ (first_one + 1) =
+        --  ∑ x ∈ (Nat.digits 2 k).enum.toFinset, List.count x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1)
+
+
+
+
+        --let other_bar := @Finset.sum (ℕ × ℕ) ℕ _ (Nat.digits 2 k).enum.toFinset fun x ↦ List.count x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1)
+
+        --  ∑ x ∈ (Nat.digits 2 k).enum.toFinset, List.count x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1)
+        -- (∑ x ∈ (Nat.digits 2 k).enum.toFinset, List.count x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1))
 
 
         rw [Finset.insert_erase]

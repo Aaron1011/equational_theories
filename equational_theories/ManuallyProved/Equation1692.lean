@@ -31,9 +31,9 @@ noncomputable abbrev all_basis := (λ n: ℕ => (n, basis_n n)) '' Set.univ
 --   have other: x = 1 := by
 --     simp_all only [Set.mem_univ, true_implies, forall_const]
 
-set_option pp.instances false
-set_option pp.coercions false
-set_option pp.all true
+--set_option pp.instances false
+--set_option pp.coercions false
+--set_option pp.all true
 
 theorem foo: 1 = 1 := by
 
@@ -265,7 +265,8 @@ theorem foo: 1 = 1 := by
           simp [Function.uncurry]
           rw [Nat.mod_eq_of_lt two_pow_lt]
 
-        let pow_fun := fun (x: ℕ × ℕ) => List.count x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1)
+        -- TODO - can we get lean to give a better error message when we don't have "instBEqOfDecidableEq"
+        let pow_fun := fun (x: ℕ × ℕ) => @List.count _ instBEqOfDecidableEq x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1)
 
         let nonzero_digit_subset := {x ∈ (Nat.digits 2 k).enum.toFinset | x.2 = 1}
         have zero_when_outside: ∀ x ∈ (Nat.digits 2 k).enum.toFinset, x ∉ nonzero_digit_subset → pow_fun x = 0 := by
@@ -292,8 +293,14 @@ theorem foo: 1 = 1 := by
         have bar := Finset.sum_subset nonzero_subset zero_when_outside
         simp_rw [nonzero_digit_subset, pow_fun] at bar
         rw [Eq.comm] at bar
-        rw [bar]
 
+        -- have dummy : ∑ x ∈ (Nat.digits 2 k).enum.toFinset, List.count x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1) = 25 := by sorry
+        -- have dummy_2: (∑ x ∈ (Nat.digits 2 k).enum.toFinset, List.count x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1)) = 32 := by sorry
+        -- have dummy_3: (∑ x ∈ (Nat.digits 2 k).enum.toFinset, List.count x (Nat.digits 2 k).enum * (x.2 * 2 ^ x.1) % 2 ^ (first_one + 1)) % (2 ^ (first_one + 1)) = 2 ^ (first_one) := by sorry
+        -- rw [bar] at dummy
+        -- rw [bar] at dummy_2
+        -- rw [bar] at dummy_3
+        rw [bar]
         --  ∑ x ∈ (Nat.digits (OfNat.ofNat 2) k).enum.toFinset, List.count x (Nat.digits (OfNat.ofNat 2) k).enum * (x.2 * OfNat.ofNat 2 ^ x.1) % OfNat.ofNat 2 ^ (first_one + OfNat.ofNat 1) =
         -- (∑ x ∈ (Nat.digits (OfNat.ofNat 2) k).enum.toFinset, List.count x (Nat.digits (OfNat.ofNat 2) k).enum * (x.2 * OfNat.ofNat 2 ^ x.1) % OfNat.ofNat 2 ^ (first_one + OfNat.ofNat 1)
 

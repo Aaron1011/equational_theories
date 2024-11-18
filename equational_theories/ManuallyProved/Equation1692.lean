@@ -266,7 +266,12 @@ theorem foo: 1 = 1 := by
           simp [all_basis] at e_k_in_basis
           refine ⟨e_k_in_basis, ?_⟩
           use k.factorization 2
-        . sorry
+        . simp [all_basis] at e_k_in_basis
+          refine ⟨e_k_in_basis, ?_⟩
+          use 0
+          simp
+          simp_all only [Nat.two_dvd_ne_zero]
+          exact two_div_k
 
 
   have si_union_basis: ⋃ i, s_i i = all_basis := by

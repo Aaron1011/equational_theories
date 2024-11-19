@@ -1095,15 +1095,15 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
 
 
 lemma tree_supp_disjoint (t: ReverseTree): t.getData.b.support ∩ t.getData.a.support = ∅ := by
-  induction t with
-    | root =>
+  match t with
+    | .root =>
       simp [ReverseTree.getData, xSeq]
       have one_ne_zero: (1: ℚ) ≠ 0 := by
         simp
       rw [Finsupp.support_single_ne_zero 0 one_ne_zero]
       rw [Finsupp.support_single_ne_zero 1 one_ne_zero]
       simp
-    | left parent h_parent =>
+    | .left parent =>
         simp [ReverseTree.getData, xSeq]
         obtain ⟨_, g, m, m_le_newnum, m_supp_lt, b_linear_comb⟩ := tree_linear_comb parent
         rw [b_linear_comb]
@@ -1160,7 +1160,7 @@ lemma tree_supp_disjoint (t: ReverseTree): t.getData.b.support ∩ t.getData.a.s
           simp at x_in_range
           exact x_in_range
         linarith
-    | right parent h_parent =>
+    | .right parent =>
       simp [ReverseTree.getData, xSeq]
       obtain ⟨⟨a_g, a_m, a_m_le_newnum, a_m_supp_lt, a_linear_comb⟩, b_g, b_m, b_m_le_newnum, b_m_supp_lt, b_linear_comb⟩ := tree_linear_comb parent
       rw [a_linear_comb, b_linear_comb]
@@ -1262,8 +1262,7 @@ lemma tree_supp_disjoint (t: ReverseTree): t.getData.b.support ∩ t.getData.a.s
       have x_lt_m: x < (max a_m b_m) := by
         simp at x_in_range
         simp
-
-
+        exact x_in_range
 
       linarith
 #check LinearIndependent.eq_zero_of_pair

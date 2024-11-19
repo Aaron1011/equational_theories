@@ -1223,13 +1223,15 @@ lemma tree_supp_disjoint (t: ReverseTree): t.getData.b.support ∩ t.getData.a.s
             simp at support_union_subset
             apply Finset.Subset.trans support_sub_subset support_union_subset
           . simp [x_lt_a, x_lt_b]
-            simp
+            have a_supp := supp_single a_g x hx
+            simp at a_supp
+            exact a_supp
         . by_cases x_lt_b: x < b_m
           . simp [x_lt_a, x_lt_b]
-            simp
+            have b_supp := supp_single b_g x hx
+            simp at b_supp
+            exact b_supp
           . simp [x_lt_a, x_lt_b]
-            simp
-
 
 
       simp only [basis_n, Finsupp.coe_basisSingleOne, Finsupp.smul_single,

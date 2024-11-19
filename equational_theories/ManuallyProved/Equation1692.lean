@@ -1176,6 +1176,10 @@ lemma tree_supp_disjoint (t: ReverseTree): t.getData.b.support ∩ t.getData.a.s
         simp
       have newnum_support := Finsupp.support_single_ne_zero (newNum parent) one_ne_zero
       simp [newnum_support] at x_in_cur
+      have newnum_ge_max: (max a_m b_m) ≤ newNum parent := by
+        simp
+        exact ⟨a_m_le_newnum, b_m_le_newnum⟩
+
       rw [← Finset.sum_extend_by_zero] at hx
       nth_rw 2 [← Finset.sum_extend_by_zero] at hx
 
@@ -1249,12 +1253,19 @@ lemma tree_supp_disjoint (t: ReverseTree): t.getData.b.support ∩ t.getData.a.s
       have biunion_subset := (Finset.biUnion_subset (s := Finset.range (max a_m b_m))).mpr combined_supp_subset
       have support_subset := Finsupp.support_finset_sum (s := Finset.range (max a_m b_m)) (f := fun x => ((if x ∈ Finset.range a_m then a_g x • basis_n x else 0) - if x ∈ Finset.range b_m then b_g x • basis_n x else 0))
 
-      have x_in_other := Finset.mem_of_subset support_subset x_in_sum
+      have x_in_biunion := Finset.mem_of_subset support_subset x_in_sum
+
+      simp only [basis_n, Finsupp.coe_basisSingleOne] at x_in_biunion
+      have x_in_range: x ∈ Finset.range (max a_m b_m) := by
+        apply Finset.mem_of_subset biunion_subset x_in_biunion
+
+      have x_lt_m: x < (max a_m b_m) := by
+        simp at x_in_range
+        simp
 
 
-      -- Finset.sum_add_distrib
 
-      sorry
+      linarith
 #check LinearIndependent.eq_zero_of_pair
 
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by

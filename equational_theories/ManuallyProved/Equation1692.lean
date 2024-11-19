@@ -1276,12 +1276,28 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
     | .root => contradiction
     | .left t2_parent =>
       simp [ReverseTree.getData] at h_a_eq
+
       sorry
     | .right t2_parent => sorry
   | .left t1_parent =>
     match t2 with
     | .root => sorry
-    | .left t2_parent => sorry
+    | .left t2_parent =>
+      -- 4. So, they must both be left trees:
+        match t1_parent with
+        | .root => sorry
+        | .left t1_parent_parent =>
+            match t2_parent with
+            | .root => sorry
+            | .left t2_parent_parent =>
+              -- If both parents are left trees - we know that left trees have unique 'b' values so their parents must be the same node. But then our original nodes are left children of the same node, so they're again the same node - contradiction
+              simp [ReverseTree.getData] at h_a_eq
+              apply xseq_injective at h_a_eq
+              apply newnum_injective at h_a_eq
+              rw [h_a_eq] at this
+              contradiction
+            | .right t2_parent_parent => sorry
+        | .right t1_parent_parent => sorry
     | .right t2_parent => sorry
   | .right t1_parent =>
     match t2 with
@@ -1427,14 +1443,14 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
 -- The (a, b) values have disjoint coordinates (of basis elements) - prove this by induction
 
 -- FOR REAL?
--- Suppose two distinct nodes have the same 'a' value. Let one of these nodes have minimal depth
--- DONE: If they're both right trees, contradiction - all right trees have unique 'a' values
--- IMPROVE: If one is left and the other is right:
+-- 1. Suppose two distinct nodes have the same 'a' value. Let one of these nodes have minimal depth
+-- 2. DONE: If they're both right trees, contradiction - all right trees have unique 'a' values
+-- 3. IMPROVE: If one is left and the other is right:
 ---  We have a = -b for some b. There are two cases:
 --    b is fresh - it must therefore come from a different node, which will therefore have a different basis element - contradiction.
 --    b = p - q for some p and q. We know that p and q have disjoint coordinates, and q is not zero, so we have two different representations for 'a' - impossible.
 --    OLD: We have a fresh basis element equal to the negation of some linear combination - this is impossible, by linear independence. Todo - what if we have -(-(a))
--- So, they must both be left trees:
+-- 4. So, they must both be left trees:
 -- * Now consider their parents, which look like (_, -a)
 --   * If both parents are left trees - we know that left trees have unique 'b' values so their parents must be the same node. But then our original nodes are left children of the same node, so they're again the same node - contradiction
 --   * If one is left and the other is right, then see the similar argument above: then we have a fresh basis (from the left tree) equal to 'p - q' (a lienar combination of basis elements),  which is a condiction (TODO - what if 'q' is zero?)

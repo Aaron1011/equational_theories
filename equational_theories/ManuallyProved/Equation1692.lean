@@ -1161,6 +1161,7 @@ lemma tree_supp_disjoint (t: ReverseTree): t.getData.b.support ∩ t.getData.a.s
           exact x_in_range
         linarith
     | .right parent =>
+      -- TODO - a lot of this could probably be factored out and shared between the left and right branches
       simp [ReverseTree.getData, xSeq]
       obtain ⟨⟨a_g, a_m, a_m_le_newnum, a_m_supp_lt, a_linear_comb⟩, b_g, b_m, b_m_le_newnum, b_m_supp_lt, b_linear_comb⟩ := tree_linear_comb parent
       rw [a_linear_comb, b_linear_comb]

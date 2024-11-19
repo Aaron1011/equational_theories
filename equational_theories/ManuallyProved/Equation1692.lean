@@ -1297,7 +1297,24 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
               rw [h_a_eq] at this
               contradiction
             | .right t2_parent_parent => sorry
-        | .right t1_parent_parent => sorry
+        | .right t1_parent_parent =>
+          match t2_parent with
+          | .root => sorry
+          | .left t2_parent_parent => sorry
+          | .right t2_parent_parent =>
+            -- So, both parents must be right trees.
+            simp [ReverseTree.getData] at h_a_eq
+            have parents_a_neq: t1_parent_parent.getData.a ≠ t2_parent_parent.getData.a := by
+              -- TODO - add a minimality assumption to the original top-level 'by_contra!' somehow, and use that here
+              sorry
+
+            -- So, the parents look like (c, d) and (x, y) with c ≠ x, We must also have d ≠ y to satisfy 'c - d = x - y'
+            have parents_b_neq: t1_parent_parent.getData.b ≠ t2_parent_parent.getData.b := by
+              by_contra!
+              rw [this] at h_a_eq
+              simp at h_a_eq
+              contradiction
+            sorry
     | .right t2_parent => sorry
   | .right t1_parent =>
     match t2 with

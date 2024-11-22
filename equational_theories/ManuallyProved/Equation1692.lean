@@ -1376,7 +1376,9 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
 
               rw [x_swap] at x_seq_add
               have sub_b: xSeq (newNum ancestor) + xSeq (newNum ancestor) = ancestor.getData.a - ancestor.getData.b - ancestor.getData.b := by
-                sorry
+                apply_fun (fun x => x - ancestor.getData.b) at x_seq_add
+                simp at x_seq_add
+                exact x_seq_add
 
               rw [← two_nsmul, sub_sub, ← two_nsmul] at sub_b
 

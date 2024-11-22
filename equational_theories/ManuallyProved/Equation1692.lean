@@ -1497,8 +1497,8 @@ lemma temp_partial_function: ∀ (t1 t2: ReverseTree), (t1.getData.a = t2.getDat
     exact min_number
 
 
-lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by
-  by_contra!
+
+lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a) (h_min: ∀ (tree1 tree2: ReverseTree), tree1.getData.a = tree2.getData.a ∧ tree1 ≠ tree2 → newNum t1 ≤ newNum tree1) (this: t1 ≠ t2): False := by
   match t1 with
   | .root =>
     match t2 with

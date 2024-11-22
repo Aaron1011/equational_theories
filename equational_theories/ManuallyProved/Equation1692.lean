@@ -1554,7 +1554,7 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
               rw [grandparents_eq] at this
               simp at this
 
-            -- TODO - add a minimality assumption to the original top-level 'by_contra!' somehow, and use that here
+            -- This is where we use the minimality assumption
             have parents_a_neq: t1_parent_parent.getData.a ≠ t2_parent_parent.getData.a := by
               by_contra! grandparent_a_eq
               specialize h_min t1_parent_parent t2_parent_parent ⟨grandparent_a_eq, grandparents_neq⟩

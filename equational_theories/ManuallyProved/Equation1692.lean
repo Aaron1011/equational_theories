@@ -1454,7 +1454,10 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
     match t2 with
     | .root =>
         simp [ReverseTree.getData] at h_a_eq
-        sorry
+        have b_neq := xseq_zero_neq_b t1_parent (-1) (by simp)
+        simp at b_neq
+        rw [eq_comm] at b_neq
+        contradiction
     | .left t2_parent =>
       -- 4. So, they must both be left trees:
         match t1_parent with

@@ -1548,8 +1548,19 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
           | .right t2_parent_parent =>
             -- So, both parents must be right trees.
             simp [ReverseTree.getData] at h_a_eq
+
+            have grandparents_neq: t1_parent_parent ≠ t2_parent_parent := by
+              by_contra! grandparents_eq
+              rw [grandparents_eq] at this
+              simp at this
+
             -- TODO - add a minimality assumption to the original top-level 'by_contra!' somehow, and use that here
-            have parents_a_neq: t1_parent_parent.getData.a ≠ t2_parent_parent.getData.a := by sorry
+            have parents_a_neq: t1_parent_parent.getData.a ≠ t2_parent_parent.getData.a := by
+              by_contra! grandparent_a_eq
+              specialize h_min t1_parent_parent t2_parent_parent ⟨grandparent_a_eq, grandparents_neq⟩
+              have newnum_gt_right := (newnum_increasing t1_parent_parent).2
+              have newnum_gt_left := (newnum_increasing t1_parent_parent.right).1
+              omega
 
             -- So, the parents look like (c, d) and (x, y) with c ≠ x, We must also have d ≠ y to satisfy 'c - d = x - y'
             have parents_b_neq: t1_parent_parent.getData.b ≠ t2_parent_parent.getData.b := by
@@ -1898,6 +1909,9 @@ lemma temp_partial_function: ∀ (t1 t2: ReverseTree), (t1.getData.a = t2.getDat
     have min_mem: min_newnum ∈ counter_nums := by
       apply WellFounded.min_mem
     simp [counter_nums] at min_mem
+    obtain ⟨t1, t2, h_t1_eq, h_min⟩ := min_mem
+    use t1
+    use t2
   obtain ⟨t1, t2, h_t1_eq, h_min⟩ := min_pair
   simp [counterexamples] at h_t1_eq
   rw [← h_min] at min_newnum_le

@@ -716,7 +716,7 @@ lemma tree_linear_comb (t: ReverseTree):
 --     This implies that the parents are the left/right children of the same node.
 --     Let this common ancestor be (f, g).
 
-lemma cross_eq_same_parent (t1 t2: ReverseTree) (h_a_neq: t1.getData.a ≠ t2.getData.a) (h_eq: t1.getData.a - t1.getData.b = t2.getData.a - t2.getData.b) : ∃ ancestor: ReverseTree, (t1 = ancestor.left ∧ t2 = ancestor.right) ∨ (t1 = ancestor.right ∧ t2 = ancestor.left) := by
+lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.getData.a) (h_eq: t1.getData.a - t1.getData.b = t2.getData.a - t2.getData.b) : ∃ ancestor: ReverseTree, (t1 = ancestor.left ∧ t2 = ancestor.right) ∨ (t1 = ancestor.right ∧ t2 = ancestor.left) := by
     have parents_b_neq: t1.getData.b ≠ t2.getData.b := by
       by_contra!
       rw [this] at h_eq
@@ -1558,9 +1558,12 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
               simp at h_a_eq
               contradiction
 
-            -- TODO - prove this based on some argument about one element on each side of the euqation being fresh
-            have common_ancestor: ∃ ancestor: ReverseTree, (t1_parent_parent = ancestor.left ∧ t2_parent_parent = ancestor.right) ∨ (t1_parent_parent = ancestor.right ∧ t2_parent_parent = ancestor.left) := by
-              sorry
+            -- TODO adjust it in the argument instead of 'reverting' it like this
+            apply_fun (fun x => -1 • x) at h_a_eq
+            simp at h_a_eq
+            have common_ancestor := cross_eq_same_parent parents_a_neq h_a_eq
+            apply_fun (fun x => -1 • x) at h_a_eq
+            simp at h_a_eq
 
             obtain ⟨ancestor, h_ancestor⟩ := common_ancestor
 --     Let this common ancestor be (f, g).

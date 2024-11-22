@@ -706,6 +706,43 @@ lemma tree_linear_comb (t: ReverseTree):
       intro x _ m_lt_x
       simp [m_lt_x]
 
+
+--   One element in each pair must be fresh - assume wlog that 'c' and 'x' are fresh.
+--     Then, in order for 'c - d = x - y', we must have 'x' occuring in 'd' and 'c' occuring in 'y'.
+--     This means depth(parent_one) >= depth(parent_two) and depth(parent_two) >= depth(parent_one), since each must have at least the depth where the other fresh element is first introduced.
+--     Thus, depth(parent_one) = depth(parent_two).
+--     The only way for this to work is if the parents look like (x_i, p) and (q, x_i) - that this, the same fresh node.
+--      Otherwise, one of the nodes will contain a fresh element that's not in the other node.
+--     This implies that the parents are the left/right children of the same node.
+--     Let this common ancestor be (f, g).
+
+lemma cross_eq_same_depth (t1 t2: ReverseTree) (h_a_neq: t1.getData.a ≠ t2.getData.a) (h_eq: t1.getData.a - t1.getData.b = t2.getData.a - t2.getData.b) : True := by
+    have parents_b_neq: t1.getData.b ≠ t2.getData.b := by
+      by_contra!
+      rw [this] at h_eq
+      simp at h_eq
+      contradiction
+
+    match t1 with
+    | .root => sorry
+    | .left t1_parent =>
+      simp [ReverseTree.getData] at h_eq
+      have fresh_move: -t1_parent.getData.b = t2.getData.a - t2.getData.b + xSeq (newNum t1_parent) := by
+        exact Eq.symm (add_eq_of_eq_sub (id (Eq.symm h_eq)))
+
+      have fresh_eq: -t1_parent.getData.b - (t2.getData.a - t2.getData.b) = xSeq (newNum t1_parent) := by
+        rw [fresh_move]
+        simp
+
+      simp [xSeq] at fresh_eq
+      rw [Finsupp.eq_single_iff] at fresh_eq
+
+
+
+
+      sorry
+    | .right t2_parent => sorry
+
 lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by
   induction t with
   | root =>
@@ -1304,9 +1341,8 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
           | .right t2_parent_parent =>
             -- So, both parents must be right trees.
             simp [ReverseTree.getData] at h_a_eq
-            have parents_a_neq: t1_parent_parent.getData.a ≠ t2_parent_parent.getData.a := by
-              -- TODO - add a minimality assumption to the original top-level 'by_contra!' somehow, and use that here
-              sorry
+            -- TODO - add a minimality assumption to the original top-level 'by_contra!' somehow, and use that here
+            have parents_a_neq: t1_parent_parent.getData.a ≠ t2_parent_parent.getData.a := by sorry
 
             -- So, the parents look like (c, d) and (x, y) with c ≠ x, We must also have d ≠ y to satisfy 'c - d = x - y'
             have parents_b_neq: t1_parent_parent.getData.b ≠ t2_parent_parent.getData.b := by
@@ -1314,6 +1350,89 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
               rw [this] at h_a_eq
               simp at h_a_eq
               contradiction
+
+            -- TODO - prove this based on some argument about one element on each side of the euqation being fresh
+            have common_ancestor: ∃ ancestor: ReverseTree, (t1_parent_parent = ancestor.left ∧ t2_parent_parent = ancestor.right) ∨ (t1_parent_parent = ancestor.right ∧ t2_parent_parent = ancestor.left) := by
+              sorry
+
+            obtain ⟨ancestor, h_ancestor⟩ := common_ancestor
+--     Let this common ancestor be (f, g).
+--     Then, the parents are (-g, x_i) and (x_i, f - g),
+--     We have -g - x_i = x_i - (f - g)
+--              -g -x_i = x_i - f + g
+--              0 = 2x_i + 2g - f
+--     This is impossible, because x_i is fresh: g and/or f would need to contain x_i, which is impossible.
+            cases h_ancestor with
+            | inl left_right =>
+              simp [left_right.1, left_right.2, ReverseTree.getData] at h_a_eq
+              have x_seq_add: xSeq (newNum ancestor) + ancestor.getData.b  + xSeq (newNum ancestor) = ancestor.getData.a - ancestor.getData.b := by
+                exact add_eq_of_eq_sub h_a_eq
+
+              have x_swap: xSeq (newNum ancestor) + ancestor.getData.b  + xSeq (newNum ancestor) = xSeq (newNum ancestor) + xSeq (newNum ancestor) + ancestor.getData.b := by
+                exact
+                  Eq.symm
+                    (add_rotate (xSeq (newNum ancestor)) (xSeq (newNum ancestor))
+                      ancestor.getData.b)
+
+              rw [x_swap] at x_seq_add
+              have sub_b: xSeq (newNum ancestor) + xSeq (newNum ancestor) = ancestor.getData.a - ancestor.getData.b - ancestor.getData.b := by
+                sorry
+
+              rw [← two_nsmul, sub_sub, ← two_nsmul] at sub_b
+
+              have ⟨⟨g_a, m_a, m_a_gt, a_supp_max, a_repr⟩, ⟨g_b, m_b, m_b_gt, b_supp_max, b_repr⟩⟩ := tree_linear_comb ancestor
+
+              rw [← Finset.sum_extend_by_zero] at a_repr
+              rw [← Finset.sum_extend_by_zero] at b_repr
+
+
+
+              have a_subset_newnum: Finset.range m_a ⊆ Finset.range (newNum ancestor) := by
+                simp
+                exact m_a_gt
+              have b_subset_newnum: Finset.range m_b ⊆ Finset.range (newNum ancestor) := by
+                simp
+                exact m_b_gt
+
+              rw [Finset.sum_subset a_subset_newnum ?_] at a_repr
+              rw [Finset.sum_subset b_subset_newnum ?_] at b_repr
+              rw [a_repr, b_repr] at sub_b
+              rw [← Finset.sum_nsmul] at sub_b
+              rw [← Finset.sum_sub_distrib] at sub_b
+              simp only [basis_n, xSeq] at sub_b
+              apply n_q_basis.ext_elem_iff.mp at sub_b
+              specialize sub_b (newNum ancestor)
+              simp only [n_q_basis, Finsupp.basisSingleOne_repr, Finsupp.coe_basisSingleOne, Finsupp.smul_single, nsmul_eq_mul, Nat.cast_ofNat, mul_one, LinearEquiv.refl_apply, Finsupp.single_eq_same, Finset.mem_range, smul_eq_mul, smul_ite, Finsupp.single_mul, smul_zero, Finsupp.coe_sub, Finsupp.coe_finset_sum, Pi.sub_apply, Finset.sum_apply] at sub_b
+              -- TODO - avoid copy-pasting the entire sum
+              have sum_eq_zero: ∑ x ∈ Finset.range (newNum ancestor), (((if x < m_a then fun₀ | x => g_a x else 0) (newNum ancestor) - (if x < m_b then (fun₀ | x => (2: ℚ)) * fun₀ | x => g_b x else 0) (newNum ancestor))) = ∑ x ∈ Finset.range (newNum ancestor), 0 := by
+                apply Finset.sum_congr rfl
+                intro x hx
+                simp at hx
+                have x_neq_newnum: x ≠ newNum ancestor := by
+                  linarith
+                by_cases x_lt_a: x < m_a
+                . by_cases x_lt_b: x < m_b
+                  . simp [x_neq_newnum, x_lt_a, x_lt_b]
+                  . simp [x_neq_newnum, x_lt_a, x_lt_b]
+                . by_cases x_lt_b: x < m_b
+                  . simp [x_neq_newnum, x_lt_a, x_lt_b]
+                  . simp [x_neq_newnum, x_lt_a, x_lt_b]
+
+              rw [sum_eq_zero] at sub_b
+              simp at sub_b
+
+              -- TODO - move these up earlier when we do `Finset.sum_subset a_subset_newnum ?_`
+              . intro x hx x_not_in
+                simp [x_not_in]
+              . intro x hx x_not_in
+                simp [x_not_in]
+
+
+
+            | inr right_left => sorry
+
+
+
             sorry
     | .right t2_parent => sorry
   | .right t1_parent =>

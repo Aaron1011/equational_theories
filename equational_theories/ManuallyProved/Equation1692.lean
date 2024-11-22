@@ -1439,8 +1439,8 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
           contradiction
     | .right t2_parent =>
         simp [ReverseTree.getData, xSeq] at h_a_eq
-
-        sorry
+        have fun_neq := finsupp_new_zero_newnum t2_parent 1 1 (by simp)
+        contradiction
   | .left t1_parent =>
     match t2 with
     | .root =>

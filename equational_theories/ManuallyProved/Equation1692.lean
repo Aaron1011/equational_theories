@@ -1478,7 +1478,11 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
                 contradiction
         | .left t1_parent_parent =>
             match t2_parent with
-            | .root => sorry
+            | .root =>
+              simp [ReverseTree.getData] at h_a_eq
+              apply xseq_injective at h_a_eq
+              have val_gt_one := newnem_gt_one t1_parent_parent
+              omega
             | .left t2_parent_parent =>
               -- If both parents are left trees - we know that left trees have unique 'b' values so their parents must be the same node. But then our original nodes are left children of the same node, so they're again the same node - contradiction
               simp [ReverseTree.getData] at h_a_eq

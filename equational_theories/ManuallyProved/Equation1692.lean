@@ -1448,8 +1448,11 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
                 have val_gt_one := newnem_gt_one t2_parent_parent
                 omega
             | .right t2_parent_parent =>
-                simp [ReverseTree.getData] at h_a_eq
-                sorry
+                simp [ReverseTree.getData, xSeq] at h_a_eq
+                have vals_neq := basis_neq_elem_diff t2_parent_parent 1 (-1) 1 (by simp) (by simp)
+                simp only [one_smul, neg_one_smul] at vals_neq
+                rw [add_comm, ← sub_eq_add_neg] at vals_neq
+                contradiction
         | .left t1_parent_parent =>
             match t2_parent with
             | .root => sorry

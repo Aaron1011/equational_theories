@@ -1335,11 +1335,23 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
     | .right t2_parent => sorry
   | .left t1_parent =>
     match t2 with
-    | .root => sorry
+    | .root =>
+        sorry
     | .left t2_parent =>
       -- 4. So, they must both be left trees:
         match t1_parent with
-        | .root => sorry
+        | .root =>
+            simp [ReverseTree.getData] at h_a_eq
+            match t2_parent with
+            | .root => contradiction
+            | .left t2_parent_parent =>
+                simp [ReverseTree.getData] at h_a_eq
+                apply xseq_injective at h_a_eq
+                have val_gt_one := newnem_gt_one t2_parent_parent
+                omega
+            | .right t2_parent_parent =>
+                simp [ReverseTree.getData] at h_a_eq
+                sorry
         | .left t1_parent_parent =>
             match t2_parent with
             | .root => sorry

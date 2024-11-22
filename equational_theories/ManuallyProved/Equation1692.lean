@@ -1606,8 +1606,10 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
 
 
 
-            | inr right_left => sorry
-    | .right t2_parent => sorry
+            | inr right_left =>
+              sorry
+    | .right t2_parent =>
+      sorry
   | .right t1_parent =>
     match t2 with
     | .root =>

@@ -1316,12 +1316,21 @@ lemma tree_vals_nonzero (t: ReverseTree) : t.getData.a ≠ 0 ∧ t.getData.b ≠
     assumption
   exact ⟨a_neq_zero, b_neq_zero⟩
 
-lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ): Finsupp.single a (1: ℚ) ≠ t.getData.b - t.getData.a := by
+lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ) (b c: ℚ) (hb: b ≠ 0) (hc: c ≠ 0): Finsupp.single a (1: ℚ) ≠ b • t.getData.b + c • t.getData.a := by
   by_contra!
   have coord_intersect: t.getData.b.support ∩ t.getData.a.support = ∅ := by
     apply tree_supp_disjoint t
   have coord_disjoint: Disjoint t.getData.b.support t.getData.a.support := by
     exact Finset.disjoint_iff_inter_eq_empty.mpr coord_intersect
+
+  have b_mul_subset: (b • t.getData.b).support ⊆ t.getData.b.support := by
+    exact Finsupp.support_smul
+  have c_mul_subset: (c • t.getData.a).support ⊆ t.getData.a.support := by
+    exact Finsupp.support_smul
+
+  have mul_support_disjoint: Disjoint (b • t.getData.b).support (c • t.getData.a).support := by
+    exact Disjoint.mono b_mul_subset c_mul_subset coord_disjoint
+
   have a_neq_zero: t.getData.a ≠ 0 := by
     have bar := LinearIndependent.ne_zero 0 (tree_linear_independent t)
     simp at bar
@@ -1337,7 +1346,7 @@ lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ): Finsupp.single a (1: ℚ) �
     simp
 
   let s: Finset (Fin 2) := {0, 1}
-  let g := fun (i: Fin 2) => if i = 0 then t.getData.b else -t.getData.a
+  let g := fun (i: Fin 2) => if i = 0 then b • t.getData.b else c • t.getData.a
   have g_supp_disjoint: ∀ (i_1 i_2: Fin 2), i_1 ≠ i_2 → Disjoint (g i_1).support (g i_2).support := by
     intro i_1 i_2 i_neq
     simp [g]
@@ -1347,7 +1356,7 @@ lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ): Finsupp.single a (1: ℚ) �
         have bar := i_2.isLt
         omega
       simp [i_1_eq, i_2_eq]
-      exact coord_disjoint
+      exact mul_support_disjoint
     . have i_1_eq: i_1 = 1 := by
         have bar := i_1.isLt
         omega
@@ -1355,12 +1364,11 @@ lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ): Finsupp.single a (1: ℚ) �
         have bar := i_2.isLt
         omega
       simp [i_1_eq, i_2_eq]
-      exact coord_disjoint.symm
+      exact mul_support_disjoint.symm
 
 
   have support_sum := Finsupp.support_sum_eq_biUnion s g_supp_disjoint
   simp [s, g] at support_sum
-  rw [← sub_eq_add_neg] at support_sum
 
   have a_supp_card: 1 ≤ t.getData.a.support.card := by
     have bar := Finsupp.card_support_eq_zero.not.mpr a_neq_zero
@@ -1369,16 +1377,24 @@ lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ): Finsupp.single a (1: ℚ) �
     have bar := Finsupp.card_support_eq_zero.not.mpr b_neq_zero
     exact Nat.one_le_iff_ne_zero.mpr bar
 
-  have card_union_sum := Finset.card_union_eq_card_add_card.mpr coord_disjoint
+  have b_mul_card: 1 ≤ (b • t.getData.b).support.card := by
+    rw [Finsupp.support_smul_eq hb]
+    exact b_supp_card
+
+  have c_mul_card: 1 ≤ (c • t.getData.a).support.card := by
+    rw [Finsupp.support_smul_eq hc]
+    exact a_supp_card
+
+  have card_union_sum := Finset.card_union_eq_card_add_card.mpr mul_support_disjoint
 
 
-  have card_sum_le: 2 ≤ (t.getData.b.support ∪ t.getData.a.support).card := by
-    rw [Finset.card_union_eq_card_add_card.mpr coord_disjoint]
+  have card_sum_le: 2 ≤ ((b • t.getData.b).support ∪ (c • t.getData.a).support).card := by
+    rw [Finset.card_union_eq_card_add_card.mpr mul_support_disjoint]
     linarith
 
   rw [Finsupp.ext_iff'] at this
   obtain ⟨support_eq, _⟩ := this
-  have card_eq: (fun₀ | a => (1 : ℚ)).support.card = (t.getData.b - t.getData.a).support.card := by
+  have card_eq: (fun₀ | a => (1 : ℚ)).support.card = (b • t.getData.b + c • t.getData.a).support.card := by
     rw [support_eq]
 
   rw [single_card_one] at card_eq

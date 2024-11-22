@@ -1410,6 +1410,17 @@ lemma finsupp_new_zero_newnum (t: ReverseTree) (a b: ℚ) (hb: b ≠ 0): (fun₀
   rw [eq_comm] at eval_at
   contradiction
 
+lemma finsupp_new_one_newnum (t: ReverseTree) (a b: ℚ) (hb: b ≠ 0): (fun₀ | 1 => (a: ℚ)) ≠ (fun₀ | newNum t => (b: ℚ)) := by
+  by_contra!
+  have eval_at := DFunLike.congr (x := newNum t) (y := newNum t) this rfl
+  simp at eval_at
+  have t2_gt_one := newnem_gt_one t
+  have newnum_new_zero: 1 ≠ newNum t := by
+    omega
+  simp [newnum_new_zero] at eval_at
+  rw [eq_comm] at eval_at
+  contradiction
+
 lemma xseq_zero_neq_b (t: ReverseTree) (s: ℚ) (hs: s ≠ 0): xSeq 0 ≠ s • t.getData.b := by
   by_contra!
   match t with
@@ -1609,7 +1620,17 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
             | inr right_left =>
               sorry
     | .right t2_parent =>
-      sorry
+      simp [ReverseTree.getData] at h_a_eq
+      match t1_parent with
+      | .root =>
+        simp [ReverseTree.getData, xSeq] at h_a_eq
+        have fun_neq := finsupp_new_one_newnum t2_parent (-1) 1 (by simp)
+        rw [← Finsupp.single_neg] at h_a_eq
+        contradiction
+      | .left t1_parent_parent =>
+        sorry
+      | .right t1_parent_parent =>
+        sorry
   | .right t1_parent =>
     match t2 with
     | .root =>

@@ -732,17 +732,13 @@ lemma cross_eq_same_parent (t1 t2: ReverseTree) (h_a_neq: t1.getData.a ≠ t2.ge
       simp [ReverseTree.getData] at h_eq
       sorry
 
-    match t1 with
+    match h_t1: t1 with
     | .root => sorry
     | .left t1_parent =>
       simp [ReverseTree.getData] at h_eq
 
-      -- TODO - how do we get this from the match
-      have t1_eq_left: t1 = t1_parent.left := by
-        sorry
-
       have t1_b_fresh: t1.getData.b = xSeq (newNum t1_parent) := by
-        sorry
+        simp [h_t1, ReverseTree.getData]
       have t2_a_fresh: t2.getData.a = xSeq (newNum t1_parent) := by
         sorry
 
@@ -754,7 +750,7 @@ lemma cross_eq_same_parent (t1 t2: ReverseTree) (h_a_neq: t1.getData.a ≠ t2.ge
         by_contra!
         rw [h_t2_parent] at t2_a_fresh
         rw [← t1_b_fresh] at t2_a_fresh
-        rw [t1_eq_left] at t2_a_fresh
+        rw [h_t1] at t2_a_fresh
         simp [ReverseTree.getData] at t2_a_fresh
         apply xseq_injective at t2_a_fresh
         apply newnum_injective at t2_a_fresh

@@ -716,7 +716,7 @@ lemma tree_linear_comb (t: ReverseTree):
 --     This implies that the parents are the left/right children of the same node.
 --     Let this common ancestor be (f, g).
 
-lemma cross_eq_same_depth (t1 t2: ReverseTree) (h_a_neq: t1.getData.a ≠ t2.getData.a) (h_eq: t1.getData.a - t1.getData.b = t2.getData.a - t2.getData.b) : True := by
+lemma cross_eq_same_depth (t1 t2: ReverseTree) (h_a_neq: t1.getData.a ≠ t2.getData.a) (h_eq: t1.getData.a - t1.getData.b = t2.getData.a - t2.getData.b) : ∃ ancestor: ReverseTree, (t1 = ancestor.left ∧ t2 = ancestor.right) ∨ (t1 = ancestor.right ∧ t2 = ancestor.left) := by
     have parents_b_neq: t1.getData.b ≠ t2.getData.b := by
       by_contra!
       rw [this] at h_eq
@@ -727,6 +727,18 @@ lemma cross_eq_same_depth (t1 t2: ReverseTree) (h_a_neq: t1.getData.a ≠ t2.get
     | .root => sorry
     | .left t1_parent =>
       simp [ReverseTree.getData] at h_eq
+      have t1_b_fresh: t1.getData.b = xSeq (newNum t1_parent) := by
+        sorry
+      have t2_a_fresh: t2.getData.a = xSeq (newNum t1_parent) := by
+        sorry
+
+      have t2_is_right: ∃ parent: ReverseTree, t2 = parent.right := by
+        sorry
+
+      obtain ⟨t2_parent, h_t2_parent⟩ := t2_is_right
+      have t2_parent_eq: t1_parent = t2_parent := by
+        by_contra!
+
       have fresh_move: -t1_parent.getData.b = t2.getData.a - t2.getData.b + xSeq (newNum t1_parent) := by
         exact Eq.symm (add_eq_of_eq_sub (id (Eq.symm h_eq)))
 

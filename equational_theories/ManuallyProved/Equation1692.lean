@@ -1316,7 +1316,7 @@ lemma tree_vals_nonzero (t: ReverseTree) : t.getData.a ≠ 0 ∧ t.getData.b ≠
     assumption
   exact ⟨a_neq_zero, b_neq_zero⟩
 
-lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ) (b c: ℚ) (hb: b ≠ 0) (hc: c ≠ 0): Finsupp.single a (1: ℚ) ≠ b • t.getData.b + c • t.getData.a := by
+lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ) (b c r: ℚ) (hb: b ≠ 0) (hc: c ≠ 0) (hr: r ≠ 0): Finsupp.single a r ≠ b • t.getData.b + c • t.getData.a := by
   by_contra!
   have coord_intersect: t.getData.b.support ∩ t.getData.a.support = ∅ := by
     apply tree_supp_disjoint t
@@ -1339,10 +1339,8 @@ lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ) (b c: ℚ) (hb: b ≠ 0) (hc
     have bar := LinearIndependent.ne_zero 1 (tree_linear_independent t)
     simp at bar
     assumption
-  have one_ne_zero: (1 : ℚ) ≠ 0 := by
-    simp
-  have single_card_one: (fun₀ | a => (1 : ℚ)).support.card = 1 := by
-    rw [Finsupp.support_single_ne_zero a one_ne_zero]
+  have single_card_one: (fun₀ | a => r).support.card = 1 := by
+    rw [Finsupp.support_single_ne_zero a hr]
     simp
 
   let s: Finset (Fin 2) := {0, 1}
@@ -1394,7 +1392,7 @@ lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ) (b c: ℚ) (hb: b ≠ 0) (hc
 
   rw [Finsupp.ext_iff'] at this
   obtain ⟨support_eq, _⟩ := this
-  have card_eq: (fun₀ | a => (1 : ℚ)).support.card = (b • t.getData.b + c • t.getData.a).support.card := by
+  have card_eq: (fun₀ | a => r).support.card = (b • t.getData.b + c • t.getData.a).support.card := by
     rw [support_eq]
 
   rw [single_card_one] at card_eq
@@ -1490,7 +1488,14 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
               apply newnum_injective at h_a_eq
               rw [h_a_eq] at this
               contradiction
-            | .right t2_parent_parent => sorry
+            | .right t2_parent_parent =>
+                simp [ReverseTree.getData, xSeq] at h_a_eq
+                rw [← Finsupp.single_neg] at h_a_eq
+                have vals_neq := basis_neq_elem_diff t2_parent_parent (newNum t1_parent_parent) (1) (-1) (by simp) (by simp)
+                simp at vals_neq
+                rw [← sub_eq_add_neg] at vals_neq
+                contradiction
+                sorry
         | .right t1_parent_parent =>
           match t2_parent with
           | .root => sorry

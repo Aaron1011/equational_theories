@@ -1895,7 +1895,9 @@ lemma temp_partial_function: ∀ (t1 t2: ReverseTree), (t1.getData.a = t2.getDat
     exact min_number
 
   have min_pair: ∃ (t1 t2: ReverseTree), (t1, t2) ∈ counterexamples ∧ newNum t1 = min_newnum := by
-    sorry
+    have min_mem: min_newnum ∈ counter_nums := by
+      apply WellFounded.min_mem
+    simp [counter_nums] at min_mem
   obtain ⟨t1, t2, h_t1_eq, h_min⟩ := min_pair
   simp [counterexamples] at h_t1_eq
   rw [← h_min] at min_newnum_le

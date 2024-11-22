@@ -1442,24 +1442,10 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
     match t2 with
     | .root => contradiction
     | .left t2_parent =>
-      simp [ReverseTree.getData] at h_a_eq
-      match t2_parent with
-      | .root =>
-          -- TODO - there must be a simpler way of doing 'congr'
-          simp [ReverseTree.getData, xSeq] at h_a_eq
-          rw [← Finsupp.single_neg] at h_a_eq
-          have eval_at := DFunLike.congr (x := 0) (y := 0) h_a_eq rfl
-          simp at eval_at
-      | .left t2_parent_parent =>
-          simp [ReverseTree.getData, xSeq] at h_a_eq
-          rw [← Finsupp.single_neg] at h_a_eq
-          have fun_neq := finsupp_new_zero_newnum t2_parent_parent 1 (-1) (by simp)
-          contradiction
-        | .right t2_parent_parent =>
-          simp [ReverseTree.getData, xSeq] at h_a_eq
-          have vals_neq := basis_neq_elem_diff t2_parent_parent 0 1 (-1) (by simp) (by simp)
-          simp only [one_smul, neg_one_smul, ← sub_eq_add_neg] at vals_neq
-          contradiction
+        simp [ReverseTree.getData] at h_a_eq
+        have b_neq := xseq_zero_neq_b t2_parent (-1) (by simp)
+        simp at b_neq
+        contradiction
     | .right t2_parent =>
         simp [ReverseTree.getData, xSeq] at h_a_eq
         have fun_neq := finsupp_new_zero_newnum t2_parent 1 1 (by simp)

@@ -1452,7 +1452,19 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
     | .left t2_parent =>
       simp [ReverseTree.getData] at h_a_eq
       match t2_parent with
-      | .root => sorry
+      | .root =>
+        simp [ReverseTree.getData, xSeq] at h_a_eq
+        rw [← Finsupp.single_neg] at h_a_eq
+        have eval_at: (fun₀ | newNum t1_parent => 1) (newNum t1_parent) = (fun₀ | 1 => (-1: ℚ)) (newNum t1_parent) := by
+          refine DFunLike.congr ?h₁ rfl
+          exact h_a_eq
+        simp at eval_at
+        have newnum_gt_one: 1 < newNum t1_parent := by
+          exact newnem_gt_one t1_parent
+        have newnum_neq_one: 1 ≠ newNum t1_parent := by
+          linarith
+        rw [Finsupp.single_apply] at eval_at
+        simp [newnum_neq_one] at eval_at
       | .left t2_parent_parent =>
           -- b is fresh - it must therefore come from a different node, which will therefore have a different basis element - contradiction.
           simp [ReverseTree.getData, xSeq] at h_a_eq

@@ -1305,6 +1305,86 @@ lemma tree_supp_disjoint (t: ReverseTree): t.getData.b.support ∩ t.getData.a.s
       linarith
 #check LinearIndependent.eq_zero_of_pair
 
+lemma tree_vals_nonzero (t: ReverseTree) : t.getData.a ≠ 0 ∧ t.getData.b ≠ 0 := by
+  have a_neq_zero: t.getData.a ≠ 0 := by
+    have bar := LinearIndependent.ne_zero 0 (tree_linear_independent t)
+    simp at bar
+    assumption
+  have b_neq_zero: t.getData.b ≠ 0 := by
+    have bar := LinearIndependent.ne_zero 1 (tree_linear_independent t)
+    simp at bar
+    assumption
+  exact ⟨a_neq_zero, b_neq_zero⟩
+
+lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ): Finsupp.single a (1: ℚ) ≠ t.getData.b - t.getData.a := by
+  by_contra!
+  have coord_intersect: t.getData.b.support ∩ t.getData.a.support = ∅ := by
+    apply tree_supp_disjoint t
+  have coord_disjoint: Disjoint t.getData.b.support t.getData.a.support := by
+    exact Finset.disjoint_iff_inter_eq_empty.mpr coord_intersect
+  have a_neq_zero: t.getData.a ≠ 0 := by
+    have bar := LinearIndependent.ne_zero 0 (tree_linear_independent t)
+    simp at bar
+    assumption
+  have b_neq_zero: t.getData.b ≠ 0 := by
+    have bar := LinearIndependent.ne_zero 1 (tree_linear_independent t)
+    simp at bar
+    assumption
+  have one_ne_zero: (1 : ℚ) ≠ 0 := by
+    simp
+  have single_card_one: (fun₀ | a => (1 : ℚ)).support.card = 1 := by
+    rw [Finsupp.support_single_ne_zero a one_ne_zero]
+    simp
+
+  let s: Finset (Fin 2) := {0, 1}
+  let g := fun (i: Fin 2) => if i = 0 then t.getData.b else -t.getData.a
+  have g_supp_disjoint: ∀ (i_1 i_2: Fin 2), i_1 ≠ i_2 → Disjoint (g i_1).support (g i_2).support := by
+    intro i_1 i_2 i_neq
+    simp [g]
+    by_cases i_1_eq: i_1 = 0
+    .
+      have i_2_eq: i_2 = 1 := by
+        have bar := i_2.isLt
+        omega
+      simp [i_1_eq, i_2_eq]
+      exact coord_disjoint
+    . have i_1_eq: i_1 = 1 := by
+        have bar := i_1.isLt
+        omega
+      have i_2_eq: i_2 = 0 := by
+        have bar := i_2.isLt
+        omega
+      simp [i_1_eq, i_2_eq]
+      exact coord_disjoint.symm
+
+
+  have support_sum := Finsupp.support_sum_eq_biUnion s g_supp_disjoint
+  simp [s, g] at support_sum
+  rw [← sub_eq_add_neg] at support_sum
+
+  have a_supp_card: 1 ≤ t.getData.a.support.card := by
+    have bar := Finsupp.card_support_eq_zero.not.mpr a_neq_zero
+    exact Nat.one_le_iff_ne_zero.mpr bar
+  have b_supp_card: 1 ≤ t.getData.b.support.card := by
+    have bar := Finsupp.card_support_eq_zero.not.mpr b_neq_zero
+    exact Nat.one_le_iff_ne_zero.mpr bar
+
+  have card_union_sum := Finset.card_union_eq_card_add_card.mpr coord_disjoint
+
+
+  have card_sum_le: 2 ≤ (t.getData.b.support ∪ t.getData.a.support).card := by
+    rw [Finset.card_union_eq_card_add_card.mpr coord_disjoint]
+    linarith
+
+  rw [Finsupp.ext_iff'] at this
+  obtain ⟨support_eq, _⟩ := this
+  have card_eq: (fun₀ | a => (1 : ℚ)).support.card = (t.getData.b - t.getData.a).support.card := by
+    rw [support_eq]
+
+  rw [single_card_one] at card_eq
+  rw [support_sum, card_union_sum] at card_eq
+  linarith
+
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by
   by_contra!
   match t1 with
@@ -1331,6 +1411,11 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
           simp [newnum_new_zero] at eval_at
         | .right t2_parent_parent =>
           simp [ReverseTree.getData] at h_a_eq
+          have vals_indep := tree_linear_independent t2_parent_parent
+          apply LinearIndependent.pair_iff.mp at vals_indep
+
+
+
           sorry
     | .right t2_parent => sorry
   | .left t1_parent =>

@@ -1656,7 +1656,7 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
             | inl left_right =>
               exact common_ancestor_stuff ancestor t1_parent_parent t2_parent_parent left_right h_a_eq
             | inr right_left =>
-              sorry
+              exact common_ancestor_stuff ancestor t2_parent_parent t1_parent_parent right_left.symm h_a_eq.symm
     | .right t2_parent =>
       simp [ReverseTree.getData] at h_a_eq
       match t1_parent with

@@ -1427,7 +1427,7 @@ lemma xseq_zero_neq_b (t: ReverseTree) (s: ℚ) (hs: s ≠ 0): xSeq 0 ≠ s • 
       have neg_s_neq_zero: (-s) ≠ 0 := by
         simp
         exact hs
-      have vals_neq := basis_neq_elem_diff t2_parent_parent 0 (-s) s neg_s_neq_zero hs
+      have vals_neq := basis_neq_elem_diff t2_parent_parent 0 (-s) s 1 neg_s_neq_zero hs (by simp)
       simp only [one_smul, neg_one_smul, add_comm] at vals_neq
       rw [neg_smul, ← sub_eq_add_neg] at vals_neq
       rw [smul_sub] at this
@@ -1470,7 +1470,7 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
                 omega
             | .right t2_parent_parent =>
                 simp [ReverseTree.getData, xSeq] at h_a_eq
-                have vals_neq := basis_neq_elem_diff t2_parent_parent 1 (-1) 1 (by simp) (by simp)
+                have vals_neq := basis_neq_elem_diff t2_parent_parent 1 (-1) 1 1 (by simp) (by simp) (by simp)
                 simp only [one_smul, neg_one_smul] at vals_neq
                 rw [add_comm, ← sub_eq_add_neg] at vals_neq
                 contradiction
@@ -1491,11 +1491,10 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
             | .right t2_parent_parent =>
                 simp [ReverseTree.getData, xSeq] at h_a_eq
                 rw [← Finsupp.single_neg] at h_a_eq
-                have vals_neq := basis_neq_elem_diff t2_parent_parent (newNum t1_parent_parent) (1) (-1) (by simp) (by simp)
+                have vals_neq := basis_neq_elem_diff t2_parent_parent (newNum t1_parent_parent) (1) (-1) (-1) (by simp) (by simp) (by simp)
                 simp at vals_neq
-                rw [← sub_eq_add_neg] at vals_neq
+                rw [← sub_eq_add_neg, ← Finsupp.single_neg] at vals_neq
                 contradiction
-                sorry
         | .right t1_parent_parent =>
           match t2_parent with
           | .root => sorry

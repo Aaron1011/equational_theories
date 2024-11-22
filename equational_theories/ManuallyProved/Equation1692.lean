@@ -27,7 +27,7 @@ noncomputable abbrev all_basis := (λ n: ℕ => (n, basis_n n)) '' Set.univ
 --   have wrong: ∀ y ∈ foo, 1 = 2 := by
 --     simp [foo]
 
---   have foo: ∀ y ∈ {5, 6}, x = 1 := by sorry
+--   have foo: ∀ y ∈ {5, 6}, x = 1 := by s_orry
 --   have other: x = 1 := by
 --     simp_all only [Set.mem_univ, true_implies, forall_const]
 
@@ -1628,9 +1628,20 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
         rw [← Finsupp.single_neg] at h_a_eq
         contradiction
       | .left t1_parent_parent =>
-        sorry
+        simp [ReverseTree.getData, xSeq] at h_a_eq
+        rw [← Finsupp.single_neg] at h_a_eq
+        rw [Finsupp.single_eq_single_iff] at h_a_eq
+        match h_a_eq with
+        | .inl ⟨_, neq_eq_one⟩ =>
+          contradiction
+        | .inr ⟨neq_eq_one, _⟩ =>
+          contradiction
       | .right t1_parent_parent =>
-        sorry
+        simp [ReverseTree.getData, xSeq] at h_a_eq
+        have vals_neq := basis_neq_elem_diff t1_parent_parent (newNum t2_parent) 1 (-1) 1 (by simp) (by simp) (by simp)
+        simp only [one_smul, neg_one_smul, ← sub_eq_add_neg] at vals_neq
+        rw [eq_comm] at h_a_eq
+        contradiction
   | .right t1_parent =>
     match t2 with
     | .root =>

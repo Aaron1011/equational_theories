@@ -1427,7 +1427,8 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
           simp [newnum_new_zero] at eval_at
         | .right t2_parent_parent =>
           simp [ReverseTree.getData, xSeq] at h_a_eq
-          have vals_neq := basis_neq_elem_diff t2_parent_parent 0
+          have vals_neq := basis_neq_elem_diff t2_parent_parent 0 1 (-1) (by simp) (by simp)
+          simp only [one_smul, neg_one_smul, ← sub_eq_add_neg] at vals_neq
           contradiction
     | .right t2_parent => sorry
   | .left t1_parent =>
@@ -1637,7 +1638,8 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
       | .right t2_parent_parent =>
         --  b = p - q for some p and q. We know that p and q have disjoint coordinates, and q is not zero, so we have two different representations for 'a' - impossible.
         simp [ReverseTree.getData, xSeq] at h_a_eq
-        have diff_neq := basis_neq_elem_diff t2_parent_parent (newNum t1_parent)
+        have vals_neq := basis_neq_elem_diff t2_parent_parent (newNum t1_parent) 1 (-1) (by simp) (by simp)
+        simp only [one_smul, neg_one_smul, ← sub_eq_add_neg] at vals_neq
         contradiction
     | .right t2_parent =>
       -- If they're both right trees, contradiction - all right trees have unique 'a' values

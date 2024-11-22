@@ -1401,6 +1401,17 @@ lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ) (b c: ℚ) (hb: b ≠ 0) (hc
   rw [support_sum, card_union_sum] at card_eq
   linarith
 
+lemma finsupp_new_zero_newnum (t: ReverseTree) (a b: ℚ) (hb: b ≠ 0): (fun₀ | 0 => (a: ℚ)) ≠ (fun₀ | newNum t => (b: ℚ)) := by
+  by_contra!
+  have eval_at := DFunLike.congr (x := newNum t) (y := newNum t) this rfl
+  simp at eval_at
+  have t2_gt_one := newnem_gt_one t
+  have newnum_new_zero: 0 ≠ newNum t := by
+    omega
+  simp [newnum_new_zero] at eval_at
+  rw [eq_comm] at eval_at
+  contradiction
+
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by
   by_contra!
   match t1 with
@@ -1419,18 +1430,17 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
       | .left t2_parent_parent =>
           simp [ReverseTree.getData, xSeq] at h_a_eq
           rw [← Finsupp.single_neg] at h_a_eq
-          have eval_at := DFunLike.congr (x := newNum t2_parent_parent) (y := newNum t2_parent_parent) h_a_eq rfl
-          simp at eval_at
-          have t2_gt_one := newnem_gt_one t2_parent_parent
-          have newnum_new_zero: 0 ≠ newNum t2_parent_parent := by
-            omega
-          simp [newnum_new_zero] at eval_at
+          have fun_neq := finsupp_new_zero_newnum t2_parent_parent 1 (-1) (by simp)
+          contradiction
         | .right t2_parent_parent =>
           simp [ReverseTree.getData, xSeq] at h_a_eq
           have vals_neq := basis_neq_elem_diff t2_parent_parent 0 1 (-1) (by simp) (by simp)
           simp only [one_smul, neg_one_smul, ← sub_eq_add_neg] at vals_neq
           contradiction
-    | .right t2_parent => sorry
+    | .right t2_parent =>
+        simp [ReverseTree.getData, xSeq] at h_a_eq
+
+        sorry
   | .left t1_parent =>
     match t2 with
     | .root =>

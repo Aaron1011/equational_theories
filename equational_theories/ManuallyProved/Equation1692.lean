@@ -1410,13 +1410,9 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
             omega
           simp [newnum_new_zero] at eval_at
         | .right t2_parent_parent =>
-          simp [ReverseTree.getData] at h_a_eq
-          have vals_indep := tree_linear_independent t2_parent_parent
-          apply LinearIndependent.pair_iff.mp at vals_indep
-
-
-
-          sorry
+          simp [ReverseTree.getData, xSeq] at h_a_eq
+          have vals_neq := basis_neq_elem_diff t2_parent_parent 0
+          contradiction
     | .right t2_parent => sorry
   | .left t1_parent =>
     match t2 with

@@ -1465,38 +1465,6 @@ lemma xseq_zero_neq_b (t: ReverseTree) (s: ℚ) (hs: s ≠ 0): xSeq 0 ≠ s • 
       rw [smul_sub] at this
       contradiction
 
-lemma temp_partial_function: ∀ (t1 t2: ReverseTree), (t1.getData.a = t2.getData.a) → t1 = t2 := by
-  by_contra!
-  obtain ⟨t1, t2, h_t1_eq⟩ := this
-  let counterexamples := {(t1, t2) : (ReverseTree × ReverseTree) | t1.getData.a = t2.getData.a ∧ t1 ≠ t2}
-  let first_newnum := fun ((t1, t2): (ReverseTree × ReverseTree)) => newNum t1
-
-  --let min_num := counter_nums.min counter_nonempty
-  have counter_nonempty: counterexamples.Nonempty := by
-    simp [Set.Nonempty, counterexamples]
-    use t1
-    use t2
-
-  let counter_nums := first_newnum '' counterexamples
-  have counter_nums_nonempty: counter_nums.Nonempty := by
-    simp [counter_nums]
-    exact counter_nonempty
-
-  let min_newnum := Nat.lt_wfRel.wf.min counter_nums counter_nums_nonempty
-  have min_newnum_le: ∀ (tree1 tree2: ReverseTree), tree1.getData.a = tree2.getData.a ∧ tree1 ≠ tree2 → min_newnum ≤ newNum tree1 := by
-    intro tree1 tree2 h_neq
-    have trees_in: (tree1, tree2) ∈ counterexamples := by
-      simp [counterexamples]
-      exact h_neq
-    have num_in: newNum tree1 ∈ counter_nums := by
-      simp only [first_newnum, counter_nums, counterexamples]
-      simp only [Set.mem_image, Set.mem_setOf_eq]
-      use (tree1, tree2)
-
-    have min_number := WellFounded.min_le (Nat.lt_wfRel.wf) num_in
-    exact min_number
-
-
 
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a) (h_min: ∀ (tree1 tree2: ReverseTree), tree1.getData.a = tree2.getData.a ∧ tree1 ≠ tree2 → newNum t1 ≤ newNum tree1) (this: t1 ≠ t2): False := by
   match t1 with
@@ -1894,6 +1862,45 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
 -- I already did something like this in the linear independency proof, so I should be able to reuse that
 ----------
 --
+
+lemma temp_partial_function: ∀ (t1 t2: ReverseTree), (t1.getData.a = t2.getData.a) → t1 = t2 := by
+  by_contra!
+  let counterexamples := {(t1, t2) : (ReverseTree × ReverseTree) | t1.getData.a = t2.getData.a ∧ t1 ≠ t2}
+  let first_newnum := fun ((t1, t2): (ReverseTree × ReverseTree)) => newNum t1
+
+  --let min_num := counter_nums.min counter_nonempty
+  have counter_nonempty: counterexamples.Nonempty := by
+    obtain ⟨t1, t2, h_t1_eq⟩ := this
+    simp [Set.Nonempty, counterexamples]
+    use t1
+    use t2
+
+  let counter_nums := first_newnum '' counterexamples
+  have counter_nums_nonempty: counter_nums.Nonempty := by
+    simp [counter_nums]
+    exact counter_nonempty
+
+  let min_newnum := Nat.lt_wfRel.wf.min counter_nums counter_nums_nonempty
+  have min_newnum_le: ∀ (tree1 tree2: ReverseTree), tree1.getData.a = tree2.getData.a ∧ tree1 ≠ tree2 → min_newnum ≤ newNum tree1 := by
+    intro tree1 tree2 h_neq
+    have trees_in: (tree1, tree2) ∈ counterexamples := by
+      simp [counterexamples]
+      exact h_neq
+    have num_in: newNum tree1 ∈ counter_nums := by
+      simp only [first_newnum, counter_nums, counterexamples]
+      simp only [Set.mem_image, Set.mem_setOf_eq]
+      use (tree1, tree2)
+
+    have min_number := WellFounded.min_le (Nat.lt_wfRel.wf) num_in
+    exact min_number
+
+  have min_pair: ∃ (t1 t2: ReverseTree), (t1, t2) ∈ counterexamples ∧ newNum t1 = min_newnum := by
+    sorry
+  obtain ⟨t1, t2, h_t1_eq, h_min⟩ := min_pair
+  simp [counterexamples] at h_t1_eq
+  rw [← h_min] at min_newnum_le
+  exact partial_function t1 t2 h_t1_eq.1 min_newnum_le h_t1_eq.2
+
 
 lemma bad_partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by
   by_contra!

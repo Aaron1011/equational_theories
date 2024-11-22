@@ -1412,7 +1412,7 @@ lemma finsupp_new_zero_newnum (t: ReverseTree) (a b: ℚ) (hb: b ≠ 0): (fun₀
   rw [eq_comm] at eval_at
   contradiction
 
-lemma xseq_zero_neq_b (t: ReverseTree): xSeq 0 ≠ t.getData.b := by
+lemma xseq_zero_neq_b (t: ReverseTree) (s: ℚ) (hs: s ≠ 0): xSeq 0 ≠ s • t.getData.b := by
   by_contra!
   match t with
   | .root =>
@@ -1422,13 +1422,17 @@ lemma xseq_zero_neq_b (t: ReverseTree): xSeq 0 ≠ t.getData.b := by
       simp at eval_at
   | .left t2_parent_parent =>
       simp [ReverseTree.getData, xSeq] at this
-      have fun_neq := finsupp_new_zero_newnum t2_parent_parent 1 1 (by simp)
+      have fun_neq := finsupp_new_zero_newnum t2_parent_parent 1 s hs
       contradiction
     | .right t2_parent_parent =>
       simp [ReverseTree.getData, xSeq] at this
-      have vals_neq := basis_neq_elem_diff t2_parent_parent 0 (-1) 1 (by simp) (by simp)
-      simp only [one_smul, neg_one_smul, ← sub_eq_add_neg, add_comm] at vals_neq
-      rw []
+      have neg_s_neq_zero: (-s) ≠ 0 := by
+        simp
+        exact hs
+      have vals_neq := basis_neq_elem_diff t2_parent_parent 0 (-s) s neg_s_neq_zero hs
+      simp only [one_smul, neg_one_smul, add_comm] at vals_neq
+      rw [neg_smul, ← sub_eq_add_neg] at vals_neq
+      rw [smul_sub] at this
       contradiction
 
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by

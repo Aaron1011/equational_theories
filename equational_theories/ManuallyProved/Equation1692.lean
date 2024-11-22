@@ -1466,6 +1466,75 @@ lemma xseq_zero_neq_b (t: ReverseTree) (s: ℚ) (hs: s ≠ 0): xSeq 0 ≠ s • 
       contradiction
 
 
+lemma common_ancestor_stuff (ancestor t1 t2: ReverseTree) (left_right: t1 = ancestor.left ∧ t2 = ancestor.right)
+  (h_a_eq: t1.getData.b - t1.getData.a = t2.getData.b - t2.getData.a): False := by
+
+  simp [left_right.1, left_right.2, ReverseTree.getData] at h_a_eq
+  have x_seq_add: xSeq (newNum ancestor) + ancestor.getData.b  + xSeq (newNum ancestor) = ancestor.getData.a - ancestor.getData.b := by
+    exact add_eq_of_eq_sub h_a_eq
+
+  have x_swap: xSeq (newNum ancestor) + ancestor.getData.b  + xSeq (newNum ancestor) = xSeq (newNum ancestor) + xSeq (newNum ancestor) + ancestor.getData.b := by
+    exact
+      Eq.symm
+        (add_rotate (xSeq (newNum ancestor)) (xSeq (newNum ancestor))
+          ancestor.getData.b)
+
+  rw [x_swap] at x_seq_add
+  have sub_b: xSeq (newNum ancestor) + xSeq (newNum ancestor) = ancestor.getData.a - ancestor.getData.b - ancestor.getData.b := by
+    apply_fun (fun x => x - ancestor.getData.b) at x_seq_add
+    simp at x_seq_add
+    exact x_seq_add
+
+  rw [← two_nsmul, sub_sub, ← two_nsmul] at sub_b
+
+  have ⟨⟨g_a, m_a, m_a_gt, a_supp_max, a_repr⟩, ⟨g_b, m_b, m_b_gt, b_supp_max, b_repr⟩⟩ := tree_linear_comb ancestor
+
+  rw [← Finset.sum_extend_by_zero] at a_repr
+  rw [← Finset.sum_extend_by_zero] at b_repr
+
+
+
+  have a_subset_newnum: Finset.range m_a ⊆ Finset.range (newNum ancestor) := by
+    simp
+    exact m_a_gt
+  have b_subset_newnum: Finset.range m_b ⊆ Finset.range (newNum ancestor) := by
+    simp
+    exact m_b_gt
+
+  rw [Finset.sum_subset a_subset_newnum ?_] at a_repr
+  rw [Finset.sum_subset b_subset_newnum ?_] at b_repr
+  rw [a_repr, b_repr] at sub_b
+  rw [← Finset.sum_nsmul] at sub_b
+  rw [← Finset.sum_sub_distrib] at sub_b
+  simp only [basis_n, xSeq] at sub_b
+  apply n_q_basis.ext_elem_iff.mp at sub_b
+  specialize sub_b (newNum ancestor)
+  simp only [n_q_basis, Finsupp.basisSingleOne_repr, Finsupp.coe_basisSingleOne, Finsupp.smul_single, nsmul_eq_mul, Nat.cast_ofNat, mul_one, LinearEquiv.refl_apply, Finsupp.single_eq_same, Finset.mem_range, smul_eq_mul, smul_ite, Finsupp.single_mul, smul_zero, Finsupp.coe_sub, Finsupp.coe_finset_sum, Pi.sub_apply, Finset.sum_apply] at sub_b
+  -- TODO - avoid copy-pasting the entire sum
+  have sum_eq_zero: ∑ x ∈ Finset.range (newNum ancestor), (((if x < m_a then fun₀ | x => g_a x else 0) (newNum ancestor) - (if x < m_b then (fun₀ | x => (2: ℚ)) * fun₀ | x => g_b x else 0) (newNum ancestor))) = ∑ x ∈ Finset.range (newNum ancestor), 0 := by
+    apply Finset.sum_congr rfl
+    intro x hx
+    simp at hx
+    have x_neq_newnum: x ≠ newNum ancestor := by
+      linarith
+    by_cases x_lt_a: x < m_a
+    . by_cases x_lt_b: x < m_b
+      . simp [x_neq_newnum, x_lt_a, x_lt_b]
+      . simp [x_neq_newnum, x_lt_a, x_lt_b]
+    . by_cases x_lt_b: x < m_b
+      . simp [x_neq_newnum, x_lt_a, x_lt_b]
+      . simp [x_neq_newnum, x_lt_a, x_lt_b]
+
+  rw [sum_eq_zero] at sub_b
+  simp at sub_b
+
+  -- TODO - move these up earlier when we do `Finset.sum_subset a_subset_newnum ?_`
+  . intro x hx x_not_in
+    simp [x_not_in]
+  . intro x hx x_not_in
+    simp [x_not_in]
+
+
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a) (h_min: ∀ (tree1 tree2: ReverseTree), tree1.getData.a = tree2.getData.a ∧ tree1 ≠ tree2 → newNum t1 ≤ newNum tree1) (this: t1 ≠ t2): False := by
   match t1 with
   | .root =>
@@ -1585,73 +1654,7 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
 --     This is impossible, because x_i is fresh: g and/or f would need to contain x_i, which is impossible.
             cases h_ancestor with
             | inl left_right =>
-              simp [left_right.1, left_right.2, ReverseTree.getData] at h_a_eq
-              have x_seq_add: xSeq (newNum ancestor) + ancestor.getData.b  + xSeq (newNum ancestor) = ancestor.getData.a - ancestor.getData.b := by
-                exact add_eq_of_eq_sub h_a_eq
-
-              have x_swap: xSeq (newNum ancestor) + ancestor.getData.b  + xSeq (newNum ancestor) = xSeq (newNum ancestor) + xSeq (newNum ancestor) + ancestor.getData.b := by
-                exact
-                  Eq.symm
-                    (add_rotate (xSeq (newNum ancestor)) (xSeq (newNum ancestor))
-                      ancestor.getData.b)
-
-              rw [x_swap] at x_seq_add
-              have sub_b: xSeq (newNum ancestor) + xSeq (newNum ancestor) = ancestor.getData.a - ancestor.getData.b - ancestor.getData.b := by
-                apply_fun (fun x => x - ancestor.getData.b) at x_seq_add
-                simp at x_seq_add
-                exact x_seq_add
-
-              rw [← two_nsmul, sub_sub, ← two_nsmul] at sub_b
-
-              have ⟨⟨g_a, m_a, m_a_gt, a_supp_max, a_repr⟩, ⟨g_b, m_b, m_b_gt, b_supp_max, b_repr⟩⟩ := tree_linear_comb ancestor
-
-              rw [← Finset.sum_extend_by_zero] at a_repr
-              rw [← Finset.sum_extend_by_zero] at b_repr
-
-
-
-              have a_subset_newnum: Finset.range m_a ⊆ Finset.range (newNum ancestor) := by
-                simp
-                exact m_a_gt
-              have b_subset_newnum: Finset.range m_b ⊆ Finset.range (newNum ancestor) := by
-                simp
-                exact m_b_gt
-
-              rw [Finset.sum_subset a_subset_newnum ?_] at a_repr
-              rw [Finset.sum_subset b_subset_newnum ?_] at b_repr
-              rw [a_repr, b_repr] at sub_b
-              rw [← Finset.sum_nsmul] at sub_b
-              rw [← Finset.sum_sub_distrib] at sub_b
-              simp only [basis_n, xSeq] at sub_b
-              apply n_q_basis.ext_elem_iff.mp at sub_b
-              specialize sub_b (newNum ancestor)
-              simp only [n_q_basis, Finsupp.basisSingleOne_repr, Finsupp.coe_basisSingleOne, Finsupp.smul_single, nsmul_eq_mul, Nat.cast_ofNat, mul_one, LinearEquiv.refl_apply, Finsupp.single_eq_same, Finset.mem_range, smul_eq_mul, smul_ite, Finsupp.single_mul, smul_zero, Finsupp.coe_sub, Finsupp.coe_finset_sum, Pi.sub_apply, Finset.sum_apply] at sub_b
-              -- TODO - avoid copy-pasting the entire sum
-              have sum_eq_zero: ∑ x ∈ Finset.range (newNum ancestor), (((if x < m_a then fun₀ | x => g_a x else 0) (newNum ancestor) - (if x < m_b then (fun₀ | x => (2: ℚ)) * fun₀ | x => g_b x else 0) (newNum ancestor))) = ∑ x ∈ Finset.range (newNum ancestor), 0 := by
-                apply Finset.sum_congr rfl
-                intro x hx
-                simp at hx
-                have x_neq_newnum: x ≠ newNum ancestor := by
-                  linarith
-                by_cases x_lt_a: x < m_a
-                . by_cases x_lt_b: x < m_b
-                  . simp [x_neq_newnum, x_lt_a, x_lt_b]
-                  . simp [x_neq_newnum, x_lt_a, x_lt_b]
-                . by_cases x_lt_b: x < m_b
-                  . simp [x_neq_newnum, x_lt_a, x_lt_b]
-                  . simp [x_neq_newnum, x_lt_a, x_lt_b]
-
-              rw [sum_eq_zero] at sub_b
-              simp at sub_b
-
-              -- TODO - move these up earlier when we do `Finset.sum_subset a_subset_newnum ?_`
-              . intro x hx x_not_in
-                simp [x_not_in]
-              . intro x hx x_not_in
-                simp [x_not_in]
-
-
-
+              exact common_ancestor_stuff ancestor t1_parent_parent t2_parent_parent left_right h_a_eq
             | inr right_left =>
               sorry
     | .right t2_parent =>

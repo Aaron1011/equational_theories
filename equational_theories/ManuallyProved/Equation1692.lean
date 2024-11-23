@@ -707,6 +707,44 @@ lemma tree_linear_comb (t: ReverseTree):
       simp [m_lt_x]
 
 
+lemma eval_larger_a_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t < n) : t.getData.a n = 0 := by
+  match h_t: t with
+  | .root =>
+    simp [ReverseTree.getData]
+    simp [xSeq, basis_n]
+    simp [newNum] at hn
+    have n_neq_zero: n ≠ 0 := by
+      linarith
+    simp [Finsupp.single, Pi.single, n_neq_zero]
+  | .left prev =>
+    obtain ⟨⟨g, m, m_le, g_card, h_g⟩, _⟩ := tree_linear_comb t
+    rw [h_t] at m_le
+    have n_gt_m: n > m := by
+      linarith
+    have n_neq_m: n ≠ m := by
+      linarith
+    have n_not_supp: ∀ i, i < m → n ∉ (basis_n i).support := by
+      intro i hi
+      simp [basis_n]
+      have n_neq_i: n ≠ i := by
+        linarith
+      exact Finsupp.single_eq_of_ne (id (Ne.symm n_neq_i))
+
+    have sum_eval_eq_zero: ∑ i ∈ Finset.range m, (g i • basis_n i) n = ∑ i ∈ Finset.range m, 0 := by
+      apply Finset.sum_congr rfl
+      intro x hx
+      simp at hx
+      specialize n_not_supp x hx
+      have supp_subset := Finsupp.support_smul (g := basis_n x) (b := g x)
+      have n_not_full_supp: n ∉ (g x • basis_n x).support := by
+        exact fun a ↦ n_not_supp (supp_subset a)
+      apply Finsupp.not_mem_support_iff.mp at n_not_full_supp
+      exact n_not_full_supp
+
+
+
+
+
 --   One element in each pair must be fresh - assume wlog that 'c' and 'x' are fresh.
 --     Then, in order for 'c - d = x - y', we must have 'x' occuring in 'd' and 'c' occuring in 'y'.
 --     This means depth(parent_one) >= depth(parent_two) and depth(parent_two) >= depth(parent_one), since each must have at least the depth where the other fresh element is first introduced.
@@ -732,6 +770,18 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
         exact newnum_injective t1 t2 this
       rw [t1_eq_t2] at h_a_neq
       contradiction
+
+    match t1 with
+    | .root => sorry
+    | .left t1_parent =>
+        match t2 with
+          | .root => sorry
+          | .left t2_parent =>
+              sorry
+          | .right t2_parent =>
+              simp [ReverseTree.getData] at h_eq
+              sorry
+    | .right t1_parent => sorry
 
     by_cases is_t1_lt: newNum t1 < newNum t2
     . have t2_neq_root: t2 ≠ ReverseTree.root := by
@@ -820,17 +870,26 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
 
           rw [other_coe_sub] at fun_congr
 
-          have newnums_ne: newNum t1_parent ≠ newNum t2_parent := by
-            by_contra!
-            have t1_parent_eq: t1_parent = t2_parent := by
-              exact newnum_injective t1_parent t2_parent this
-            sorry
-
           rw [← Finset.sum_neg_distrib] at fun_congr
           rw [Finsupp.finset_sum_apply] at fun_congr
           rw [other_sum_zero] at fun_congr
           simp at fun_congr
           simp [xSeq] at fun_congr
+
+
+
+          -- We get:
+          -- newNum t2_parent < m_t1_r <= newNum t1_parent.right
+          -- and:
+          -- newNum t1_parent < m_t2_r <= newNum t2_parent
+
+          -- What we want is:
+          -- newNum t2_parent <= newNum t1_parent
+          -- newNum t1_parent <= newNum t2_parent
+          -- Giving us newNum t1_parent = newNum t2_parent
+          -- and by injectivity, t1_parent = t2_parent
+
+
       | .right t2_parent => sorry
       sorry
     . sorry

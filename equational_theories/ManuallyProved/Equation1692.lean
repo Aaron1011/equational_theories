@@ -736,7 +736,34 @@ lemma eval_larger_a_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t < n) : t.get
   simp at fun_congr
   exact fun_congr
 
+lemma eval_larger_b_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t < n) : t.getData.b n = 0 := by
+  obtain ⟨⟨g, m, m_le, g_card, h_g⟩, _⟩ := tree_linear_comb t
+  have n_gt_m: n > m := by
+    linarith
+  have n_neq_m: n ≠ m := by
+    linarith
+  have n_not_supp: ∀ i, i < m → n ∉ (basis_n i).support := by
+    intro i hi
+    simp [basis_n]
+    have n_neq_i: n ≠ i := by
+      linarith
+    exact Finsupp.single_eq_of_ne (id (Ne.symm n_neq_i))
 
+  have sum_eval_eq_zero: ∑ i ∈ Finset.range m, (g i • basis_n i) n = ∑ i ∈ Finset.range m, 0 := by
+    apply Finset.sum_congr rfl
+    intro x hx
+    simp at hx
+    specialize n_not_supp x hx
+    have supp_subset := Finsupp.support_smul (g := basis_n x) (b := g x)
+    have n_not_full_supp: n ∉ (g x • basis_n x).support := by
+      exact fun a ↦ n_not_supp (supp_subset a)
+    apply Finsupp.not_mem_support_iff.mp at n_not_full_supp
+    exact n_not_full_supp
+  have fun_congr := DFunLike.congr h_g (x := n) rfl
+  rw [Finsupp.finset_sum_apply] at fun_congr
+  rw [sum_eval_eq_zero] at fun_congr
+  simp at fun_congr
+  exact fun_congr
 
 
 

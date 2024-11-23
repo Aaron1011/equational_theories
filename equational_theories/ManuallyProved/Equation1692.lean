@@ -726,6 +726,84 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
       simp at h_eq
       contradiction
 
+    have newnum_neq: newNum t1 ≠ newNum t2 := by
+      by_contra!
+      have t1_eq_t2: t1 = t2 := by
+        exact newnum_injective t1 t2 this
+      rw [t1_eq_t2] at h_a_neq
+      contradiction
+
+    by_cases is_t1_lt: newNum t1 < newNum t2
+    . have t2_neq_root: t2 ≠ ReverseTree.root := by
+        by_contra!
+        rw [this, newNum] at is_t1_lt
+        have t1_gt_one: 1 < newNum t1 := by
+          exact newnem_gt_one t1
+        linarith
+      match t2 with
+      | .root => exact False.elim (t2_neq_root rfl)
+      | .left t2_parent =>
+        simp [ReverseTree.getData] at h_eq
+        obtain ⟨⟨g_t1_l, m_t1_l, m_l_t1_l_le, g_t1_l_card, t1_a_eq⟩, ⟨g_t1_r, m_t1_r, m_l_t1_r_le, g_t1_r_card, t1_b_eq⟩⟩ := tree_linear_comb t1
+        obtain ⟨_, ⟨g_t2_r, m_t2_r, m_l_t2_r_le, g_t2_r_card, t2_b_eq⟩⟩ := tree_linear_comb t2_parent
+        have my_subset: Finset.range (m_t1_l) ⊆ Finset.range (newNum t2_parent.left) := by
+          refine Finset.range_subset.mpr ?_
+          linarith
+
+        have my_subset_right: Finset.range (m_t1_r) ⊆ Finset.range (newNum t2_parent.left) := by
+          refine Finset.range_subset.mpr ?_
+          linarith
+
+        rw [← Finset.sum_extend_by_zero] at t1_a_eq
+        rw [Finset.sum_subset my_subset] at t1_a_eq
+
+
+
+        rw [← Finset.sum_extend_by_zero] at t1_b_eq
+        rw [Finset.sum_subset my_subset_right] at t1_b_eq
+
+
+
+        rw [t1_a_eq, t1_b_eq] at h_eq
+        rw [← Finset.sum_sub_distrib] at h_eq
+
+        rw [t2_b_eq] at h_eq
+        have fun_congr := DFunLike.congr h_eq (x := newNum t2_parent.left) rfl
+        rw [Finsupp.finset_sum_apply] at fun_congr
+        have sum_eq_zero: (∑ x ∈ Finset.range (newNum t2_parent.left), (((if x ∈ Finset.range m_t1_l then g_t1_l x • basis_n x else 0) - if x ∈ Finset.range m_t1_r then g_t1_r x • basis_n x else 0)) (newNum t2_parent.left)) = ∑ x ∈ Finset.range (newNum t2_parent.left), 0 := by
+          apply Finset.sum_congr rfl
+          intro x hx
+          simp at hx
+          simp
+          have t2_not_lt: ¬((newNum t2_parent.left) < m_t1_l) := by
+            linarith
+
+          have x_neq: x ≠ newNum t2_parent.left := by
+            linarith
+
+          -- Todo - simplify this
+          by_cases x_lt_left: x < m_t1_l
+          . by_cases x_lt_right: x < m_t1_r
+            . simp [x_lt_left, x_lt_right, x_neq]
+            . simp [x_lt_left, x_lt_right, x_neq]
+          . by_cases x_lt_right: x < m_t1_r
+            . simp [x_lt_left, x_lt_right, x_neq]
+            . simp [x_lt_left, x_lt_right, x_neq]
+        rw [sum_eq_zero] at fun_congr
+
+      | .right t2_parent => sorry
+      sorry
+    . sorry
+
+
+
+lemma cross_eq_same_parent_bad {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.getData.a) (h_eq: t1.getData.a - t1.getData.b = t2.getData.a - t2.getData.b) : ∃ ancestor: ReverseTree, (t1 = ancestor.left ∧ t2 = ancestor.right) ∨ (t1 = ancestor.right ∧ t2 = ancestor.left) := by
+    have parents_b_neq: t1.getData.b ≠ t2.getData.b := by
+      by_contra!
+      rw [this] at h_eq
+      simp at h_eq
+      contradiction
+
     have t1_neq_root: t1 ≠ ReverseTree.root := by
       by_contra!
       rw [this] at h_a_neq
@@ -764,7 +842,8 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
 
       match h_t2: t2 with
       | .root => sorry
-      | .left t2_parent =>
+      | .left t2_parent => sorry
+      | .right t2_parent =>
           rw [← h_t2] at h_eq
           obtain ⟨_, ⟨t1_g, t1_m, t1_m_lt, t1_supp_lt, t1_b_eq⟩⟩ := tree_linear_comb t1_parent
           obtain ⟨_, ⟨t2_g, t2_m, t2_m_lt, t2_supp_lt, t2_b_eq⟩⟩ := tree_linear_comb t2
@@ -824,32 +903,36 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
               use t1_parent
               left
               refine ⟨rfl, ?_⟩
+              rw [parents_eq]
+              -- BAD - this is the left-left case, which should't happen
               sorry
             | .right t2_parent_parent => sorry
 
 
-      | .right t2_parent =>
-          simp [ReverseTree.getData] at h_eq
-          obtain ⟨_, ⟨t1_g, t1_m, t1_m_lt, t1_supp_lt, t1_b_eq⟩⟩ := tree_linear_comb t1_parent
-          obtain ⟨_, ⟨t2_g, t2_m, t2_m_lt, t2_supp_lt, t2_b_eq⟩⟩ := tree_linear_comb t2
-          simp [t1_b_eq, t2_b_eq, xSeq] at h_eq
-          have fun_congr := DFunLike.congr h_eq (x := newNum t1_parent) rfl
-          rw [← Finset.sum_neg_distrib] at fun_congr
-          have split_sub: ((∑ x ∈ Finset.range t1_m, -fun₀ | x => t1_g x) - fun₀ | newNum t1_parent => (1: ℚ)) (newNum t1_parent) = (∑ x ∈ Finset.range t1_m, -fun₀ | x => t1_g x) (newNum t1_parent) - (fun₀ | newNum t1_parent => 1) (newNum t1_parent) := by
-            exact rfl
-          rw [split_sub] at fun_congr
-          rw [Finsupp.finset_sum_apply] at fun_congr
+      -- old code:
 
-          have sum_eq_zero: ∑ i ∈ Finset.range t1_m, (-fun₀ | i => t1_g i) (newNum t1_parent) =  ∑ i ∈ Finset.range t1_m, 0 := by
-            apply Finset.sum_congr rfl
-            intro x hx
-            simp at hx
-            have x_neq_newnum: x ≠ newNum t1_parent := by
-              linarith
-            simp [x_neq_newnum]
 
-          rw [sum_eq_zero] at fun_congr
-          simp at fun_congr
+          -- simp [ReverseTree.getData] at h_eq
+          -- obtain ⟨_, ⟨t1_g, t1_m, t1_m_lt, t1_supp_lt, t1_b_eq⟩⟩ := tree_linear_comb t1_parent
+          -- obtain ⟨_, ⟨t2_g, t2_m, t2_m_lt, t2_supp_lt, t2_b_eq⟩⟩ := tree_linear_comb t2
+          -- simp [t1_b_eq, t2_b_eq, xSeq] at h_eq
+          -- have fun_congr := DFunLike.congr h_eq (x := newNum t1_parent) rfl
+          -- rw [← Finset.sum_neg_distrib] at fun_congr
+          -- have split_sub: ((∑ x ∈ Finset.range t1_m, -fun₀ | x => t1_g x) - fun₀ | newNum t1_parent => (1: ℚ)) (newNum t1_parent) = (∑ x ∈ Finset.range t1_m, -fun₀ | x => t1_g x) (newNum t1_parent) - (fun₀ | newNum t1_parent => 1) (newNum t1_parent) := by
+          --   exact rfl
+          -- rw [split_sub] at fun_congr
+          -- rw [Finsupp.finset_sum_apply] at fun_congr
+
+          -- have sum_eq_zero: ∑ i ∈ Finset.range t1_m, (-fun₀ | i => t1_g i) (newNum t1_parent) =  ∑ i ∈ Finset.range t1_m, 0 := by
+          --   apply Finset.sum_congr rfl
+          --   intro x hx
+          --   simp at hx
+          --   have x_neq_newnum: x ≠ newNum t1_parent := by
+          --     linarith
+          --   simp [x_neq_newnum]
+
+          -- rw [sum_eq_zero] at fun_congr
+          -- simp at fun_congr
 
 
 

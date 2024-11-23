@@ -1690,6 +1690,37 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
           rw [Finsupp.single_apply] at fun_congr
           -- Implicit contradiction
           simp [t1_neq_zero, t1_neq_one, t1_b_zero] at fun_congr
+        | .left t2_parent =>
+            have newnums_eq: newNum t2_parent = newNum t1_parent := by
+              by_contra!
+              by_cases is_t2_lt: newNum t2_parent < newNum t1_parent
+              .
+                have is_t2_le: newNum t2_parent ≤ newNum t1_parent := by
+                  linarith
+                simp [ReverseTree.getData] at h_eq
+                have fun_congr := DFunLike.congr h_eq (x := (newNum t1_parent)) rfl
+                simp at fun_congr
+                have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t1_parent) is_t2_le
+                have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t1_parent) (by simp)
+                have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t1_parent) (by simp)
+                simp [t2_b_zero, t1_a_zero, t1_b_zero, xSeq] at fun_congr
+                simp [Finsupp.single_eq_of_ne this] at fun_congr
+              . have is_t1_le: newNum t1_parent ≤ newNum t2_parent := by
+                  linarith
+                simp [ReverseTree.getData] at h_eq
+                have fun_congr := DFunLike.congr h_eq (x := (newNum t2_parent)) rfl
+                simp at fun_congr
+                have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t2_parent) is_t1_le
+                have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t2_parent) is_t1_le
+                have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
+                simp [t1_a_zero, t1_b_zero, t2_b_zero, xSeq] at fun_congr
+                simp [Finsupp.single_eq_of_ne this.symm] at fun_congr
+            have parents_eq: t1_parent = t2_parent := by
+              exact newnum_injective t1_parent t2_parent newnums_eq.symm
+            use t1_parent
+            left
+            rw [parents_eq]
+            refine ⟨rfl, rfl⟩
       sorry
 
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a) (h_min: ∀ (tree1 tree2: ReverseTree), tree1.getData.a = tree2.getData.a ∧ tree1 ≠ tree2 → newNum t1 ≤ newNum tree1) (this: t1 ≠ t2): False := by

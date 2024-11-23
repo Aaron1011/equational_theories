@@ -1996,7 +1996,7 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
 
 
 
-
+#print axioms partial_function
 
 
 -- The (a, b) values have disjoint coordinates (of basis elements) - prove this by induction
@@ -2188,12 +2188,13 @@ lemma first_equiv (f: G → G) (x y: G):
 lemma functional_equiv (f: G → G) (x y: G):
   (f (f (-(f x))) = x - (f x)) ↔ (x = diamond f (x + (y - x) + (f (-(y - x)))) (diamond f (x + (y - x) + (f (-(y - x)))) (x + y - x))) := by
   simp [diamond]
+  sorry
 
 
-noncomputable def total_function (x: G): G := by
-  by_cases x_in_tree: ∃ t: ReverseTree, x = t.getData.a
-  . let t := Classical.choose x_in_tree
-    have ht:= Classical.choose_spec x_in_tree
-    exact t.getData.b
-  . exact total_function x
-    -- nonempty_denumerable_iff
+-- noncomputable def total_function (x: G): G := by
+--   by_cases x_in_tree: ∃ t: ReverseTree, x = t.getData.a
+--   . let t := Classical.choose x_in_tree
+--     have ht:= Classical.choose_spec x_in_tree
+--     exact t.getData.b
+--   . exact total_function x
+--     -- nonempty_denumerable_iff

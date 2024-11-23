@@ -790,7 +790,19 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
             . simp [x_lt_left, x_lt_right, x_neq]
             . simp [x_lt_left, x_lt_right, x_neq]
         rw [sum_eq_zero] at fun_congr
+        simp at fun_congr
 
+        have parent_lt_left: newNum t2_parent < newNum t2_parent.left := (newnum_increasing t2_parent).1
+
+        have other_sum_zero: ∑ c ∈ Finset.range m_t2_r, (fun₀ | c => g_t2_r c) (newNum t2_parent.left) = ∑ c ∈ Finset.range m_t2_r, 0 := by
+          apply Finset.sum_congr rfl
+          intro x hx
+          simp at hx
+          have x_neq_newnum: x ≠ newNum t2_parent.left := by
+            linarith
+          simp [x_neq_newnum]
+        rw [other_sum_zero] at fun_congr
+        simp at fun_congr
       | .right t2_parent => sorry
       sorry
     . sorry

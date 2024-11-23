@@ -1753,33 +1753,10 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
                   have fun_congr := DFunLike.congr h_eq (x := (newNum t2_parent)) rfl
                   simp at fun_congr
                   have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t2_parent) is_t1_le
+                  have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent) (by simp)
                   have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
-                  simp [t1_b_zero, t2_b_zero, xSeq] at fun_congr
+                  simp [t1_b_zero, t2_a_zero, t2_b_zero, xSeq] at fun_congr
                   simp [Finsupp.single_eq_of_ne this] at fun_congr
-                  have diff_eq: (t2_parent.getData.a (newNum t2_parent) - t2_parent.getData.b (newNum t2_parent)) = 1 := by
-                    sorry
-
-                  have t2_in_supp: (newNum t2_parent) ∈ (t2_parent.getData.a - t2_parent.getData.b).support := by
-                    simp
-                    linarith
-
-                  have supp_subset := Finsupp.support_sub (f := t2_parent.getData.a) (g := t2_parent.getData.b)
-                  have newnum_in: newNum t2_parent ∈ t2_parent.getData.a.support ∪ t2_parent.getData.b.support  := by
-                    exact supp_subset t2_in_supp
-
-                  have newnum_in_a_or_b: newNum t2_parent ∈ t2_parent.getData.a.support ∨ newNum t2_parent ∈ t2_parent.getData.b.support := by
-                    exact Finset.mem_union.mp newnum_in
-
-                  match newnum_in_a_or_b with
-                  | .inl a_support =>
-                      sorry
-                  | .inr b_support => sorry
-
-                  --have diff_neq := basis_neq_elem_diff t2_parent (newNum t2_parent) (-1) 1 1 (by simp) (by simp) (by simp)
-                  --simp at diff_neq
-
-                  -- Next step: Conclude that 'newNum t2_parent' is in the support of t1_parent.getData (a or b)
-                  --- but newNum t2_parent > newNum t1_parent, contradiction
 
 
               sorry

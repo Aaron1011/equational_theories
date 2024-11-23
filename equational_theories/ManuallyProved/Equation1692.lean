@@ -1739,7 +1739,20 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
     | .root => sorry
     | .left t1_parent =>
         match h_t2: t2 with
-          | .root => sorry
+          | .root =>
+            simp [ReverseTree.getData] at h_eq
+            have fun_congr := DFunLike.congr h_eq (x := (newNum t1_parent)) rfl
+            have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t1_parent) (by simp)
+            have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t1_parent) (by simp)
+            have t1_gt_one: 1 < newNum t1_parent := by
+              exact newnem_gt_one t1_parent
+            have t1_neq_zero: 0 ≠ newNum t1_parent := by linarith
+            have t1_neq_one: 1 ≠ newNum t1_parent := by linarith
+            simp [t1_a_zero, xSeq] at fun_congr
+            rw [Finsupp.single_apply] at fun_congr
+            rw [Finsupp.single_apply] at fun_congr
+            -- Implicit contradiction
+            simp [t1_neq_zero, t1_neq_one, t1_b_zero] at fun_congr
           | .left t2_parent =>
               by_cases is_t1_lt: newNum t1_parent < newNum t2_parent
               .

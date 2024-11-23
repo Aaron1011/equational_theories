@@ -1751,11 +1751,14 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
                 by_contra!
                 by_cases is_t1_lt: newNum t1_parent < newNum t2_parent
                 .
+                  have is_t1_le: newNum t1_parent ≤ newNum t2_parent := by
+                    linarith
                   simp [ReverseTree.getData] at h_eq
                   have fun_congr := DFunLike.congr h_eq (x := (newNum t2_parent)) rfl
                   simp at fun_congr
-                  have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t2_parent) is_t1_lt
-                  simp [t1_b_zero, xSeq] at fun_congr
+                  have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t2_parent) is_t1_le
+                  have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
+                  simp [t1_b_zero, t2_b_zero, xSeq] at fun_congr
                   simp [Finsupp.single_eq_of_ne this] at fun_congr
                   have diff_eq: (t2_parent.getData.a (newNum t2_parent) - t2_parent.getData.b (newNum t2_parent)) = 1 := by
                     sorry

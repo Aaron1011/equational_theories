@@ -1757,9 +1757,12 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
                   have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
                   simp [t1_b_zero, t2_a_zero, t2_b_zero, xSeq] at fun_congr
                   simp [Finsupp.single_eq_of_ne this] at fun_congr
-
-
-              sorry
+              have parents_eq: t1_parent = t2_parent := by
+                exact newnum_injective t1_parent t2_parent newnums_eq
+              use t1_parent
+              left
+              rw [parents_eq]
+              refine ⟨rfl, rfl⟩
     | .right t1_parent => sorry
 
     by_cases is_t1_lt: newNum t1 < newNum t2

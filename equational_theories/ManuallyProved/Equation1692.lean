@@ -2151,6 +2151,8 @@ lemma temp_partial_function: ∀ (t1 t2: ReverseTree), (t1.getData.a = t2.getDat
   exact partial_function t1 t2 h_t1_eq.1 min_newnum_le h_t1_eq.2
 
 
+#print axioms temp_partial_function
+
 -- inductive MyTree {α: Type} where
 --   | root: TreeData (α := α) 0 → MyTree
 --   | left (n: ℕ) (hn: n > 0): TreeData (n - 1) → MyTree

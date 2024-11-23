@@ -754,55 +754,61 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
           refine Finset.range_subset.mpr ?_
           linarith
 
-        rw [← Finset.sum_extend_by_zero] at t1_a_eq
-        rw [Finset.sum_subset my_subset] at t1_a_eq
+        match t1 with
+        | .root => sorry
+        | .left t1_parent => sorry
+        | .right t1_parent =>
+          rw [← Finset.sum_extend_by_zero] at t1_a_eq
+          rw [Finset.sum_subset my_subset] at t1_a_eq
+
+          rw [← Finset.sum_extend_by_zero] at t1_b_eq
+          rw [Finset.sum_subset my_subset_right] at t1_b_eq
+
+
+          nth_rw 1 [ReverseTree.getData] at h_eq
+          simp at h_eq
+          rw [t1_b_eq, t2_b_eq] at h_eq
+          have fun_congr := DFunLike.congr h_eq (x := newNum t2_parent.left) rfl
+          -- TODO - why do we need this if it's just 'rfl'? We should be able to rewrite without it
+          have diff_apply_eq: (xSeq (newNum t1_parent) - ∑ x ∈ Finset.range (newNum t2_parent.left), if x ∈ Finset.range m_t1_r then g_t1_r x • basis_n x else 0) (newNum t2_parent.left) = (xSeq (newNum t1_parent) (newNum t2_parent.left)) - (∑ x ∈ Finset.range (newNum t2_parent.left), if x ∈ Finset.range m_t1_r then g_t1_r x • basis_n x else 0) (newNum t2_parent.left) := by
+            exact rfl
+          rw [diff_apply_eq] at fun_congr
+          rw [Finsupp.finset_sum_apply] at fun_congr
+          have sum_eq_zero: (∑ i ∈ Finset.range (newNum t2_parent.left), (if i ∈ Finset.range m_t1_r then g_t1_r i • basis_n i else 0) (newNum t2_parent.left)) = ∑ x ∈ Finset.range (newNum t2_parent.left), 0 := by
+            apply Finset.sum_congr rfl
+            intro x hx
+            simp at hx
+            simp
+            have t2_not_lt: ¬((newNum t2_parent.left) < m_t1_l) := by
+              linarith
+
+            have x_neq: x ≠ newNum t2_parent.left := by
+              linarith
 
 
 
-        rw [← Finset.sum_extend_by_zero] at t1_b_eq
-        rw [Finset.sum_subset my_subset_right] at t1_b_eq
+            -- Todo - simplify this
+            by_cases x_lt_left: x < m_t1_l
+            . by_cases x_lt_right: x < m_t1_r
+              . simp [x_lt_left, x_lt_right, x_neq]
+              . simp [x_lt_left, x_lt_right, x_neq]
+            . by_cases x_lt_right: x < m_t1_r
+              . simp [x_lt_left, x_lt_right, x_neq]
+              . simp [x_lt_left, x_lt_right, x_neq]
+          rw [sum_eq_zero] at fun_congr
+          simp at fun_congr
 
+          have parent_lt_left: newNum t2_parent < newNum t2_parent.left := (newnum_increasing t2_parent).1
 
-
-        rw [t1_a_eq, t1_b_eq] at h_eq
-        rw [← Finset.sum_sub_distrib] at h_eq
-
-        rw [t2_b_eq] at h_eq
-        have fun_congr := DFunLike.congr h_eq (x := newNum t2_parent.left) rfl
-        rw [Finsupp.finset_sum_apply] at fun_congr
-        have sum_eq_zero: (∑ x ∈ Finset.range (newNum t2_parent.left), (((if x ∈ Finset.range m_t1_l then g_t1_l x • basis_n x else 0) - if x ∈ Finset.range m_t1_r then g_t1_r x • basis_n x else 0)) (newNum t2_parent.left)) = ∑ x ∈ Finset.range (newNum t2_parent.left), 0 := by
-          apply Finset.sum_congr rfl
-          intro x hx
-          simp at hx
-          simp
-          have t2_not_lt: ¬((newNum t2_parent.left) < m_t1_l) := by
-            linarith
-
-          have x_neq: x ≠ newNum t2_parent.left := by
-            linarith
-
-          -- Todo - simplify this
-          by_cases x_lt_left: x < m_t1_l
-          . by_cases x_lt_right: x < m_t1_r
-            . simp [x_lt_left, x_lt_right, x_neq]
-            . simp [x_lt_left, x_lt_right, x_neq]
-          . by_cases x_lt_right: x < m_t1_r
-            . simp [x_lt_left, x_lt_right, x_neq]
-            . simp [x_lt_left, x_lt_right, x_neq]
-        rw [sum_eq_zero] at fun_congr
-        simp at fun_congr
-
-        have parent_lt_left: newNum t2_parent < newNum t2_parent.left := (newnum_increasing t2_parent).1
-
-        have other_sum_zero: ∑ c ∈ Finset.range m_t2_r, (fun₀ | c => g_t2_r c) (newNum t2_parent.left) = ∑ c ∈ Finset.range m_t2_r, 0 := by
-          apply Finset.sum_congr rfl
-          intro x hx
-          simp at hx
-          have x_neq_newnum: x ≠ newNum t2_parent.left := by
-            linarith
-          simp [x_neq_newnum]
-        rw [other_sum_zero] at fun_congr
-        simp at fun_congr
+          have other_sum_zero: ∑ c ∈ Finset.range m_t2_r, (fun₀ | c => g_t2_r c) (newNum t2_parent.left) = ∑ c ∈ Finset.range m_t2_r, 0 := by
+            apply Finset.sum_congr rfl
+            intro x hx
+            simp at hx
+            have x_neq_newnum: x ≠ newNum t2_parent.left := by
+              linarith
+            simp [x_neq_newnum]
+          rw [other_sum_zero] at fun_congr
+          simp at fun_congr
       | .right t2_parent => sorry
       sorry
     . sorry

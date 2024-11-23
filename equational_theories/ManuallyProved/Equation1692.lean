@@ -736,12 +736,8 @@ lemma eval_larger_a_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t < n) : t.get
   simp at fun_congr
   exact fun_congr
 
-lemma eval_larger_b_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t < n) : t.getData.b n = 0 := by
-  obtain ⟨⟨g, m, m_le, g_card, h_g⟩, _⟩ := tree_linear_comb t
-  have n_gt_m: n > m := by
-    linarith
-  have n_neq_m: n ≠ m := by
-    linarith
+lemma eval_larger_b_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t ≤ n) : t.getData.b n = 0 := by
+  obtain ⟨_, ⟨g, m, m_le, g_card, h_g⟩⟩ := tree_linear_comb t
   have n_not_supp: ∀ i, i < m → n ∉ (basis_n i).support := by
     intro i hi
     simp [basis_n]
@@ -767,155 +763,6 @@ lemma eval_larger_b_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t < n) : t.get
 
 
 
-
---   One element in each pair must be fresh - assume wlog that 'c' and 'x' are fresh.
---     Then, in order for 'c - d = x - y', we must have 'x' occuring in 'd' and 'c' occuring in 'y'.
---     This means depth(parent_one) >= depth(parent_two) and depth(parent_two) >= depth(parent_one), since each must have at least the depth where the other fresh element is first introduced.
---     Thus, depth(parent_one) = depth(parent_two).
---     The only way for this to work is if the parents look like (x_i, p) and (q, x_i) - that this, the same fresh node.
---      Otherwise, one of the nodes will contain a fresh element that's not in the other node.
---     This implies that the parents are the left/right children of the same node.
---     Let this common ancestor be (f, g).
-
--- New argument - pick the largest fresh term - it cannot occur in the other side 'normally', since the fresh terms have higher basis indices than the other term
--- Since the sides are equal, both fresh terms must equal the largest term
--- This can only happen when the two are children of the same parent.
-lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.getData.a) (h_eq: t1.getData.a - t1.getData.b = t2.getData.a - t2.getData.b) : ∃ ancestor: ReverseTree, (t1 = ancestor.left ∧ t2 = ancestor.right) ∨ (t1 = ancestor.right ∧ t2 = ancestor.left) := by
-    have parents_b_neq: t1.getData.b ≠ t2.getData.b := by
-      by_contra!
-      rw [this] at h_eq
-      simp at h_eq
-      contradiction
-
-    have newnum_neq: newNum t1 ≠ newNum t2 := by
-      by_contra!
-      have t1_eq_t2: t1 = t2 := by
-        exact newnum_injective t1 t2 this
-      rw [t1_eq_t2] at h_a_neq
-      contradiction
-
-    match t1 with
-    | .root => sorry
-    | .left t1_parent =>
-        match t2 with
-          | .root => sorry
-          | .left t2_parent =>
-              sorry
-          | .right t2_parent =>
-              simp [ReverseTree.getData] at h_eq
-              sorry
-    | .right t1_parent => sorry
-
-    by_cases is_t1_lt: newNum t1 < newNum t2
-    . have t2_neq_root: t2 ≠ ReverseTree.root := by
-        by_contra!
-        rw [this, newNum] at is_t1_lt
-        have t1_gt_one: 1 < newNum t1 := by
-          exact newnem_gt_one t1
-        linarith
-      match t2 with
-      | .root => exact False.elim (t2_neq_root rfl)
-      | .left t2_parent =>
-        simp [ReverseTree.getData] at h_eq
-        obtain ⟨⟨g_t1_l, m_t1_l, m_l_t1_l_le, g_t1_l_card, t1_a_eq⟩, ⟨g_t1_r, m_t1_r, m_l_t1_r_le, g_t1_r_card, t1_b_eq⟩⟩ := tree_linear_comb t1
-        obtain ⟨_, ⟨g_t2_r, m_t2_r, m_l_t2_r_le, g_t2_r_card, t2_b_eq⟩⟩ := tree_linear_comb t2_parent
-        have my_subset: Finset.range (m_t1_l) ⊆ Finset.range (newNum t2_parent.left) := by
-          refine Finset.range_subset.mpr ?_
-          linarith
-
-        have my_subset_right: Finset.range (m_t1_r) ⊆ Finset.range (newNum t2_parent.left) := by
-          refine Finset.range_subset.mpr ?_
-          linarith
-
-        match h_t1: t1 with
-        | .root => sorry
-        | .left t1_parent => sorry
-        | .right t1_parent =>
-          rw [← Finset.sum_extend_by_zero] at t1_a_eq
-          rw [Finset.sum_subset my_subset] at t1_a_eq
-
-          rw [← Finset.sum_extend_by_zero] at t1_b_eq
-          rw [Finset.sum_subset my_subset_right] at t1_b_eq
-
-
-          nth_rw 1 [ReverseTree.getData] at h_eq
-          simp at h_eq
-
-          -- WRONG - we don't want to kill off both sums, we just want to kill off one of them, and have xSeq equal to a sum
-
-          -- Begin sum expansion
-          rw [t1_b_eq, t2_b_eq] at h_eq
-          have fun_congr := DFunLike.congr h_eq (x := newNum t2_parent) rfl
-          -- TODO - why do we need this if it's just 'rfl'? We should be able to rewrite without it
-
-          -- BEGIN OLD STUFF - cancelling left sum
-          -- have diff_apply_eq: (xSeq (newNum t1_parent) - ∑ x ∈ Finset.range (newNum t2_parent.left), if x ∈ Finset.range m_t1_r then g_t1_r x • basis_n x else 0) (newNum t2_parent.left) = (xSeq (newNum t1_parent) (newNum t2_parent.left)) - (∑ x ∈ Finset.range (newNum t2_parent.left), if x ∈ Finset.range m_t1_r then g_t1_r x • basis_n x else 0) (newNum t2_parent.left) := by
-          --   exact rfl
-          -- rw [diff_apply_eq] at fun_congr
-          -- rw [Finsupp.finset_sum_apply] at fun_congr
-          -- have sum_eq_zero: (∑ i ∈ Finset.range (newNum t2_parent.left), (if i ∈ Finset.range m_t1_r then g_t1_r i • basis_n i else 0) (newNum t2_parent.left)) = ∑ x ∈ Finset.range (newNum t2_parent.left), 0 := by
-          --   apply Finset.sum_congr rfl
-          --   intro x hx
-          --   simp at hx
-          --   simp
-          --   have t2_not_lt: ¬((newNum t2_parent.left) < m_t1_l) := by
-          --     linarith
-
-          --   have x_neq: x ≠ newNum t2_parent.left := by
-          --     linarith
-
-
-
-          --   -- Todo - simplify this
-          --   by_cases x_lt_left: x < m_t1_l
-          --   . by_cases x_lt_right: x < m_t1_r
-          --     . simp [x_lt_left, x_lt_right, x_neq]
-          --     . simp [x_lt_left, x_lt_right, x_neq]
-          --   . by_cases x_lt_right: x < m_t1_r
-          --     . simp [x_lt_left, x_lt_right, x_neq]
-          --     . simp [x_lt_left, x_lt_right, x_neq]
-          -- rw [sum_eq_zero] at fun_congr
-          -- simp at fun_congr
-          -- END OLD STUFF - cancelling left sum
-
-          have parent_lt_left: newNum t2_parent < newNum t2_parent.left := (newnum_increasing t2_parent).1
-
-          have other_sum_zero: ∑ i ∈ Finset.range m_t2_r, (-(g_t2_r i • basis_n i)) (newNum t2_parent) = ∑ c ∈ Finset.range m_t2_r, 0 := by
-            apply Finset.sum_congr rfl
-            intro x hx
-            simp at hx
-            have x_neq_newnum: x ≠ newNum t2_parent := by
-              linarith
-            simp [x_neq_newnum]
-
-          have other_coe_sub: ((-∑ i ∈ Finset.range m_t2_r, g_t2_r i • basis_n i) - xSeq (newNum t2_parent)) (newNum t2_parent) = (-∑ i ∈ Finset.range m_t2_r, g_t2_r i • basis_n i) (newNum t2_parent) - xSeq (newNum t2_parent) (newNum t2_parent) := by
-            exact rfl
-
-          rw [other_coe_sub] at fun_congr
-
-          rw [← Finset.sum_neg_distrib] at fun_congr
-          rw [Finsupp.finset_sum_apply] at fun_congr
-          rw [other_sum_zero] at fun_congr
-          simp at fun_congr
-          simp [xSeq] at fun_congr
-
-
-
-          -- We get:
-          -- newNum t2_parent < m_t1_r <= newNum t1_parent.right
-          -- and:
-          -- newNum t1_parent < m_t2_r <= newNum t2_parent
-
-          -- What we want is:
-          -- newNum t2_parent <= newNum t1_parent
-          -- newNum t1_parent <= newNum t2_parent
-          -- Giving us newNum t1_parent = newNum t2_parent
-          -- and by injectivity, t1_parent = t2_parent
-
-
-      | .right t2_parent => sorry
-      sorry
-    . sorry
 
 
 
@@ -1865,6 +1712,190 @@ lemma common_ancestor_stuff (ancestor t1 t2: ReverseTree) (left_right: t1 = ance
     simp [x_not_in]
   . intro x hx x_not_in
     simp [x_not_in]
+
+--   One element in each pair must be fresh - assume wlog that 'c' and 'x' are fresh.
+--     Then, in order for 'c - d = x - y', we must have 'x' occuring in 'd' and 'c' occuring in 'y'.
+--     This means depth(parent_one) >= depth(parent_two) and depth(parent_two) >= depth(parent_one), since each must have at least the depth where the other fresh element is first introduced.
+--     Thus, depth(parent_one) = depth(parent_two).
+--     The only way for this to work is if the parents look like (x_i, p) and (q, x_i) - that this, the same fresh node.
+--      Otherwise, one of the nodes will contain a fresh element that's not in the other node.
+--     This implies that the parents are the left/right children of the same node.
+--     Let this common ancestor be (f, g).
+
+-- New argument - pick the largest fresh term - it cannot occur in the other side 'normally', since the fresh terms have higher basis indices than the other term
+-- Since the sides are equal, both fresh terms must equal the largest term
+-- This can only happen when the two are children of the same parent.
+lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.getData.a) (h_eq: t1.getData.a - t1.getData.b = t2.getData.a - t2.getData.b) : ∃ ancestor: ReverseTree, (t1 = ancestor.left ∧ t2 = ancestor.right) ∨ (t1 = ancestor.right ∧ t2 = ancestor.left) := by
+    have parents_b_neq: t1.getData.b ≠ t2.getData.b := by
+      by_contra!
+      rw [this] at h_eq
+      simp at h_eq
+      contradiction
+
+    have newnum_neq: newNum t1 ≠ newNum t2 := by
+      by_contra!
+      have t1_eq_t2: t1 = t2 := by
+        exact newnum_injective t1 t2 this
+      rw [t1_eq_t2] at h_a_neq
+      contradiction
+
+    match t1 with
+    | .root => sorry
+    | .left t1_parent =>
+        match t2 with
+          | .root => sorry
+          | .left t2_parent =>
+              sorry
+          | .right t2_parent =>
+              have newnums_eq: newNum t1_parent = newNum t2_parent := by
+                by_contra!
+                by_cases is_t1_lt: newNum t1_parent < newNum t2_parent
+                .
+                  simp [ReverseTree.getData] at h_eq
+                  have fun_congr := DFunLike.congr h_eq (x := (newNum t2_parent)) rfl
+                  simp at fun_congr
+                  have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t2_parent) is_t1_lt
+                  simp [t1_b_zero, xSeq] at fun_congr
+                  simp [Finsupp.single_eq_of_ne this] at fun_congr
+                  have diff_eq: (t2_parent.getData.a (newNum t2_parent) - t2_parent.getData.b (newNum t2_parent)) = 1 := by
+                    sorry
+
+                  have t2_in_supp: (newNum t2_parent) ∈ (t2_parent.getData.a - t2_parent.getData.b).support := by
+                    simp
+                    linarith
+
+                  have supp_subset := Finsupp.support_sub (f := t2_parent.getData.a) (g := t2_parent.getData.b)
+                  have newnum_in: newNum t2_parent ∈ t2_parent.getData.a.support ∪ t2_parent.getData.b.support  := by
+                    exact supp_subset t2_in_supp
+
+                  have newnum_in_a_or_b: newNum t2_parent ∈ t2_parent.getData.a.support ∨ newNum t2_parent ∈ t2_parent.getData.b.support := by
+                    exact Finset.mem_union.mp newnum_in
+
+                  match newnum_in_a_or_b with
+                  | .inl a_support =>
+                      sorry
+                  | .inr b_support => sorry
+
+                  --have diff_neq := basis_neq_elem_diff t2_parent (newNum t2_parent) (-1) 1 1 (by simp) (by simp) (by simp)
+                  --simp at diff_neq
+
+                  -- Next step: Conclude that 'newNum t2_parent' is in the support of t1_parent.getData (a or b)
+                  --- but newNum t2_parent > newNum t1_parent, contradiction
+
+
+              sorry
+    | .right t1_parent => sorry
+
+    by_cases is_t1_lt: newNum t1 < newNum t2
+    . have t2_neq_root: t2 ≠ ReverseTree.root := by
+        by_contra!
+        rw [this, newNum] at is_t1_lt
+        have t1_gt_one: 1 < newNum t1 := by
+          exact newnem_gt_one t1
+        linarith
+      match t2 with
+      | .root => exact False.elim (t2_neq_root rfl)
+      | .left t2_parent =>
+        simp [ReverseTree.getData] at h_eq
+        obtain ⟨⟨g_t1_l, m_t1_l, m_l_t1_l_le, g_t1_l_card, t1_a_eq⟩, ⟨g_t1_r, m_t1_r, m_l_t1_r_le, g_t1_r_card, t1_b_eq⟩⟩ := tree_linear_comb t1
+        obtain ⟨_, ⟨g_t2_r, m_t2_r, m_l_t2_r_le, g_t2_r_card, t2_b_eq⟩⟩ := tree_linear_comb t2_parent
+        have my_subset: Finset.range (m_t1_l) ⊆ Finset.range (newNum t2_parent.left) := by
+          refine Finset.range_subset.mpr ?_
+          linarith
+
+        have my_subset_right: Finset.range (m_t1_r) ⊆ Finset.range (newNum t2_parent.left) := by
+          refine Finset.range_subset.mpr ?_
+          linarith
+
+        match h_t1: t1 with
+        | .root => sorry
+        | .left t1_parent => sorry
+        | .right t1_parent =>
+          rw [← Finset.sum_extend_by_zero] at t1_a_eq
+          rw [Finset.sum_subset my_subset] at t1_a_eq
+
+          rw [← Finset.sum_extend_by_zero] at t1_b_eq
+          rw [Finset.sum_subset my_subset_right] at t1_b_eq
+
+
+          nth_rw 1 [ReverseTree.getData] at h_eq
+          simp at h_eq
+
+          -- WRONG - we don't want to kill off both sums, we just want to kill off one of them, and have xSeq equal to a sum
+
+          -- Begin sum expansion
+          rw [t1_b_eq, t2_b_eq] at h_eq
+          have fun_congr := DFunLike.congr h_eq (x := newNum t2_parent) rfl
+          -- TODO - why do we need this if it's just 'rfl'? We should be able to rewrite without it
+
+          -- BEGIN OLD STUFF - cancelling left sum
+          -- have diff_apply_eq: (xSeq (newNum t1_parent) - ∑ x ∈ Finset.range (newNum t2_parent.left), if x ∈ Finset.range m_t1_r then g_t1_r x • basis_n x else 0) (newNum t2_parent.left) = (xSeq (newNum t1_parent) (newNum t2_parent.left)) - (∑ x ∈ Finset.range (newNum t2_parent.left), if x ∈ Finset.range m_t1_r then g_t1_r x • basis_n x else 0) (newNum t2_parent.left) := by
+          --   exact rfl
+          -- rw [diff_apply_eq] at fun_congr
+          -- rw [Finsupp.finset_sum_apply] at fun_congr
+          -- have sum_eq_zero: (∑ i ∈ Finset.range (newNum t2_parent.left), (if i ∈ Finset.range m_t1_r then g_t1_r i • basis_n i else 0) (newNum t2_parent.left)) = ∑ x ∈ Finset.range (newNum t2_parent.left), 0 := by
+          --   apply Finset.sum_congr rfl
+          --   intro x hx
+          --   simp at hx
+          --   simp
+          --   have t2_not_lt: ¬((newNum t2_parent.left) < m_t1_l) := by
+          --     linarith
+
+          --   have x_neq: x ≠ newNum t2_parent.left := by
+          --     linarith
+
+
+
+          --   -- Todo - simplify this
+          --   by_cases x_lt_left: x < m_t1_l
+          --   . by_cases x_lt_right: x < m_t1_r
+          --     . simp [x_lt_left, x_lt_right, x_neq]
+          --     . simp [x_lt_left, x_lt_right, x_neq]
+          --   . by_cases x_lt_right: x < m_t1_r
+          --     . simp [x_lt_left, x_lt_right, x_neq]
+          --     . simp [x_lt_left, x_lt_right, x_neq]
+          -- rw [sum_eq_zero] at fun_congr
+          -- simp at fun_congr
+          -- END OLD STUFF - cancelling left sum
+
+          have parent_lt_left: newNum t2_parent < newNum t2_parent.left := (newnum_increasing t2_parent).1
+
+          have other_sum_zero: ∑ i ∈ Finset.range m_t2_r, (-(g_t2_r i • basis_n i)) (newNum t2_parent) = ∑ c ∈ Finset.range m_t2_r, 0 := by
+            apply Finset.sum_congr rfl
+            intro x hx
+            simp at hx
+            have x_neq_newnum: x ≠ newNum t2_parent := by
+              linarith
+            simp [x_neq_newnum]
+
+          have other_coe_sub: ((-∑ i ∈ Finset.range m_t2_r, g_t2_r i • basis_n i) - xSeq (newNum t2_parent)) (newNum t2_parent) = (-∑ i ∈ Finset.range m_t2_r, g_t2_r i • basis_n i) (newNum t2_parent) - xSeq (newNum t2_parent) (newNum t2_parent) := by
+            exact rfl
+
+          rw [other_coe_sub] at fun_congr
+
+          rw [← Finset.sum_neg_distrib] at fun_congr
+          rw [Finsupp.finset_sum_apply] at fun_congr
+          rw [other_sum_zero] at fun_congr
+          simp at fun_congr
+          simp [xSeq] at fun_congr
+
+
+
+          -- We get:
+          -- newNum t2_parent < m_t1_r <= newNum t1_parent.right
+          -- and:
+          -- newNum t1_parent < m_t2_r <= newNum t2_parent
+
+          -- What we want is:
+          -- newNum t2_parent <= newNum t1_parent
+          -- newNum t1_parent <= newNum t2_parent
+          -- Giving us newNum t1_parent = newNum t2_parent
+          -- and by injectivity, t1_parent = t2_parent
+
+
+      | .right t2_parent => sorry
+      sorry
+    . sorry
 
 
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a) (h_min: ∀ (tree1 tree2: ReverseTree), tree1.getData.a = tree2.getData.a ∧ tree1 ≠ tree2 → newNum t1 ≤ newNum tree1) (this: t1 ≠ t2): False := by

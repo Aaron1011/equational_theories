@@ -716,6 +716,9 @@ lemma tree_linear_comb (t: ReverseTree):
 --     This implies that the parents are the left/right children of the same node.
 --     Let this common ancestor be (f, g).
 
+-- New argument - pick the largest fresh term - it cannot occur in the other side 'normally', since the fresh terms have higher basis indices than the other term
+-- Since the sides are equal, both fresh terms must equal the largest term
+-- This can only happen when the two are children of the same parent.
 lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.getData.a) (h_eq: t1.getData.a - t1.getData.b = t2.getData.a - t2.getData.b) : ∃ ancestor: ReverseTree, (t1 = ancestor.left ∧ t2 = ancestor.right) ∨ (t1 = ancestor.right ∧ t2 = ancestor.left) := by
     have parents_b_neq: t1.getData.b ≠ t2.getData.b := by
       by_contra!
@@ -739,6 +742,130 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
 
       have t1_b_fresh: t1.getData.b = xSeq (newNum t1_parent) := by
         simp [h_t1, ReverseTree.getData]
+
+
+
+      have t2_has_fresh: ∃ n: ℕ, t2.getData.a = xSeq n ∨ t2.getData.b = xSeq n := by
+        match t2 with
+        | .root =>
+            use 0
+            left
+            simp [ReverseTree.getData]
+        | .left t2_parent =>
+            use newNum t2_parent
+            right
+            simp [ReverseTree.getData]
+        | .right t2_parent =>
+            use newNum t2_parent
+            left
+            simp [ReverseTree.getData]
+
+
+
+      match h_t2: t2 with
+      | .root => sorry
+      | .left t2_parent =>
+          rw [← h_t2] at h_eq
+          obtain ⟨_, ⟨t1_g, t1_m, t1_m_lt, t1_supp_lt, t1_b_eq⟩⟩ := tree_linear_comb t1_parent
+          obtain ⟨_, ⟨t2_g, t2_m, t2_m_lt, t2_supp_lt, t2_b_eq⟩⟩ := tree_linear_comb t2
+          simp [t1_b_eq, t2_b_eq, xSeq] at h_eq
+          rw [h_t2] at h_eq
+          simp [ReverseTree.getData] at h_eq
+
+          have fun_congr := DFunLike.congr h_eq (x := newNum t1_parent) rfl
+          rw [← Finset.sum_neg_distrib] at fun_congr
+          have split_sub: ((∑ x ∈ Finset.range t1_m, -fun₀ | x => t1_g x) - fun₀ | newNum t1_parent => (1: ℚ)) (newNum t1_parent) = (∑ x ∈ Finset.range t1_m, -fun₀ | x => t1_g x) (newNum t1_parent) - (fun₀ | newNum t1_parent => 1) (newNum t1_parent) := by
+            exact rfl
+          rw [split_sub] at fun_congr
+          rw [Finsupp.finset_sum_apply] at fun_congr
+
+          have sum_eq_zero: ∑ i ∈ Finset.range t1_m, (-fun₀ | i => t1_g i) (newNum t1_parent) =  ∑ i ∈ Finset.range t1_m, 0 := by
+            apply Finset.sum_congr rfl
+            intro x hx
+            simp at hx
+            have x_neq_newnum: x ≠ newNum t1_parent := by
+              linarith
+            simp [x_neq_newnum]
+
+          rw [sum_eq_zero] at fun_congr
+          simp at fun_congr
+
+          by_cases is_t2_lt: newNum t2 < newNum t1_parent
+          . have other_sum_zero: ∑ c ∈ Finset.range t2_m, (fun₀ | c => t2_g c) (newNum t1_parent) = ∑ c ∈ Finset.range t2_m, 0 := by
+              apply Finset.sum_congr rfl
+              intro x hx
+              simp at hx
+              have x_new_t1: x ≠ newNum t1_parent := by
+                linarith
+              simp [x_new_t1]
+            rw [other_sum_zero] at fun_congr
+            simp at fun_congr
+            match t2_parent with
+            | .root => sorry
+                -- use ReverseTree.root
+                -- right
+                -- refine ⟨?_, rfl⟩
+                -- simp [ReverseTree.getData, xSeq] at fun_congr
+
+
+                -- rw [← h_t1]
+            | .left t2_parent_parent =>
+              simp [ReverseTree.getData, xSeq] at fun_congr
+              have newnums_eq: newNum t2_parent_parent = newNum t1_parent := by
+                rw [Finsupp.single_apply] at fun_congr
+                simp at fun_congr
+                rw [eq_comm] at fun_congr
+                apply ite_eq_iff.mp at fun_congr
+                simp at fun_congr
+                exact fun_congr
+              have parents_eq: t2_parent_parent = t1_parent := by
+                apply newnum_injective t2_parent_parent t1_parent newnums_eq
+
+              use t1_parent
+              left
+              refine ⟨rfl, ?_⟩
+              sorry
+            | .right t2_parent_parent => sorry
+
+
+      | .right t2_parent =>
+          simp [ReverseTree.getData] at h_eq
+          obtain ⟨_, ⟨t1_g, t1_m, t1_m_lt, t1_supp_lt, t1_b_eq⟩⟩ := tree_linear_comb t1_parent
+          obtain ⟨_, ⟨t2_g, t2_m, t2_m_lt, t2_supp_lt, t2_b_eq⟩⟩ := tree_linear_comb t2
+          simp [t1_b_eq, t2_b_eq, xSeq] at h_eq
+          have fun_congr := DFunLike.congr h_eq (x := newNum t1_parent) rfl
+          rw [← Finset.sum_neg_distrib] at fun_congr
+          have split_sub: ((∑ x ∈ Finset.range t1_m, -fun₀ | x => t1_g x) - fun₀ | newNum t1_parent => (1: ℚ)) (newNum t1_parent) = (∑ x ∈ Finset.range t1_m, -fun₀ | x => t1_g x) (newNum t1_parent) - (fun₀ | newNum t1_parent => 1) (newNum t1_parent) := by
+            exact rfl
+          rw [split_sub] at fun_congr
+          rw [Finsupp.finset_sum_apply] at fun_congr
+
+          have sum_eq_zero: ∑ i ∈ Finset.range t1_m, (-fun₀ | i => t1_g i) (newNum t1_parent) =  ∑ i ∈ Finset.range t1_m, 0 := by
+            apply Finset.sum_congr rfl
+            intro x hx
+            simp at hx
+            have x_neq_newnum: x ≠ newNum t1_parent := by
+              linarith
+            simp [x_neq_newnum]
+
+          rw [sum_eq_zero] at fun_congr
+          simp at fun_congr
+
+
+
+
+
+          sorry
+
+      -- obtain ⟨n, h_n_t2⟩ := t2_has_fresh
+      -- match h_n_t2 with
+      -- | .inl left_fresh =>
+      --     simp [left_fresh] at h_eq
+      --     obtain ⟨_, ⟨t1_g, t1_m, t1_m_lt, t1_supp_lt, t1_b_eq⟩⟩ := tree_linear_comb t1_parent
+      --     obtain ⟨_, ⟨t2_g, t2_m, t2_m_lt, t2_supp_lt, t2_b_eq⟩⟩ := tree_linear_comb t2
+      --     simp [t1_b_eq, t2_b_eq] at h_eq
+      --     sorry
+      -- | .inr right_fresh => sorry
       have t2_a_fresh: t2.getData.a = xSeq (newNum t1_parent) := by
         sorry
 

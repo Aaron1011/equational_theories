@@ -707,12 +707,8 @@ lemma tree_linear_comb (t: ReverseTree):
       simp [m_lt_x]
 
 
-lemma eval_larger_a_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t < n) : t.getData.a n = 0 := by
+lemma eval_larger_a_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t ≤ n) : t.getData.a n = 0 := by
   obtain ⟨⟨g, m, m_le, g_card, h_g⟩, _⟩ := tree_linear_comb t
-  have n_gt_m: n > m := by
-    linarith
-  have n_neq_m: n ≠ m := by
-    linarith
   have n_not_supp: ∀ i, i < m → n ∉ (basis_n i).support := by
     intro i hi
     simp [basis_n]

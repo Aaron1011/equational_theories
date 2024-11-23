@@ -754,7 +754,7 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
           refine Finset.range_subset.mpr ?_
           linarith
 
-        match t1 with
+        match h_t1: t1 with
         | .root => sorry
         | .left t1_parent => sorry
         | .right t1_parent =>
@@ -820,10 +820,17 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
 
           rw [other_coe_sub] at fun_congr
 
+          have newnums_ne: newNum t1_parent ≠ newNum t2_parent := by
+            by_contra!
+            have t1_parent_eq: t1_parent = t2_parent := by
+              exact newnum_injective t1_parent t2_parent this
+            sorry
+
           rw [← Finset.sum_neg_distrib] at fun_congr
           rw [Finsupp.finset_sum_apply] at fun_congr
           rw [other_sum_zero] at fun_congr
           simp at fun_congr
+          simp [xSeq] at fun_congr
       | .right t2_parent => sorry
       sorry
     . sorry

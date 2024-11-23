@@ -1673,7 +1673,24 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
               rw [parents_eq]
               refine ⟨rfl, rfl⟩
     -- Begin horrible copy-paste - we should be able to deduplicate all of the sub-cases here
-    | .right t1_parent => sorry
+    | .right t1_parent =>
+      match h_t2: t2 with
+        | .root =>
+          -- TODO - this is identical to the '.left t2_parent' block way above
+          simp [ReverseTree.getData] at h_eq
+          have fun_congr := DFunLike.congr h_eq (x := (newNum t1_parent)) rfl
+          have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t1_parent) (by simp)
+          have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t1_parent) (by simp)
+          have t1_gt_one: 1 < newNum t1_parent := by
+            exact newnem_gt_one t1_parent
+          have t1_neq_zero: 0 ≠ newNum t1_parent := by linarith
+          have t1_neq_one: 1 ≠ newNum t1_parent := by linarith
+          simp [t1_a_zero, xSeq] at fun_congr
+          rw [Finsupp.single_apply] at fun_congr
+          rw [Finsupp.single_apply] at fun_congr
+          -- Implicit contradiction
+          simp [t1_neq_zero, t1_neq_one, t1_b_zero] at fun_congr
+      sorry
 
 lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a) (h_min: ∀ (tree1 tree2: ReverseTree), tree1.getData.a = tree2.getData.a ∧ tree1 ≠ tree2 → newNum t1 ≤ newNum tree1) (this: t1 ≠ t2): False := by
   match t1 with

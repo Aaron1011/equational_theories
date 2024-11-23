@@ -740,6 +740,13 @@ lemma eval_larger_a_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t < n) : t.get
         exact fun a ↦ n_not_supp (supp_subset a)
       apply Finsupp.not_mem_support_iff.mp at n_not_full_supp
       exact n_not_full_supp
+    have fun_congr := DFunLike.congr h_g (x := n) rfl
+    rw [Finsupp.finset_sum_apply] at fun_congr
+    rw [sum_eval_eq_zero] at fun_congr
+    simp at fun_congr
+    rw [h_t] at fun_congr
+    exact fun_congr
+
 
 
 

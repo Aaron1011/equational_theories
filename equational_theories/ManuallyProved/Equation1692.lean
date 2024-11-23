@@ -2151,24 +2151,6 @@ lemma temp_partial_function: ∀ (t1 t2: ReverseTree), (t1.getData.a = t2.getDat
   exact partial_function t1 t2 h_t1_eq.1 min_newnum_le h_t1_eq.2
 
 
-lemma bad_partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a): t1 = t2 := by
-  by_contra!
-  have newnum_neq: newNum t1 ≠ newNum t2 := by
-    intro h_eq
-    have t1_eq_t2: t1 = t2 := by
-      apply newnum_injective
-      exact h_eq
-    contradiction
-  obtain ⟨⟨first_coords, first_m, h_first_m, first_m_supp, a_eq_first⟩, _⟩ := tree_linear_comb t1
-  obtain ⟨⟨second_coords, second_m, h_second_m, second_m_supp, a_eq_second⟩, _⟩ := tree_linear_comb t2
-
-  rw [h_a_eq] at a_eq_first
-  rw [a_eq_first] at a_eq_second
-  -- have foo := nonempty_denumerable_iff
-
-  sorry
-
-
 -- inductive MyTree {α: Type} where
 --   | root: TreeData (α := α) 0 → MyTree
 --   | left (n: ℕ) (hn: n > 0): TreeData (n - 1) → MyTree

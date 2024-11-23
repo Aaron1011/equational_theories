@@ -1736,7 +1736,29 @@ lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.ge
       contradiction
 
     match h_t1: t1 with
-    | .root => sorry
+    | .root =>
+      match h_t2: t2 with
+      | .root =>
+        have t1_eq_t2: t1 = t2 := by
+          rwa [← h_t2] at h_t1
+        rw [← h_t1, t1_eq_t2] at h_a_neq
+        contradiction
+      | .left t2_parent =>
+          -- TODO - deduplicate this with the '.left t1_parent' 't2 root' case belo
+          simp [ReverseTree.getData] at h_eq
+          have fun_congr := DFunLike.congr h_eq (x := (newNum t2_parent)) rfl
+          have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent) (by simp)
+          have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
+          have t2_gt_one: 1 < newNum t2_parent := by
+            exact newnem_gt_one t2_parent
+          have t2_neq_zero: 0 ≠ newNum t2_parent := by linarith
+          have t2_neq_one: 1 ≠ newNum t2_parent := by linarith
+          simp [t2_a_zero, xSeq] at fun_congr
+          rw [Finsupp.single_apply] at fun_congr
+          rw [Finsupp.single_apply] at fun_congr
+          -- Implicit contradiction
+          simp [t2_neq_zero, t2_neq_one, t2_b_zero] at fun_congr
+      | .right t2_parent => sorry
     | .left t1_parent =>
         match h_t2: t2 with
           | .root =>

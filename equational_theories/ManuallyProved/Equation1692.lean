@@ -324,6 +324,8 @@ deriving DecidableEq
 structure XVals where
   x_vals: ℕ → G
   x_inj: Function.Injective x_vals
+  x_supp_nonempty: ∀ n: ℕ, (x_vals n).support.Nonempty
+  x_increasing: ∀ n: ℕ, ∀ m, m < n → (x_vals m).support.max' (x_supp_nonempty m) < (x_vals n).support.min' (x_supp_nonempty n)
   x_basis: Set.range x_vals ⊆ Set.range basis_n
 
 inductive ReverseTree {vals: XVals} where
@@ -703,22 +705,42 @@ lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
       intro x _ m_lt_x
       simp [m_lt_x]
 
-lemma eval_larger_a_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t ≤ n) : t.getData.a n = 0 := by
+lemma eval_larger_a_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: (vals.x_vals (newNum t)).support.min' (vals.x_supp_nonempty (newNum t)) ≤ n) : t.getData.a n = 0 := by
   obtain ⟨⟨g, m, m_le, g_card, h_g⟩, _⟩ := tree_linear_comb t
-  have n_not_supp: ∀ i, i < m → n ∉ (basis_n i).support := by
+  have n_not_supp: ∀ i, i < m → n ∉ (vals.x_vals i).support := by
     intro i hi
-    simp [basis_n]
+    have i_lt_newnum: i < newNum t := by
+      linarith
+    have foo := vals.x_increasing (newNum t) i i_lt_newnum
+    have n_gt_supp_max': (vals.x_vals i).support.max' (vals.x_supp_nonempty i) < n := by
+      linarith
+
+    have lt_withbot: ((vals.x_vals i).support.max' (vals.x_supp_nonempty i) : WithBot ℕ) < (n: WithBot ℕ) := by
+      exact Nat.cast_lt.mpr n_gt_supp_max'
+
+    have f
+
+    rw [Finset.coe_max' (vals.x_supp_nonempty i)] at lt_withbot
+
+
+    have n_gt_supp_max: (vals.x_vals i).support.max < n := by
+      app
+
+
+    apply Finset.not_mem_of_max_lt_coe n_gt_supp_max
+
     have n_neq_i: n ≠ i := by
       linarith
+
     exact Finsupp.single_eq_of_ne (id (Ne.symm n_neq_i))
 
-  have sum_eval_eq_zero: ∑ i ∈ Finset.range m, (g i • basis_n i) n = ∑ i ∈ Finset.range m, 0 := by
+  have sum_eval_eq_zero: ∑ i ∈ Finset.range m, (g i • vals.x_vals i) n = ∑ i ∈ Finset.range m, 0 := by
     apply Finset.sum_congr rfl
     intro x hx
     simp at hx
     specialize n_not_supp x hx
-    have supp_subset := Finsupp.support_smul (g := basis_n x) (b := g x)
-    have n_not_full_supp: n ∉ (g x • basis_n x).support := by
+    have supp_subset := Finsupp.support_smul (g := vals.x_vals x) (b := g x)
+    have n_not_full_supp: n ∉ (g x • vals.x_vals x).support := by
       exact fun a ↦ n_not_supp (supp_subset a)
     apply Finsupp.not_mem_support_iff.mp at n_not_full_supp
     exact n_not_full_supp
@@ -1536,7 +1558,7 @@ lemma common_ancestor_stuff (ancestor t1 t2: ReverseTree) (left_right: t1 = ance
 -- New argument - pick the largest fresh term - it cannot occur in the other side 'normally', since the fresh terms have higher basis indices than the other term
 -- Since the sides are equal, both fresh terms must equal the largest term
 -- This can only happen when the two are children of the same parent.
-lemma cross_eq_same_parent {t1 t2: ReverseTree} (h_a_neq: t1.getData.a ≠ t2.getData.a) (h_eq: t1.getData.a - t1.getData.b = t2.getData.a - t2.getData.b) : ∃ ancestor: ReverseTree, (t1 = ancestor.left ∧ t2 = ancestor.right) ∨ (t1 = ancestor.right ∧ t2 = ancestor.left) := by
+lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1.getData.a ≠ t2.getData.a) (h_eq: t1.getData.a - t1.getData.b = t2.getData.a - t2.getData.b) : ∃ ancestor: ReverseTree, (t1 = ancestor.left ∧ t2 = ancestor.right) ∨ (t1 = ancestor.right ∧ t2 = ancestor.left) := by
     have parents_b_neq: t1.getData.b ≠ t2.getData.b := by
       by_contra!
       rw [this] at h_eq

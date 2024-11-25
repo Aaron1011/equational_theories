@@ -474,23 +474,23 @@ variable {M A : Type*}
 variable [Zero A] [SMulZeroClass M A]
 
 lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
-  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.max < m ∧ t.getData.a = ∑ i ∈ Finset.range m, g i • basis_n i) ∧
-  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.max < m ∧ t.getData.b = ∑ i ∈ Finset.range m, g i • basis_n i) := by
+  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.max < m ∧ t.getData.a = ∑ i ∈ Finset.range m, g i • vals.x_vals i) ∧
+  (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.max < m ∧ t.getData.b = ∑ i ∈ Finset.range m, g i • vals.x_vals i) := by
   induction t with
   | root =>
     refine ⟨?_, ?_⟩
-    . let f := vals.x_vals 0
-      -- have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range 1 := by
-      --   intro a ha
-      --   simp only [f] at ha
-      --   simp [Finsupp.single_apply_ne_zero] at ha
+    . let f := Finsupp.single 0 (1 : ℚ)
+      have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range 1 := by
+        intro a ha
+        simp only [f] at ha
+        simp [Finsupp.single_apply_ne_zero] at ha
+        simpa
       use f
       -- let wrapped_f := Finsupp.onFinset (Finset.range 1) f zero_outside
       simp [newNum]
       use 1
       simp
       simp [ReverseTree.getData]
-      simp [xSeq, basis_n]
       simp [f]
       rw [Finsupp.support_single_ne_zero]
       simp
@@ -536,16 +536,13 @@ lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
 
       use f
       use m
-      simp [prev_lt_mul]
-      simp only [basis_n] at h_g
       refine ⟨?_, ?_⟩
       apply le_trans m_le (le_of_lt prev_lt_mul)
 
-      simp at h_g
       rw [neg_eq_iff_eq_neg]
       rw [← neg_one_zsmul]
       rw [← Finset.sum_zsmul]
-      simp only [Finsupp.smul_single, smul_ite]
+      -- simp only [Finsupp.smul_single, smul_ite]
       rw [← Fin.sum_univ_eq_sum_range]
       rw [← Fin.sum_univ_eq_sum_range] at h_g
       simp only [f]
@@ -572,7 +569,6 @@ lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
       have newnum_gt_one: 1 < newNum prev := newnem_gt_one prev
       omega
       simp [f]
-      simp [xSeq, basis_n, n_q_basis]
       refine ⟨?_, ?_⟩
       . rw [Finsupp.support_single_ne_zero]
         simp
@@ -594,7 +590,6 @@ lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
 
       -- TODO - how does this work?
       simp [Finsupp.single_apply]
-      simp [apply_ite (Finsupp.single _)]
         -- @Finset.sum n (n →₀ R) Finsupp.instAddCommMonoid Finset.univ fun x ↦ Finsupp.single x (if i = x then a else 0) : n →₀ R
         -- @Finset.sum ℕ (ℕ →₀ ℚ) Finsupp.instAddCommMonoid (Finset.range (newNum prev + 1)) fun x ↦
   | right prev h_prev =>
@@ -609,7 +604,6 @@ lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
       have newnum_gt_one: 1 < newNum prev := newnem_gt_one prev
       omega
       simp [f]
-      simp [xSeq, basis_n, n_q_basis]
       refine ⟨?_, ?_⟩
       . rw [Finsupp.support_single_ne_zero]
         simp
@@ -623,7 +617,6 @@ lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
         simp
 
       . simp [Finsupp.single_apply]
-        simp [apply_ite (Finsupp.single _)]
 
     . obtain ⟨⟨g_l, m_l, m_l_le, g_l_card, h_g_l⟩, ⟨g, m, m_le, g_card, h_g⟩⟩ := h_prev
       have my_subset: Finset.range (m_l) ⊆ Finset.range (newNum prev) := by
@@ -709,7 +702,6 @@ lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
       simp [m_lt_x]
       intro x _ m_lt_x
       simp [m_lt_x]
-
 
 lemma eval_larger_a_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t ≤ n) : t.getData.a n = 0 := by
   obtain ⟨⟨g, m, m_le, g_card, h_g⟩, _⟩ := tree_linear_comb t

@@ -321,23 +321,28 @@ structure TreeData where
 
 deriving DecidableEq
 
-inductive ReverseTree where
+structure XVals where
+  x_vals: ℕ → G
+  x_inj: Function.Injective x_vals
+  x_basis: Set.range x_vals ⊆ Set.range basis_n
+
+inductive ReverseTree {vals: XVals} where
 | root: ReverseTree
 | left: ReverseTree → ReverseTree
 | right: ReverseTree → ReverseTree
   deriving DecidableEq
 
-def newNum: ReverseTree → ℕ
+def newNum {vals: XVals}: @ReverseTree vals → ℕ
   | ReverseTree.root => 2
   | ReverseTree.left prev => 2 * (newNum prev) - 1
   | ReverseTree.right prev => 2 * (newNum prev)
 
-noncomputable def ReverseTree.getData: ReverseTree → TreeData
-| ReverseTree.root => {a := xSeq 0, b := xSeq 1}
-| ReverseTree.left base => {a := -base.getData.b, b := xSeq (newNum base)}
-| ReverseTree.right base => {a := xSeq (newNum base), b := base.getData.a - base.getData.b}
+noncomputable def ReverseTree.getData {vals: XVals}: @ReverseTree vals → TreeData
+| ReverseTree.root => {a := vals.x_vals 0, b := vals.x_vals 1}
+| ReverseTree.left base => {a := -base.getData.b, b := vals.x_vals (newNum base)}
+| ReverseTree.right base => {a := vals.x_vals (newNum base), b := base.getData.a - base.getData.b}
 
-def treeDepth: ReverseTree → ℕ
+def treeDepth {vals: XVals}: @ReverseTree vals → ℕ
 | ReverseTree.root => 0
 | ReverseTree.left t => 1 + treeDepth t
 | ReverseTree.right t => 1 + treeDepth t
@@ -351,7 +356,7 @@ def treeDepth: ReverseTree → ℕ
 
 noncomputable def my_set: Finset G := ({xSeq 0, xSeq 1} : Finset G)
 
-lemma newnem_gt_one (t: ReverseTree): 1 < newNum t := by
+lemma newnem_gt_one {vals: XVals} (t: @ReverseTree vals): 1 < newNum t := by
   induction t with
   | root =>
     simp [newNum]
@@ -362,7 +367,7 @@ lemma newnem_gt_one (t: ReverseTree): 1 < newNum t := by
     simp [newNum]
     linarith
 
-lemma newnum_increasing (t: ReverseTree): newNum t < newNum (ReverseTree.left t) ∧ newNum t < newNum (ReverseTree.right t) := by
+lemma newnum_increasing {vals: XVals} (t: @ReverseTree vals): newNum t < newNum (ReverseTree.left t) ∧ newNum t < newNum (ReverseTree.right t) := by
   induction t with
   | root =>
     simp [newNum]
@@ -385,7 +390,7 @@ lemma newnum_increasing (t: ReverseTree): newNum t < newNum (ReverseTree.left t)
     omega
     omega
 
-lemma newnum_injective (t1: ReverseTree) (t2: ReverseTree) (h_eq: newNum t1 = newNum t2): t1 = t2 := by
+lemma newnum_injective {vals: XVals} (t1: @ReverseTree vals) (t2: ReverseTree) (h_eq: newNum t1 = newNum t2): t1 = t2 := by
   induction t1 generalizing t2 with
   | root =>
     have t2_root: t2 = ReverseTree.root := by
@@ -468,20 +473,19 @@ lemma newnum_injective (t1: ReverseTree) (t2: ReverseTree) (h_eq: newNum t1 = ne
 variable {M A : Type*}
 variable [Zero A] [SMulZeroClass M A]
 
-lemma tree_linear_comb (t: ReverseTree):
+lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
   (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.max < m ∧ t.getData.a = ∑ i ∈ Finset.range m, g i • basis_n i) ∧
   (∃ g: ℕ →₀ ℚ, ∃ m: ℕ, m ≤ newNum t ∧ g.support.max < m ∧ t.getData.b = ∑ i ∈ Finset.range m, g i • basis_n i) := by
   induction t with
   | root =>
     refine ⟨?_, ?_⟩
-    . let f := Finsupp.single 0 (1 : ℚ)
-      have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range 1 := by
-        intro a ha
-        simp only [f] at ha
-        simp [Finsupp.single_apply_ne_zero] at ha
-        simpa
+    . let f := vals.x_vals 0
+      -- have zero_outside: ∀ (a : ℕ), f a ≠ 0 → a ∈ Finset.range 1 := by
+      --   intro a ha
+      --   simp only [f] at ha
+      --   simp [Finsupp.single_apply_ne_zero] at ha
       use f
-      let wrapped_f := Finsupp.onFinset (Finset.range 1) f zero_outside
+      -- let wrapped_f := Finsupp.onFinset (Finset.range 1) f zero_outside
       simp [newNum]
       use 1
       simp

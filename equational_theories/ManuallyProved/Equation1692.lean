@@ -1198,15 +1198,21 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
     simp [hx_not_in]
 
 
-lemma tree_supp_disjoint (t: ReverseTree): t.getData.b.support ∩ t.getData.a.support = ∅ := by
+lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.support ∩ t.getData.a.support = ∅ := by
   match t with
     | .root =>
-      simp [ReverseTree.getData, xSeq]
-      have one_ne_zero: (1: ℚ) ≠ 0 := by
+      simp [ReverseTree.getData]
+      simp [vals.x_to_index_eq]
+      have other_one_ne_zero: (vals.x_to_index 0) ≠ (vals.x_to_index 1) := by
+        apply Function.Injective.ne vals.x_to_index_inj
         simp
-      rw [Finsupp.support_single_ne_zero 0 one_ne_zero]
-      rw [Finsupp.support_single_ne_zero 1 one_ne_zero]
-      simp
+
+      have one_ne_zero: (1: ℚ) ≠ 0:= by
+        simp
+
+      rw [Finsupp.support_single_ne_zero (vals.x_to_index 0) one_ne_zero]
+      rw [Finsupp.support_single_ne_zero (vals.x_to_index 1) one_ne_zero]
+      simp [other_one_ne_zero]
     | .left parent =>
         simp [ReverseTree.getData, xSeq]
         obtain ⟨_, g, m, m_le_newnum, m_supp_lt, b_linear_comb⟩ := tree_linear_comb parent

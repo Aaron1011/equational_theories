@@ -304,16 +304,19 @@ theorem foo: 1 = 1 := by
 
 noncomputable def xSeq (n: ℕ): G := basis_n n
 
-lemma xseq_injective: Function.Injective xSeq := by
+
+lemma basis_n_injective: Function.Injective basis_n := by
   simp [Function.Injective]
   intro n_1 n_2 h_eq
-  simp [xSeq] at h_eq
   have one_neq_zero: (1: ℚ) ≠ 0 := by
     simp
   have single_injective := Finsupp.single_left_injective (α := ℕ) one_neq_zero
   simp [Function.Injective] at single_injective
   have injective_imp := @single_injective n_1 n_2
   exact injective_imp h_eq
+
+lemma xseq_injective: Function.Injective xSeq := by
+  exact basis_n_injective
 
 structure TreeData where
   a: G
@@ -741,22 +744,34 @@ lemma eval_larger_a_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: (
   simp at fun_congr
   exact fun_congr
 
-lemma eval_larger_b_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t ≤ n) : t.getData.b n = 0 := by
+-- TODO - this is almost identical to 'eval_larger_a_eq_zero'
+lemma eval_larger_b_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: (vals.x_vals (newNum t)).support.min' (vals.x_supp_nonempty (newNum t)) ≤ n) : t.getData.b n = 0 := by
   obtain ⟨_, ⟨g, m, m_le, g_card, h_g⟩⟩ := tree_linear_comb t
-  have n_not_supp: ∀ i, i < m → n ∉ (basis_n i).support := by
+  have n_not_supp: ∀ i, i < m → n ∉ (vals.x_vals i).support := by
     intro i hi
-    simp [basis_n]
-    have n_neq_i: n ≠ i := by
+    have i_lt_newnum: i < newNum t := by
       linarith
-    exact Finsupp.single_eq_of_ne (id (Ne.symm n_neq_i))
+    have foo := vals.x_increasing (newNum t) i i_lt_newnum
+    have n_gt_supp_max': (vals.x_vals i).support.max' (vals.x_supp_nonempty i) < n := by
+      linarith
 
-  have sum_eval_eq_zero: ∑ i ∈ Finset.range m, (g i • basis_n i) n = ∑ i ∈ Finset.range m, 0 := by
+    have lt_withbot: ((vals.x_vals i).support.max' (vals.x_supp_nonempty i) : WithBot ℕ) < (n: WithBot ℕ) := by
+      exact Nat.cast_lt.mpr n_gt_supp_max'
+
+    have foo :=  Finset.coe_max' (vals.x_supp_nonempty i)
+    rw [Nat.cast_withBot] at lt_withbot
+    simp only [foo] at lt_withbot
+
+
+    apply Finset.not_mem_of_max_lt_coe lt_withbot
+
+  have sum_eval_eq_zero: ∑ i ∈ Finset.range m, (g i • vals.x_vals i) n = ∑ i ∈ Finset.range m, 0 := by
     apply Finset.sum_congr rfl
     intro x hx
     simp at hx
     specialize n_not_supp x hx
-    have supp_subset := Finsupp.support_smul (g := basis_n x) (b := g x)
-    have n_not_full_supp: n ∉ (g x • basis_n x).support := by
+    have supp_subset := Finsupp.support_smul (g := vals.x_vals x) (b := g x)
+    have n_not_full_supp: n ∉ (g x • vals.x_vals x).support := by
       exact fun a ↦ n_not_supp (supp_subset a)
     apply Finsupp.not_mem_support_iff.mp at n_not_full_supp
     exact n_not_full_supp
@@ -766,8 +781,7 @@ lemma eval_larger_b_eq_zero (t: ReverseTree) (n: ℕ) (hn: newNum t ≤ n) : t.g
   simp at fun_congr
   exact fun_congr
 
-
-lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by
+lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by
   induction t with
   | root =>
     simp [LinearIndependent.pair_iff]
@@ -775,14 +789,25 @@ lemma tree_linear_independent (t: ReverseTree): LinearIndependent ℚ ![t.getDat
     simp [ReverseTree.getData] at eq_zero
     have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
     rw [linearIndependent_iff'] at basis_indep
-    specialize basis_indep {0, 1} fun g => if g = 0 then p else q
-    simp only [one_smul, Finset.mem_singleton, zero_ne_one,
-      not_false_eq_true, Finset.sum_insert, Finset.sum_singleton, Finset.mem_insert, one_ne_zero,
-      imp_false, not_or] at basis_indep
-    simp only [↓reduceIte, Finsupp.smul_single, smul_eq_mul, mul_one,
-      forall_eq_or_imp, forall_eq, one_ne_zero] at basis_indep
-    rw [xSeq, basis_n] at eq_zero
-    rw [xSeq, basis_n] at eq_zero
+    have vals_zero_basis: vals.x_vals 0 ∈ Set.range basis_n := Set.mem_of_mem_of_subset (by simp) vals.x_basis
+    have vals_one_basis: vals.x_vals 1 ∈ Set.range basis_n := Set.mem_of_mem_of_subset (by simp) vals.x_basis
+    obtain ⟨zero_val, h_zero_val⟩ := vals_zero_basis
+    obtain ⟨one_val, h_one_val⟩ := vals_one_basis
+
+    specialize basis_indep {zero_val, one_val} fun g => if g = zero_val then p else q
+    have vals_neq: vals.x_vals 0 ≠ vals.x_vals 1 := by
+      apply (Function.Injective.ne_iff vals.x_inj).mpr
+      simp
+
+    rw [← h_zero_val, ← h_one_val] at vals_neq
+    have zero_val_neq: zero_val ≠ one_val := by
+      apply (Function.Injective.ne_iff basis_n_injective).mp
+      exact vals_neq
+
+    rw [Finset.sum_pair zero_val_neq] at basis_indep
+    simp [zero_val_neq, zero_val_neq.symm] at basis_indep
+    rw [← h_zero_val, ← h_one_val] at eq_zero
+    simp [basis_n] at eq_zero
     exact basis_indep eq_zero
   | left prev h_prev =>
     simp [ReverseTree.getData]

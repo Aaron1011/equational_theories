@@ -817,7 +817,7 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
 
     have nonzero_b_coord: ∃n, n < max_num ∧ b_coords n ≠ 0 := by
       by_contra!
-      have sum_eq_zero: ∑ i ∈ Finset.range max_num, b_coords i • basis_n i = 0 := by
+      have sum_eq_zero: ∑ i ∈ Finset.range max_num, b_coords i • vals.x_vals i = 0 := by
         apply Finset.sum_eq_zero
         intro x hx
         specialize this x (Finset.mem_range.mp hx)
@@ -828,7 +828,6 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
       simp at foo
 
     rw [b_eq]
-    rw [xSeq, basis_n]
     simp only [LinearIndependent.pair_iff]
     intro s t hs_t
 
@@ -838,10 +837,14 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
 
     let f := λ x => t • n_q_basis x
 
-    have ite_eq: (if (newNum prev) ∈ Finset.range (newNum prev + 1) then f (newNum prev) else 0) = t • n_q_basis (newNum prev) := by
+    have x_val_basis: vals.x_vals (newNum prev) ∈ Set.range basis_n := Set.mem_of_mem_of_subset (by simp) vals.x_basis
+    obtain ⟨newnum_val, h_newnum_val⟩ := x_val_basis
+
+    have ite_eq: (if (newNum prev) ∈ Finset.range (newNum prev + 1) then f (newNum prev) else 0) = t • basis_n (newNum prev) := by
       simp [f]
 
 
+    rw [← h_newnum_val] at hs_t
     rw [← ite_eq] at hs_t
     simp only [← Finset.sum_ite_eq] at hs_t
     --let f := (λ x: ℕ => t • n_q_basis (newNum prev))

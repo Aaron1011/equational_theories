@@ -327,6 +327,7 @@ deriving DecidableEq
 structure XVals where
   x_vals: ℕ → G
   x_to_index: ℕ → ℕ
+  x_to_index_increasing: StrictMono x_to_index
   x_to_index_inj: Function.Injective x_to_index
   x_to_index_eq: ∀ n, x_vals n = basis_n (x_to_index n)
   x_inj: Function.Injective x_vals
@@ -1264,10 +1265,15 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
           apply Finset.mem_of_subset support_subset x_in_parent
 
         simp only [basis_n, Finsupp.coe_basisSingleOne] at x_in_biunion
-        have x_in_range: x ∈ Finset.range m := by
-          apply Finset.mem_of_subset bar x_in_biunion
+        have x_in_range: x ∈ Finset.range (vals.x_to_index m) := by
+          sorry
+          --apply Finset.mem_of_subset bar x_in_biunion
 
-        have x_lt_m: x < m := by
+        have index_m_lt_newnum: vals.x_to_index m ≤ vals.x_to_index (newNum parent) := by
+          simp [StrictMono.le_iff_le vals.x_to_index_increasing]
+          linarith
+
+        have x_lt_m: x < vals.x_to_index (m) := by
           simp at x_in_range
           exact x_in_range
         linarith

@@ -987,7 +987,7 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
         rw [a_eq_b] at this
         simp at this
         rw [a_eq_b] at a_eq
-        have a_eq_sum_b: prev.getData.a = ∑ i ∈ Finset.range b_max_num, b_coords i • basis_n i := by
+        have a_eq_sum_b: prev.getData.a = ∑ i ∈ Finset.range b_max_num, b_coords i • vals.x_vals i := by
           rw [a_eq]
           apply Finset.sum_congr
           rfl
@@ -1013,7 +1013,7 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
         .
           have nonzero_gt_a: ∃ m, a_max_num ≤ m ∧ m < (max a_max_num b_max_num) ∧  b_coords m ≠ 0 := by
             by_contra!
-            have eq_sum_smaller: ∑ i ∈ Finset.range a_max_num, b_coords i • basis_n i = ∑ i ∈ Finset.range b_max_num, b_coords i • basis_n i := by
+            have eq_sum_smaller: ∑ i ∈ Finset.range a_max_num, b_coords i • vals.x_vals i = ∑ i ∈ Finset.range b_max_num, b_coords i • vals.x_vals i := by
               apply Finset.sum_subset
               simp
               linarith
@@ -1027,9 +1027,10 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
                 simp
                 right
                 exact hx
+              left
               apply this x_le_max
             rw [← eq_sum_smaller] at b_eq
-            have b_eq_a_sum: prev.getData.b = ∑ i ∈ Finset.range a_max_num, a_coords i • basis_n i := by
+            have b_eq_a_sum: prev.getData.b = ∑ i ∈ Finset.range a_max_num, a_coords i • vals.x_vals i := by
               rw [b_eq]
               apply Finset.sum_congr
               rfl
@@ -1071,7 +1072,7 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
         -- BEGIN HORRIBLE COPY-PASTE
         . have nonzero_gt_b: ∃ m, b_max_num ≤ m ∧ m < (max a_max_num b_max_num) ∧ a_coords m ≠ 0 := by
             by_contra!
-            have eq_sum_smaller: ∑ i ∈ Finset.range b_max_num, a_coords i • basis_n i = ∑ i ∈ Finset.range a_max_num, a_coords i • basis_n i := by
+            have eq_sum_smaller: ∑ i ∈ Finset.range b_max_num, a_coords i • vals.x_vals i = ∑ i ∈ Finset.range a_max_num, a_coords i • vals.x_vals i := by
               apply Finset.sum_subset
               simp
               linarith
@@ -1085,9 +1086,10 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
                 simp
                 left
                 exact hx
+              left
               apply this x_le_max
             rw [← eq_sum_smaller] at a_eq
-            have a_eq_b_sum: prev.getData.a = ∑ i ∈ Finset.range b_max_num, b_coords i • basis_n i := by
+            have a_eq_b_sum: prev.getData.a = ∑ i ∈ Finset.range b_max_num, b_coords i • vals.x_vals i := by
               rw [a_eq]
               apply Finset.sum_congr
               rfl

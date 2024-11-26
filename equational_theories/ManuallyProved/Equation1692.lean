@@ -718,21 +718,12 @@ lemma eval_larger_a_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: (
     have lt_withbot: ((vals.x_vals i).support.max' (vals.x_supp_nonempty i) : WithBot ℕ) < (n: WithBot ℕ) := by
       exact Nat.cast_lt.mpr n_gt_supp_max'
 
-    have f
-
-    rw [Finset.coe_max' (vals.x_supp_nonempty i)] at lt_withbot
-
-
-    have n_gt_supp_max: (vals.x_vals i).support.max < n := by
-      app
+    have foo :=  Finset.coe_max' (vals.x_supp_nonempty i)
+    rw [Nat.cast_withBot] at lt_withbot
+    simp only [foo] at lt_withbot
 
 
-    apply Finset.not_mem_of_max_lt_coe n_gt_supp_max
-
-    have n_neq_i: n ≠ i := by
-      linarith
-
-    exact Finsupp.single_eq_of_ne (id (Ne.symm n_neq_i))
+    apply Finset.not_mem_of_max_lt_coe lt_withbot
 
   have sum_eval_eq_zero: ∑ i ∈ Finset.range m, (g i • vals.x_vals i) n = ∑ i ∈ Finset.range m, 0 := by
     apply Finset.sum_congr rfl
@@ -1583,13 +1574,16 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
       | .left t2_parent =>
           -- TODO - deduplicate this with the '.left t1_parent' 't2 root' case belo
           simp [ReverseTree.getData] at h_eq
-          have fun_congr := DFunLike.congr h_eq (x := (newNum t2_parent)) rfl
-          have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent) (by simp)
-          have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
+          let point := (vals.x_vals (newNum t2_parent)).support.min' (vals.x_supp_nonempty (newNum t2_parent))
+          have fun_congr := DFunLike.congr h_eq (x := point) rfl
+          have t2_a_zero := eval_larger_a_eq_zero t2_parent point (by simp)
+          simp at fun_congr
+          -- have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
           have t2_gt_one: 1 < newNum t2_parent := by
             exact newnem_gt_one t2_parent
           have t2_neq_zero: 0 ≠ newNum t2_parent := by linarith
           have t2_neq_one: 1 ≠ newNum t2_parent := by linarith
+          rw [t2_a_zero] at fun_congr
           simp [t2_a_zero, xSeq] at fun_congr
           rw [Finsupp.single_apply] at fun_congr
           rw [Finsupp.single_apply] at fun_congr
@@ -1598,14 +1592,15 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
       | .right t2_parent =>
           -- TODO - this is identical to the '.left t2_parent' block above
           simp [ReverseTree.getData] at h_eq
-          have fun_congr := DFunLike.congr h_eq (x := (newNum t2_parent)) rfl
-          have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent) (by simp)
-          have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
+          let point := (vals.x_vals (newNum t2_parent)).support.min' (vals.x_supp_nonempty (newNum t2_parent))
+          have fun_congr := DFunLike.congr h_eq (x := point) rfl
+          have t2_a_zero := eval_larger_a_eq_zero t2_parent point (by simp)
+          --have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
           have t2_gt_one: 1 < newNum t2_parent := by
             exact newnem_gt_one t2_parent
           have t2_neq_zero: 0 ≠ newNum t2_parent := by linarith
           have t2_neq_one: 1 ≠ newNum t2_parent := by linarith
-          simp [t2_a_zero, xSeq] at fun_congr
+          simp [t2_a_zero] at fun_congr
           rw [Finsupp.single_apply] at fun_congr
           rw [Finsupp.single_apply] at fun_congr
           -- Implicit contradiction

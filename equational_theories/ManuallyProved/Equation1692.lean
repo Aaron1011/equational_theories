@@ -1219,19 +1219,20 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
         rw [b_linear_comb]
         by_contra!
         obtain ⟨x, hx⟩ := Finset.Nonempty.exists_mem (Finset.nonempty_of_ne_empty this)
-        have x_in_cur: x ∈ (fun₀ | newNum parent => (1: ℚ)).support := by
+        have x_in_cur: x ∈ (vals.x_vals (newNum parent)).support := by
           exact Finset.mem_of_mem_inter_left hx
 
-        have x_in_parent: x ∈ (∑ i ∈ Finset.range m, g i • basis_n i).support := by
+        have x_in_parent: x ∈ (∑ i ∈ Finset.range m, g i • vals.x_vals i).support := by
           exact Finset.mem_of_mem_inter_right hx
 
         have one_ne_zero: (1 : ℚ) ≠ 0 := by
           simp
-        have bar := Finsupp.support_single_ne_zero (newNum parent) one_ne_zero
+        have bar := Finsupp.support_single_ne_zero (vals.x_to_index (newNum parent)) one_ne_zero
+        rw [vals.x_to_index_eq] at x_in_cur
         simp [bar] at x_in_cur
 
         have x_lt_max := Finset.le_max x_in_parent
-        have support_subset := Finsupp.support_finset_sum (s := Finset.range m) (f := fun i => g i • basis_n i)
+        have support_subset := Finsupp.support_finset_sum (s := Finset.range m) (f := fun i => g i • vals.x_vals i)
         --simp [basis_n] at support_subset
 
         have supp_single: ∀ x ∈ Finset.range m, ((g x) • (Finsupp.single x 1 : ℕ →₀ ℚ)).support ⊆ Finset.range m := by
@@ -1259,7 +1260,7 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
 
 
         have bar := (Finset.biUnion_subset (s := Finset.range m) (t := fun x => (g x • (Finsupp.single x 1 : ℕ →₀ ℚ)).support)).mpr supp_single
-        have x_in_biunion: x ∈ ((Finset.range m).biUnion fun x ↦ (g x • basis_n x).support) := by
+        have x_in_biunion: x ∈ ((Finset.range m).biUnion fun x ↦ (g x • vals.x_vals x).support) := by
           apply Finset.mem_of_subset support_subset x_in_parent
 
         simp only [basis_n, Finsupp.coe_basisSingleOne] at x_in_biunion

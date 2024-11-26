@@ -327,6 +327,7 @@ deriving DecidableEq
 structure XVals where
   x_vals: ℕ → G
   x_to_index: ℕ → ℕ
+  x_to_index_inj: Function.Injective x_to_index
   x_to_index_eq: ∀ n, x_vals n = basis_n (x_to_index n)
   x_inj: Function.Injective x_vals
   x_supp_nonempty: ∀ n: ℕ, (x_vals n).support.Nonempty
@@ -836,6 +837,7 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
     have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
     have basis_x_val_indep := LinearIndependent.comp basis_indep vals.x_to_index vals.x_to_index_inj
     rw [linearIndependent_iff'] at basis_indep
+    rw [linearIndependent_iff'] at basis_x_val_indep
     rw [add_comm] at hs_t
 
     let f := λ x => t • (vals.x_vals x)
@@ -884,7 +886,7 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
     simp only [vals.x_to_index_eq] at hs_t
     simp only [basis_n] at hs_t
 
-    apply (basis_indep _) at hs_t
+    apply (basis_x_val_indep _) at hs_t
     obtain ⟨b_nonzero, h_b_lt, h_b_zeronzero⟩ := nonzero_b_coord
     have s_eq_zero := hs_t b_nonzero
 
@@ -919,7 +921,6 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
 
 
     rw [a_eq, b_eq]
-    rw [xSeq, basis_n]
     simp only [LinearIndependent.pair_iff]
     intro s t hs_t
 
@@ -934,12 +935,18 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
       refine Finset.range_subset.mpr ?_
       linarith
 
-    let f := λ x => s • n_q_basis x
-    have ite_eq: (if (newNum prev) ∈ Finset.range (newNum prev + 1) then f (newNum prev) else 0) = s • n_q_basis (newNum prev) := by
+    let f := λ x => s • (vals.x_vals x)
+
+    have x_val_basis: vals.x_vals (newNum prev) ∈ Set.range basis_n := Set.mem_of_mem_of_subset (by simp) vals.x_basis
+    obtain ⟨newnum_val, h_newnum_val⟩ := x_val_basis
+
+    have ite_eq: (if (newNum prev) ∈ Finset.range (newNum prev + 1) then f (newNum prev) else 0) = s • (vals.x_vals (newNum prev)) := by
       simp [f]
 
     have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
+    have basis_x_val_indep := LinearIndependent.comp basis_indep vals.x_to_index vals.x_to_index_inj
     rw [linearIndependent_iff'] at basis_indep
+    rw [linearIndependent_iff'] at basis_x_val_indep
 
     rw [← ite_eq] at hs_t
     simp only [← Finset.sum_ite_eq] at hs_t
@@ -955,8 +962,10 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
     simp only [← ite_zero_smul] at hs_t
     simp only [← smul_assoc] at hs_t
     simp only [← add_smul] at hs_t
+    simp only [vals.x_to_index_eq] at hs_t
+    simp only [basis_n] at hs_t
 
-    apply (basis_indep _) at hs_t
+    apply (basis_x_val_indep _) at hs_t
     refine ⟨?_, ?_⟩
 
     have a_max_num_lt: a_max_num < newNum prev + 1 := by

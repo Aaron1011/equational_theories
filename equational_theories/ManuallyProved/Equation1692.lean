@@ -326,6 +326,8 @@ deriving DecidableEq
 
 structure XVals where
   x_vals: ℕ → G
+  x_to_index: ℕ → ℕ
+  x_to_index_eq: ∀ n, x_vals n = basis_n (x_to_index n)
   x_inj: Function.Injective x_vals
   x_supp_nonempty: ∀ n: ℕ, (x_vals n).support.Nonempty
   x_increasing: ∀ n: ℕ, ∀ m, m < n → (x_vals m).support.max' (x_supp_nonempty m) < (x_vals n).support.min' (x_supp_nonempty n)
@@ -832,6 +834,7 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
     intro s t hs_t
 
     have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
+    have basis_x_val_indep := LinearIndependent.comp basis_indep vals.x_to_index vals.x_to_index_inj
     rw [linearIndependent_iff'] at basis_indep
     rw [add_comm] at hs_t
 
@@ -844,7 +847,6 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
       simp [f]
 
 
-    rw [← h_newnum_val] at hs_t
     rw [← ite_eq] at hs_t
     simp only [← Finset.sum_ite_eq] at hs_t
     --let f := (λ x: ℕ => t • n_q_basis (newNum prev))
@@ -879,6 +881,8 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
     simp only [← ite_zero_smul] at hs_t
     simp only [← smul_assoc] at hs_t
     simp only [← add_smul] at hs_t
+    simp only [vals.x_to_index_eq] at hs_t
+    simp only [basis_n] at hs_t
 
     apply (basis_indep _) at hs_t
     obtain ⟨b_nonzero, h_b_lt, h_b_zeronzero⟩ := nonzero_b_coord

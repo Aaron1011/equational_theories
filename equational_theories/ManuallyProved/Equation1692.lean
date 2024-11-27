@@ -712,7 +712,7 @@ lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
       intro x _ m_lt_x
       simp [m_lt_x]
 
-lemma eval_larger_a_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: newNum t ≤ n) : t.getData.a n = 0 := by
+lemma eval_larger_a_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: newNum t ≤ n) : t.getData.a (vals.x_to_index n) = 0 := by
   obtain ⟨⟨g, m, m_le, g_card, h_g⟩, _⟩ := tree_linear_comb t
 
   have val_newnum_le: vals.x_to_index (newNum t) ≤ vals.x_to_index n := by
@@ -732,75 +732,54 @@ lemma eval_larger_a_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: n
       linarith
     exact Finsupp.single_eq_of_ne (id (Ne.symm n_neq_i))
 
-  have n_not_supp: ∀ i, i < m → n ∉ (vals.x_vals i).support := by
-    intro i hi
-    rw [vals.x_to_index_eq]
-    have i_lt_newnum: i < newNum t := by
-      linarith
-    have x_index_lt: vals.x_to_index i < vals.x_to_index (newNum t) := by
-      exact vals.x_to_index_increasing i_lt_newnum
-    have foo := vals.x_increasing (newNum t) i i_lt_newnum
-    --have n_gt_supp_max': (vals.x_vals i).support.max' (vals.x_supp_nonempty i) < n := by
-    --  linarith
-
-    --have lt_withbot: ((vals.x_vals i).support.max' (vals.x_supp_nonempty i) : WithBot ℕ) < (n: WithBot ℕ) := by
-    --  exact Nat.cast_lt.mpr n_gt_supp_max'
-
-    --have foo :=  Finset.coe_max' (vals.x_supp_nonempty i)
-    --rw [Nat.cast_withBot] at lt_withbot
-    --simp only [foo] at lt_withbot
-
-
-    apply Finset.not_mem_of_max_lt x_index_lt
-
-  have sum_eval_eq_zero: ∑ i ∈ Finset.range m, (g i • vals.x_vals i) n = ∑ i ∈ Finset.range m, 0 := by
+  have sum_eval_eq_zero: ∑ i ∈ Finset.range m, (g i • vals.x_vals i) (vals.x_to_index n) = ∑ i ∈ Finset.range m, 0 := by
     apply Finset.sum_congr rfl
     intro x hx
     simp at hx
     specialize n_not_supp x hx
     have supp_subset := Finsupp.support_smul (g := vals.x_vals x) (b := g x)
-    have n_not_full_supp: n ∉ (g x • vals.x_vals x).support := by
+    have n_not_full_supp: vals.x_to_index n ∉ (g x • vals.x_vals x).support := by
       exact fun a ↦ n_not_supp (supp_subset a)
     apply Finsupp.not_mem_support_iff.mp at n_not_full_supp
     exact n_not_full_supp
-  have fun_congr := DFunLike.congr h_g (x := n) rfl
+  have fun_congr := DFunLike.congr h_g (x := vals.x_to_index n) rfl
   rw [Finsupp.finset_sum_apply] at fun_congr
   rw [sum_eval_eq_zero] at fun_congr
   simp at fun_congr
   exact fun_congr
 
 -- TODO - this is almost identical to 'eval_larger_a_eq_zero'
-lemma eval_larger_b_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: (vals.x_vals (newNum t)).support.min' (vals.x_supp_nonempty (newNum t)) ≤ n) : t.getData.b n = 0 := by
+lemma eval_larger_b_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: newNum t ≤ n) : t.getData.b (vals.x_to_index n) = 0 := by
   obtain ⟨_, ⟨g, m, m_le, g_card, h_g⟩⟩ := tree_linear_comb t
-  have n_not_supp: ∀ i, i < m → n ∉ (vals.x_vals i).support := by
+
+  have val_newnum_le: vals.x_to_index (newNum t) ≤ vals.x_to_index n := by
+    simp [StrictMono.le_iff_le vals.x_to_index_increasing]
+    exact hn
+
+  have n_not_supp: ∀ i, i < m → vals.x_to_index n ∉ (vals.x_vals i).support := by
     intro i hi
-    have i_lt_newnum: i < newNum t := by
+    rw [vals.x_to_index_eq]
+    simp [basis_n]
+    have vals_x_lt: vals.x_to_index i < vals.x_to_index m := by
+      exact vals.x_to_index_increasing hi
+    have vals_m_le: vals.x_to_index m ≤ vals.x_to_index (newNum t) := by
+      simp [StrictMono.le_iff_le vals.x_to_index_increasing]
+      exact m_le
+    have n_neq_i: vals.x_to_index n ≠ vals.x_to_index i := by
       linarith
-    have foo := vals.x_increasing (newNum t) i i_lt_newnum
-    have n_gt_supp_max': (vals.x_vals i).support.max' (vals.x_supp_nonempty i) < n := by
-      linarith
+    exact Finsupp.single_eq_of_ne (id (Ne.symm n_neq_i))
 
-    have lt_withbot: ((vals.x_vals i).support.max' (vals.x_supp_nonempty i) : WithBot ℕ) < (n: WithBot ℕ) := by
-      exact Nat.cast_lt.mpr n_gt_supp_max'
-
-    have foo :=  Finset.coe_max' (vals.x_supp_nonempty i)
-    rw [Nat.cast_withBot] at lt_withbot
-    simp only [foo] at lt_withbot
-
-
-    apply Finset.not_mem_of_max_lt_coe lt_withbot
-
-  have sum_eval_eq_zero: ∑ i ∈ Finset.range m, (g i • vals.x_vals i) n = ∑ i ∈ Finset.range m, 0 := by
+  have sum_eval_eq_zero: ∑ i ∈ Finset.range m, (g i • vals.x_vals i) (vals.x_to_index n) = ∑ i ∈ Finset.range m, 0 := by
     apply Finset.sum_congr rfl
     intro x hx
     simp at hx
     specialize n_not_supp x hx
     have supp_subset := Finsupp.support_smul (g := vals.x_vals x) (b := g x)
-    have n_not_full_supp: n ∉ (g x • vals.x_vals x).support := by
+    have n_not_full_supp: vals.x_to_index n ∉ (g x • vals.x_vals x).support := by
       exact fun a ↦ n_not_supp (supp_subset a)
     apply Finsupp.not_mem_support_iff.mp at n_not_full_supp
     exact n_not_full_supp
-  have fun_congr := DFunLike.congr h_g (x := n) rfl
+  have fun_congr := DFunLike.congr h_g (x := vals.x_to_index n) rfl
   rw [Finsupp.finset_sum_apply] at fun_congr
   rw [sum_eval_eq_zero] at fun_congr
   simp at fun_congr

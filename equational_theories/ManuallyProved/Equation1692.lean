@@ -1331,14 +1331,14 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
       rw [a_sum_extend, b_sum_extend] at x_in_sum
       rw [← Finset.sum_sub_distrib] at x_in_sum
 
-      have supp_single: ∀ g: ℕ →₀ ℚ, ∀ x ∈ Finset.range (max a_m b_m), ((g x) • vals.x_vals x).support ⊆ Finset.range (max a_m b_m) := by
+      have supp_single: ∀ g: ℕ →₀ ℚ, ∀ x ∈ Finset.range (max a_m b_m), ((g x) • vals.x_vals x).support ⊆ Finset.range (max (vals.x_to_index a_m) (vals.x_to_index b_m)) := by
         intro g x hx
         --have foo := Finsupp.support_single_subset (a := vals.x_vals x) (b := ( 1: ℚ))
         have single_supp: (vals.x_vals x).support ⊆ {vals.x_to_index x} := by
           rw [vals.x_to_index_eq]
           simp only [basis_n]
           apply Finsupp.support_single_subset
-        have x_single_subset: {vals.x_to_index x} ⊆ Finset.range (max a_m b_m) := by
+        have x_single_subset: {vals.x_to_index x} ⊆ Finset.range (max (vals.x_to_index a_m) (vals.x_to_index b_m)) := by
           simp
           simp at hx
           -- TODO - is there a way of doing 'apply' on an 'or'
@@ -1361,7 +1361,7 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
         intro g i hi
         exact Finsupp.support_smul
 
-      have combined_supp_subset: ∀ x ∈ Finset.range (max a_m b_m), ((if x ∈ Finset.range a_m then a_g x • vals.x_vals x else 0) - if x ∈ Finset.range b_m then b_g x • vals.x_vals x else 0).support ⊆ Finset.range (max a_m b_m) := by
+      have combined_supp_subset: ∀ x ∈ Finset.range (max a_m b_m), ((if x ∈ Finset.range a_m then a_g x • vals.x_vals x else 0) - if x ∈ Finset.range b_m then b_g x • vals.x_vals x else 0).support ⊆ Finset.range (max (vals.x_to_index a_m) (vals.x_to_index b_m)) := by
         intro x hx
         by_cases x_lt_a: x < a_m
         . by_cases x_lt_b: x < b_m
@@ -1399,10 +1399,10 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
 
       have max_le_newnum: (max (vals.x_to_index a_m) (vals.x_to_index b_m)) ≤ vals.x_to_index (newNum parent) := by
         simp
-        refine ⟨_, _⟩
-        . apply x_vals.x_to_index_increasing
+        refine ⟨?_, ?_⟩
+        . simp [StrictMono.le_iff_le vals.x_to_index_increasing]
           linarith
-        . apply x_vals.x_to_index_increasing
+        . simp [StrictMono.le_iff_le vals.x_to_index_increasing]
           linarith
 
       have x_lt_m: x < (max (vals.x_to_index a_m) (vals.x_to_index b_m)) := by

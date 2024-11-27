@@ -366,6 +366,12 @@ noncomputable def mk_x_vals (i: ℕ): XVals := by
       have m_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ i + m * 2 ^ (i + 1)) (by simp)
       simp [n_supp, m_supp]
       exact m_lt_n
+    x_basis := by
+      intro x hx
+      simp at hx
+      simp
+      obtain ⟨h, hy⟩ := hx
+      use 2 ^ i + h * 2 ^ (i + 1)
   }
 
 inductive ReverseTree {vals: XVals} where

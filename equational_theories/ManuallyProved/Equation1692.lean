@@ -1935,24 +1935,25 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
 
 #print axioms cross_eq_same_parent
 
-lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a) (h_min: ∀ (tree1 tree2: ReverseTree), tree1.getData.a = tree2.getData.a ∧ tree1 ≠ tree2 → newNum t1 ≤ newNum tree1) (this: t1 ≠ t2): False := by
+lemma partial_function {vals: XVals} (t1: @ReverseTree vals) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a) (h_min: ∀ (tree1 tree2: @ReverseTree vals), tree1.getData.a = tree2.getData.a ∧ tree1 ≠ tree2 → newNum t1 ≤ newNum tree1) (this: t1 ≠ t2): False := by
   match t1 with
   | .root =>
     match t2 with
     | .root => contradiction
     | .left t2_parent =>
         simp [ReverseTree.getData] at h_a_eq
+        rw [vals.x_to_index_eq] at h_a_eq
         have b_neq := xseq_zero_neq_b t2_parent (-1) (by simp)
         simp at b_neq
         contradiction
     | .right t2_parent =>
-        simp [ReverseTree.getData, xSeq] at h_a_eq
+        simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
         have fun_neq := finsupp_new_zero_newnum t2_parent 1 1 (by simp)
         contradiction
   | .left t1_parent =>
     match t2 with
     | .root =>
-        simp [ReverseTree.getData] at h_a_eq
+        simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
         have b_neq := xseq_zero_neq_b t1_parent (-1) (by simp)
         simp at b_neq
         rw [eq_comm] at b_neq
@@ -1966,12 +1967,14 @@ lemma partial_function (t1: ReverseTree) (t2: ReverseTree) (h_a_eq: t1.getData.a
             | .root => contradiction
             | .left t2_parent_parent =>
                 simp [ReverseTree.getData] at h_a_eq
-                apply xseq_injective at h_a_eq
+                simp only [vals.x_to_index_eq] at h_a_eq
+                apply basis_n_injective at h_a_eq
+                apply vals.x_to_index_inj at h_a_eq
                 have val_gt_one := newnem_gt_one t2_parent_parent
                 omega
             | .right t2_parent_parent =>
-                simp [ReverseTree.getData, xSeq] at h_a_eq
-                have vals_neq := basis_neq_elem_diff t2_parent_parent 1 (-1) 1 1 (by simp) (by simp) (by simp)
+                simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
+                have vals_neq := basis_neq_elem_diff t2_parent_parent (vals.x_to_index 1) (-1) 1 1 (by simp) (by simp) (by simp)
                 simp only [one_smul, neg_one_smul] at vals_neq
                 rw [add_comm, ← sub_eq_add_neg] at vals_neq
                 contradiction

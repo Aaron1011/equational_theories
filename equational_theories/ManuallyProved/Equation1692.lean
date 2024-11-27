@@ -1823,50 +1823,67 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
         | .root =>
           -- TODO - this is identical to the '.left t2_parent' block way above
           simp [ReverseTree.getData] at h_eq
-          have fun_congr := DFunLike.congr h_eq (x := (newNum t1_parent)) rfl
-          have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t1_parent) (by simp)
-          have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t1_parent) (by simp)
-          have t1_gt_one: 1 < newNum t1_parent := by
-            exact newnem_gt_one t1_parent
-          have t1_neq_zero: 0 ≠ newNum t1_parent := by linarith
-          have t1_neq_one: 1 ≠ newNum t1_parent := by linarith
-          simp [t1_a_zero, xSeq] at fun_congr
-          rw [Finsupp.single_apply] at fun_congr
-          rw [Finsupp.single_apply] at fun_congr
+          have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t2_parent)) rfl
+          have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent) (by simp)
+          simp at fun_congr
+          have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
+          have t2_gt_one: 1 < newNum t2_parent := by
+            exact newnem_gt_one t2_parent
+          have t2_neq_zero: 0 ≠ newNum t2_parent := by linarith
+          have index_zero_neq: vals.x_to_index 0 ≠ vals.x_to_index (newNum t2_parent) := by
+            apply Function.Injective.ne vals.x_to_index_inj t2_neq_zero
+          have t2_neq_one: 1 ≠ newNum t2_parent := by linarith
+          have index_one_neq: vals.x_to_index 1 ≠ vals.x_to_index (newNum t2_parent) := by
+            apply Function.Injective.ne vals.x_to_index_inj t2_neq_one
+          repeat rw [vals.x_to_index_eq] at fun_congr
+          --rw [t2_a_zero] at fun_congr
+          --simp [t2_a_zero, xSeq] at fun_congr
+          --rw [Finsupp.single_apply] at fun_congr
+          --rw [Finsupp.single_apply] at fun_congr
           -- Implicit contradiction
-          simp [t1_neq_zero, t1_neq_one, t1_b_zero] at fun_congr
+          simp [index_zero_neq, index_one_neq, t2_b_zero] at fun_congr
         -- TODO - deduplicate this with the 'left-right' case from the top-level t1 match
         | .left t2_parent =>
-            have newnums_eq: newNum t2_parent = newNum t1_parent := by
-              by_contra!
-              by_cases is_t2_lt: newNum t2_parent < newNum t1_parent
-              .
-                have is_t2_le: newNum t2_parent ≤ newNum t1_parent := by
-                  linarith
-                simp [ReverseTree.getData] at h_eq
-                have fun_congr := DFunLike.congr h_eq (x := (newNum t1_parent)) rfl
-                simp at fun_congr
-                have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t1_parent) is_t2_le
-                have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t1_parent) (by simp)
-                have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t1_parent) (by simp)
-                simp [t2_b_zero, t1_a_zero, t1_b_zero, xSeq] at fun_congr
-                simp [Finsupp.single_eq_of_ne this] at fun_congr
-              . have is_t1_le: newNum t1_parent ≤ newNum t2_parent := by
-                  linarith
-                simp [ReverseTree.getData] at h_eq
-                have fun_congr := DFunLike.congr h_eq (x := (newNum t2_parent)) rfl
-                simp at fun_congr
-                have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t2_parent) is_t1_le
-                have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t2_parent) is_t1_le
-                have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
-                simp [t1_a_zero, t1_b_zero, t2_b_zero, xSeq] at fun_congr
-                simp [Finsupp.single_eq_of_ne this.symm] at fun_congr
-            have parents_eq: t1_parent = t2_parent := by
-              exact newnum_injective t1_parent t2_parent newnums_eq.symm
-            use t2_parent
-            right
-            rw [parents_eq]
-            refine ⟨rfl, rfl⟩
+              have newnums_eq: newNum t1_parent = newNum t2_parent := by
+                by_contra!
+                by_cases is_t1_lt: newNum t1_parent < newNum t2_parent
+                .
+                  have is_t1_le: newNum t1_parent ≤ newNum t2_parent := by
+                    linarith
+                  simp [ReverseTree.getData] at h_eq
+                  have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t2_parent)) rfl
+                  simp at fun_congr
+                  have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t2_parent) is_t1_le
+                  have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t2_parent) is_t1_le
+                  have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent) (by simp)
+                  have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
+                  simp [t1_a_zero, t1_b_zero, t2_a_zero, t2_b_zero, xSeq] at fun_congr
+                  repeat rw [vals.x_to_index_eq] at fun_congr
+                  simp [basis_n] at fun_congr
+                  have vals_newnum_neq: vals.x_to_index (newNum t1_parent) ≠ vals.x_to_index (newNum t2_parent) := by
+                    apply Function.Injective.ne vals.x_to_index_inj this
+                  simp [Finsupp.single_eq_of_ne vals_newnum_neq] at fun_congr
+                . have is_t2_le: newNum t2_parent ≤ newNum t1_parent := by
+                    linarith
+                  simp [ReverseTree.getData] at h_eq
+                  have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t1_parent)) rfl
+                  simp at fun_congr
+                  have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t1_parent) (by simp)
+                  have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t1_parent) is_t2_le
+                  have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t1_parent) is_t2_le
+                  have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t1_parent) (by simp)
+                  simp [t1_a_zero, t1_b_zero, t2_a_zero, t2_b_zero, xSeq] at fun_congr
+                  repeat rw [vals.x_to_index_eq] at fun_congr
+                  simp [basis_n] at fun_congr
+                  have vals_newnum_neq: vals.x_to_index (newNum t1_parent) ≠ vals.x_to_index (newNum t2_parent) := by
+                    apply Function.Injective.ne vals.x_to_index_inj this
+                  simp [Finsupp.single_eq_of_ne vals_newnum_neq.symm] at fun_congr
+              have parents_eq: t1_parent = t2_parent := by
+                exact newnum_injective t1_parent t2_parent newnums_eq
+              use t1_parent
+              right
+              rw [parents_eq]
+              refine ⟨rfl, rfl⟩
         | .right t2_parent =>
             by_cases is_t2_lt: newNum t2_parent < newNum t1_parent
             .

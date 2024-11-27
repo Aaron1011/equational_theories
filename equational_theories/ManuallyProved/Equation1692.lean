@@ -712,25 +712,28 @@ lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
       intro x _ m_lt_x
       simp [m_lt_x]
 
-lemma eval_larger_a_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: (vals.x_vals (newNum t)).support.min' (vals.x_supp_nonempty (newNum t)) ≤ n) : t.getData.a n = 0 := by
+lemma eval_larger_a_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: newNum t ≤ n) : t.getData.a n = 0 := by
   obtain ⟨⟨g, m, m_le, g_card, h_g⟩, _⟩ := tree_linear_comb t
   have n_not_supp: ∀ i, i < m → n ∉ (vals.x_vals i).support := by
     intro i hi
+    rw [vals.x_to_index_eq]
     have i_lt_newnum: i < newNum t := by
       linarith
+    have x_index_lt: vals.x_to_index i < vals.x_to_index (newNum t) := by
+      exact vals.x_to_index_increasing i_lt_newnum
     have foo := vals.x_increasing (newNum t) i i_lt_newnum
-    have n_gt_supp_max': (vals.x_vals i).support.max' (vals.x_supp_nonempty i) < n := by
-      linarith
+    --have n_gt_supp_max': (vals.x_vals i).support.max' (vals.x_supp_nonempty i) < n := by
+    --  linarith
 
-    have lt_withbot: ((vals.x_vals i).support.max' (vals.x_supp_nonempty i) : WithBot ℕ) < (n: WithBot ℕ) := by
-      exact Nat.cast_lt.mpr n_gt_supp_max'
+    --have lt_withbot: ((vals.x_vals i).support.max' (vals.x_supp_nonempty i) : WithBot ℕ) < (n: WithBot ℕ) := by
+    --  exact Nat.cast_lt.mpr n_gt_supp_max'
 
-    have foo :=  Finset.coe_max' (vals.x_supp_nonempty i)
-    rw [Nat.cast_withBot] at lt_withbot
-    simp only [foo] at lt_withbot
+    --have foo :=  Finset.coe_max' (vals.x_supp_nonempty i)
+    --rw [Nat.cast_withBot] at lt_withbot
+    --simp only [foo] at lt_withbot
 
 
-    apply Finset.not_mem_of_max_lt_coe lt_withbot
+    apply Finset.not_mem_of_max_lt x_index_lt
 
   have sum_eval_eq_zero: ∑ i ∈ Finset.range m, (g i • vals.x_vals i) n = ∑ i ∈ Finset.range m, 0 := by
     apply Finset.sum_congr rfl

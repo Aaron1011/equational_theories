@@ -1745,13 +1745,16 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
                 have is_t1_le: newNum t1_parent ≤ newNum t2_parent := by
                   linarith
                 simp [ReverseTree.getData] at h_eq
-                have fun_congr := DFunLike.congr h_eq (x := (newNum t2_parent)) rfl
+                have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t2_parent)) rfl
                 have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t2_parent) is_t1_le
                 have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent) (by simp)
                 have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
                 simp [t1_b_zero, t2_a_zero, t2_b_zero, xSeq] at fun_congr
+                repeat rw [vals.x_to_index_eq] at fun_congr
+                simp [basis_n] at fun_congr
                 rw [Finsupp.single_apply] at fun_congr
                 simp at fun_congr
+                apply vals.x_to_index_inj at fun_congr
                 linarith
               .
                 have is_t2_le: newNum t2_parent ≤ newNum t1_parent := by

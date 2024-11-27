@@ -714,6 +714,24 @@ lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
 
 lemma eval_larger_a_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: newNum t ≤ n) : t.getData.a n = 0 := by
   obtain ⟨⟨g, m, m_le, g_card, h_g⟩, _⟩ := tree_linear_comb t
+
+  have val_newnum_le: vals.x_to_index (newNum t) ≤ vals.x_to_index n := by
+    simp [StrictMono.le_iff_le vals.x_to_index_increasing]
+    exact hn
+
+  have n_not_supp: ∀ i, i < m → vals.x_to_index n ∉ (vals.x_vals i).support := by
+    intro i hi
+    rw [vals.x_to_index_eq]
+    simp [basis_n]
+    have vals_x_lt: vals.x_to_index i < vals.x_to_index m := by
+      exact vals.x_to_index_increasing hi
+    have vals_m_le: vals.x_to_index m ≤ vals.x_to_index (newNum t) := by
+      simp [StrictMono.le_iff_le vals.x_to_index_increasing]
+      exact m_le
+    have n_neq_i: vals.x_to_index n ≠ vals.x_to_index i := by
+      linarith
+    exact Finsupp.single_eq_of_ne (id (Ne.symm n_neq_i))
+
   have n_not_supp: ∀ i, i < m → n ∉ (vals.x_vals i).support := by
     intro i hi
     rw [vals.x_to_index_eq]

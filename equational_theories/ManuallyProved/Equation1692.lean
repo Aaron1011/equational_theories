@@ -1686,10 +1686,11 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
             exact newnem_gt_one t2_parent
           have t2_neq_zero: 0 ≠ newNum t2_parent := by linarith
           have t2_neq_one: 1 ≠ newNum t2_parent := by linarith
-          rw [t2_a_zero] at fun_congr
-          simp [t2_a_zero, xSeq] at fun_congr
-          rw [Finsupp.single_apply] at fun_congr
-          rw [Finsupp.single_apply] at fun_congr
+          rw [vals.x_to_index_eq] at fun_congr
+          --rw [t2_a_zero] at fun_congr
+          --simp [t2_a_zero, xSeq] at fun_congr
+          --rw [Finsupp.single_apply] at fun_congr
+          --rw [Finsupp.single_apply] at fun_congr
           -- Implicit contradiction
           simp [t2_neq_zero, t2_neq_one, t2_b_zero] at fun_congr
       | .right t2_parent =>

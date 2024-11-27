@@ -1677,7 +1677,6 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
       | .left t2_parent =>
           -- TODO - deduplicate this with the '.left t1_parent' 't2 root' case belo
           simp [ReverseTree.getData] at h_eq
-          let point := (vals.x_vals (newNum t2_parent)).support.min' (vals.x_supp_nonempty (newNum t2_parent))
           have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t2_parent)) rfl
           have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent) (by simp)
           simp at fun_congr
@@ -1698,21 +1697,27 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
           -- Implicit contradiction
           simp [index_zero_neq, index_one_neq, t2_b_zero] at fun_congr
       | .right t2_parent =>
-          -- TODO - this is identical to the '.left t2_parent' block above
+          -- TODO - this is virtually identical to the '.left t2_parent' block above
           simp [ReverseTree.getData] at h_eq
-          let point := (vals.x_vals (newNum t2_parent)).support.min' (vals.x_supp_nonempty (newNum t2_parent))
-          have fun_congr := DFunLike.congr h_eq (x := point) rfl
-          have t2_a_zero := eval_larger_a_eq_zero t2_parent point (by simp)
-          --have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
+          have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t2_parent)) rfl
+          have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent) (by simp)
+          simp at fun_congr
+          have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
           have t2_gt_one: 1 < newNum t2_parent := by
             exact newnem_gt_one t2_parent
           have t2_neq_zero: 0 ≠ newNum t2_parent := by linarith
+          have index_zero_neq: vals.x_to_index 0 ≠ vals.x_to_index (newNum t2_parent) := by
+            apply Function.Injective.ne vals.x_to_index_inj t2_neq_zero
           have t2_neq_one: 1 ≠ newNum t2_parent := by linarith
-          simp [t2_a_zero] at fun_congr
-          rw [Finsupp.single_apply] at fun_congr
-          rw [Finsupp.single_apply] at fun_congr
+          have index_one_neq: vals.x_to_index 1 ≠ vals.x_to_index (newNum t2_parent) := by
+            apply Function.Injective.ne vals.x_to_index_inj t2_neq_one
+          repeat rw [vals.x_to_index_eq] at fun_congr
+          --rw [t2_a_zero] at fun_congr
+          --simp [t2_a_zero, xSeq] at fun_congr
+          --rw [Finsupp.single_apply] at fun_congr
+          --rw [Finsupp.single_apply] at fun_congr
           -- Implicit contradiction
-          simp [t2_neq_zero, t2_neq_one, t2_b_zero] at fun_congr
+          simp [index_zero_neq, index_one_neq, t2_b_zero, t2_a_zero] at fun_congr
     | .left t1_parent =>
         match h_t2: t2 with
           | .root =>

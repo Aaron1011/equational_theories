@@ -1394,8 +1394,16 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
 
       simp only [basis_n, Finsupp.coe_basisSingleOne] at x_in_biunion
       have other := Finset.mem_of_subset biunion_subset x_in_biunion
-      have x_in_range: x ∈ Finset.range (max a_m b_m) := by
+      have x_in_range: x ∈ Finset.range (max (vals.x_to_index a_m) (vals.x_to_index b_m)) := by
         apply Finset.mem_of_subset biunion_subset x_in_biunion
+
+      have max_le_newnum: (max (vals.x_to_index a_m) (vals.x_to_index b_m)) ≤ vals.x_to_index (newNum parent) := by
+        simp
+        refine ⟨_, _⟩
+        . apply x_vals.x_to_index_increasing
+          linarith
+        . apply x_vals.x_to_index_increasing
+          linarith
 
       have x_lt_m: x < (max (vals.x_to_index a_m) (vals.x_to_index b_m)) := by
         simp at x_in_range

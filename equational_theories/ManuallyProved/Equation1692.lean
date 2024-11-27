@@ -335,6 +335,33 @@ structure XVals where
   x_increasing: ∀ n: ℕ, ∀ m, m < n → (x_vals m).support.max' (x_supp_nonempty m) < (x_vals n).support.min' (x_supp_nonempty n)
   x_basis: Set.range x_vals ⊆ Set.range basis_n
 
+
+noncomputable def mk_x_vals (i: ℕ): XVals := by
+  exact {
+    x_vals := λ n => basis_n (2^(i) + n*2^(i+1)),
+    x_to_index := λ n => (2^(i) + n*2^(i+1)),
+    x_to_index_inj := by simp [Function.Injective],
+    x_to_index_increasing := by simp [StrictMono],
+    x_to_index_eq := by simp,
+    x_inj := by
+      simp [Function.Injective]
+      intro a1 a2 funs_eq
+      sorry
+
+    x_supp_nonempty := by
+      intro n
+      simp [basis_n]
+      refine Finsupp.support_nonempty_iff.mpr ?_
+      simp
+    x_increasing := by
+      intro m n m_lt_n
+      simp only [basis_n, n_q_basis, Finsupp.coe_basisSingleOne]
+      have n_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ i + n * 2 ^ (i + 1)) (by simp)
+      have m_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ i + m * 2 ^ (i + 1)) (by simp)
+      simp [n_supp, m_supp]
+      exact m_lt_n
+  }
+
 inductive ReverseTree {vals: XVals} where
 | root: ReverseTree
 | left: ReverseTree → ReverseTree
@@ -2330,6 +2357,18 @@ lemma temp_partial_function {vals: XVals}: ∀ (t1 t2: @ReverseTree vals), (t1.g
   rw [← h_min] at min_newnum_le
   exact partial_function t1 t2 h_t1_eq.1 min_newnum_le h_t1_eq.2
 
+lemma g_countable: Countable (@Set.univ G) := by
+  simp [G]
+  exact Set.countable_univ
+
+noncomputable abbrev g_enumerate: ℕ → G := by
+  have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
+  have bar := Classical.choice nonempty_denum
+  exact Denumerable.ofNat G
+
+
+noncomputable def full_fun (n: ℕ): G := by
+  let g := g_enumerate n
 
 #print axioms temp_partial_function
 

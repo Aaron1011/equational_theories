@@ -36,150 +36,176 @@ noncomputable abbrev all_basis := (λ n: ℕ => (n, basis_n n)) '' Set.univ
 --set_option pp.coercions false
 --set_option pp.all true
 
-theorem foo: 1 = 1 := by
+-- Hack - include the basis element 0, since the proof pdf starts numbering them at 1
+def s_i := λ i: ℕ => {val ∈ all_basis | val.1 ≡ 2^i [MOD 2^(i + 1)] } ∪ (if i = 0 then {(0, basis_n 0)} else {})
 
-  -- Actual start of proof
-  -- Hack - include the basis element 0, since the proof pdf starts numbering them at 1
-  let s_i := λ i: ℕ => {val ∈ all_basis | val.1 ≡ 2^i [MOD 2^(i + 1)] } ∪ (if i = 0 then {(0, basis_n 0)} else {})
-  have no_overlap: ∀ i j: ℕ, i < j → s_i i ∩ s_i j = ∅ := by
-    intro i j i_lt_j
-    by_contra!
-    have i_neq_zero: i ≠ 0 := by
-      by_contra! i_eq_zero
-      have j_neq_zero: j ≠ 0 := by
-        linarith
-
-      rw [Set.inter_def] at this
-      simp only [s_i, i_eq_zero] at this
-      simp at this
-      obtain ⟨⟨k, e_k⟩, ⟨e_k_in_i, e_k_in_j⟩⟩ := this
-      simp [j_neq_zero] at e_k_in_j
-      simp [i_eq_zero] at e_k_in_i
-      cases e_k_in_i with
-      | inl left =>
-        have k_eq_zero: k = 0 := left.1
-        rw [k_eq_zero] at e_k_in_j
-        obtain ⟨_, bad_zero⟩ := e_k_in_j
-        have bar := Nat.modEq_zero_iff_dvd.mp (bad_zero.symm)
-        have gt_zero: 0 < 2^j := by
-          apply Nat.pow_pos
-          linarith
-        have larger: 2^j < 2^(j + 1) := by
-          apply Nat.pow_lt_pow_succ
-          simp
-
-        have smaller := (Nat.le_of_dvd gt_zero) bar
-        linarith
-      | inr right =>
-        have pow_montone:  2 ^ j < 2 ^ (j + 1) := by
-          apply Nat.pow_lt_pow_succ
-          simp
-        have one_lt: 1 < 2 := by simp
-        have k_mod := Nat.mod_eq_of_modEq right.2 one_lt
-        rw [← Nat.odd_iff] at k_mod
-        have j_mod := e_k_in_j.2
-        --have new_j_mod := Nat.mod_eq_of_modEq j_mod pow_montone
-
-        rw [Nat.modEq_iff_dvd] at j_mod
-        have j_plus_ne: j + 1 ≠ 0 := by
-          linarith
-        have two_dvd_pow: 2 ∣ (((2 : ℕ)^((j + 1): ℕ)) : ℕ)  := by
-          exact dvd_pow_self 2 j_plus_ne
-
-        have coerce: (2 : ℤ) ∣ ↑((2: ℕ) ^ (j + 1)) := by
-          exact Int.ofNat_dvd_right.mpr two_dvd_pow
-
-        have tmp_dvd := Dvd.dvd.trans coerce j_mod
-
-        rw [Int.dvd_def] at tmp_dvd
-        obtain ⟨c, hc⟩ := tmp_dvd
-        have rearrange: (((2: ℕ) ^ (j: ℕ)): ℕ) - 2 * c = ↑k := by
-          rw [Eq.comm, sub_eq_neg_add] at hc
-          have bar := add_eq_of_eq_neg_add hc
-          have other := add_neg_eq_of_eq_add bar.symm
-          exact other
-
-        have cast_z: 2^j - 2*c = k := by
-          rw [← rearrange]
-          simp
-
-        rw [← mul_pow_sub_one j_neq_zero] at cast_z
-        have factor_2: 2*(2 ^ (j - 1) - c) = ↑k := by
-          rw [← cast_z]
-          ring
-        have two_dvd_k: (2: ℤ) ∣ k := by
-          exact Dvd.intro (2 ^ (j - 1) - c) factor_2
-        have k_even: Even (k: ℤ) := by
-          apply even_iff_two_dvd.mpr two_dvd_k
-        have odd_k: Odd (k: ℤ) := by
-          exact (Int.odd_coe_nat k).mpr k_mod
-        rw [← Int.not_odd_iff_even] at k_even
-        contradiction
-
+lemma s_i_no_overlap (i j: ℕ) (i_lt_j: i < j): s_i i ∩ s_i j = ∅ := by
+  by_contra!
+  have i_neq_zero: i ≠ 0 := by
+    by_contra! i_eq_zero
     have j_neq_zero: j ≠ 0 := by
       linarith
+
     rw [Set.inter_def] at this
+    simp only [s_i, i_eq_zero] at this
     simp at this
     obtain ⟨⟨k, e_k⟩, ⟨e_k_in_i, e_k_in_j⟩⟩ := this
-
-    have e_k_in_i: k ≡ 2^i [MOD 2^(i + 1)] := by
-      simp [s_i, i_neq_zero] at e_k_in_i
-      exact e_k_in_i.2
-
-    have e_k_in_j: k ≡ 2^j [MOD 2^(j + 1)] := by
-      simp [s_i, j_neq_zero] at e_k_in_j
-      exact e_k_in_j.2
-
-    have mod_imp_factor: ∀ k i : ℕ, k ≡ 2^i [MOD 2^(i + 1)] → k.factorization 2 = i := by
-      intro k i e_k_in_i
-
-      have k_le_first: 2^i ≤ k := by
-        rw [Nat.ModEq] at e_k_in_i
-        have two_pow_lt: 2^i < 2^(i + 1) := by
-          apply Nat.pow_lt_pow_succ
-          simp
-        rw [Nat.mod_eq_of_lt two_pow_lt] at e_k_in_i
-        have k_mod_lt: k % 2 ^ (i + 1)< (2^(i+1)) := by
-          apply Nat.mod_lt
-          simp
-
-        by_contra!
-        have k_lt_2i_plus: k < 2^(i+1) := by
-          exact Nat.lt_trans this two_pow_lt
-
-        have bar := Nat.mod_eq_of_lt k_lt_2i_plus
-        rw [bar] at e_k_in_i
+    simp [j_neq_zero] at e_k_in_j
+    simp [i_eq_zero] at e_k_in_i
+    cases e_k_in_i with
+    | inl left =>
+      have k_eq_zero: k = 0 := left.1
+      rw [k_eq_zero] at e_k_in_j
+      obtain ⟨_, bad_zero⟩ := e_k_in_j
+      have bar := Nat.modEq_zero_iff_dvd.mp (bad_zero.symm)
+      have gt_zero: 0 < 2^j := by
+        apply Nat.pow_pos
         linarith
+      have larger: 2^j < 2^(j + 1) := by
+        apply Nat.pow_lt_pow_succ
+        simp
 
-      apply Nat.ModEq.symm at e_k_in_i
-      apply (Nat.modEq_iff_dvd' k_le_first).mp at e_k_in_i
-      obtain ⟨c, hc⟩ := e_k_in_i
+      have smaller := (Nat.le_of_dvd gt_zero) bar
+      linarith
+    | inr right =>
+      have pow_montone:  2 ^ j < 2 ^ (j + 1) := by
+        apply Nat.pow_lt_pow_succ
+        simp
+      have one_lt: 1 < 2 := by simp
+      have k_mod := Nat.mod_eq_of_modEq right.2 one_lt
+      rw [← Nat.odd_iff] at k_mod
+      have j_mod := e_k_in_j.2
+      --have new_j_mod := Nat.mod_eq_of_modEq j_mod pow_montone
 
-      have k_i_eq_sum: k = 2^i + 2^(i + 1) * c := by
-        apply Nat.eq_add_of_sub_eq k_le_first  at hc
-        rw [Nat.add_comm] at hc
-        exact hc
+      rw [Nat.modEq_iff_dvd] at j_mod
+      have j_plus_ne: j + 1 ≠ 0 := by
+        linarith
+      have two_dvd_pow: 2 ∣ (((2 : ℕ)^((j + 1): ℕ)) : ℕ)  := by
+        exact dvd_pow_self 2 j_plus_ne
 
+      have coerce: (2 : ℤ) ∣ ↑((2: ℕ) ^ (j + 1)) := by
+        exact Int.ofNat_dvd_right.mpr two_dvd_pow
 
-      have k_i_factor: k = 2^i * (1 + 2 * c) := by
-        rw [k_i_eq_sum]
+      have tmp_dvd := Dvd.dvd.trans coerce j_mod
+
+      rw [Int.dvd_def] at tmp_dvd
+      obtain ⟨c, hc⟩ := tmp_dvd
+      have rearrange: (((2: ℕ) ^ (j: ℕ)): ℕ) - 2 * c = ↑k := by
+        rw [Eq.comm, sub_eq_neg_add] at hc
+        have bar := add_eq_of_eq_neg_add hc
+        have other := add_neg_eq_of_eq_add bar.symm
+        exact other
+
+      have cast_z: 2^j - 2*c = k := by
+        rw [← rearrange]
+        simp
+
+      rw [← mul_pow_sub_one j_neq_zero] at cast_z
+      have factor_2: 2*(2 ^ (j - 1) - c) = ↑k := by
+        rw [← cast_z]
         ring
+      have two_dvd_k: (2: ℤ) ∣ k := by
+        exact Dvd.intro (2 ^ (j - 1) - c) factor_2
+      have k_even: Even (k: ℤ) := by
+        apply even_iff_two_dvd.mpr two_dvd_k
+      have odd_k: Odd (k: ℤ) := by
+        exact (Int.odd_coe_nat k).mpr k_mod
+      rw [← Int.not_odd_iff_even] at k_even
+      contradiction
 
-      have two_factor_i: (2^i * (1 + 2 * c)).factorization 2 = i := by
-        rw [Nat.factorization_mul]
-        rw [Nat.Prime.factorization_pow (Nat.prime_two)]
-        simp [Nat.factorization_eq_zero_of_not_dvd]
-        simp
-        simp
-
-      rw [← k_i_factor] at two_factor_i
-      exact two_factor_i
-
-
-    have i_factor := mod_imp_factor k i e_k_in_i
-    have j_factor := mod_imp_factor k j e_k_in_j
-    rw [i_factor] at j_factor
+  have j_neq_zero: j ≠ 0 := by
     linarith
+  rw [Set.inter_def] at this
+  simp at this
+  obtain ⟨⟨k, e_k⟩, ⟨e_k_in_i, e_k_in_j⟩⟩ := this
+
+  have e_k_in_i: k ≡ 2^i [MOD 2^(i + 1)] := by
+    simp [s_i, i_neq_zero] at e_k_in_i
+    exact e_k_in_i.2
+
+  have e_k_in_j: k ≡ 2^j [MOD 2^(j + 1)] := by
+    simp [s_i, j_neq_zero] at e_k_in_j
+    exact e_k_in_j.2
+
+  have mod_imp_factor: ∀ k i : ℕ, k ≡ 2^i [MOD 2^(i + 1)] → k.factorization 2 = i := by
+    intro k i e_k_in_i
+
+    have k_le_first: 2^i ≤ k := by
+      rw [Nat.ModEq] at e_k_in_i
+      have two_pow_lt: 2^i < 2^(i + 1) := by
+        apply Nat.pow_lt_pow_succ
+        simp
+      rw [Nat.mod_eq_of_lt two_pow_lt] at e_k_in_i
+      have k_mod_lt: k % 2 ^ (i + 1)< (2^(i+1)) := by
+        apply Nat.mod_lt
+        simp
+
+      by_contra!
+      have k_lt_2i_plus: k < 2^(i+1) := by
+        exact Nat.lt_trans this two_pow_lt
+
+      have bar := Nat.mod_eq_of_lt k_lt_2i_plus
+      rw [bar] at e_k_in_i
+      linarith
+
+    apply Nat.ModEq.symm at e_k_in_i
+    apply (Nat.modEq_iff_dvd' k_le_first).mp at e_k_in_i
+    obtain ⟨c, hc⟩ := e_k_in_i
+
+    have k_i_eq_sum: k = 2^i + 2^(i + 1) * c := by
+      apply Nat.eq_add_of_sub_eq k_le_first  at hc
+      rw [Nat.add_comm] at hc
+      exact hc
+
+
+    have k_i_factor: k = 2^i * (1 + 2 * c) := by
+      rw [k_i_eq_sum]
+      ring
+
+    have two_factor_i: (2^i * (1 + 2 * c)).factorization 2 = i := by
+      rw [Nat.factorization_mul]
+      rw [Nat.Prime.factorization_pow (Nat.prime_two)]
+      simp [Nat.factorization_eq_zero_of_not_dvd]
+      simp
+      simp
+
+    rw [← k_i_factor] at two_factor_i
+    exact two_factor_i
+
+
+  have i_factor := mod_imp_factor k i e_k_in_i
+  have j_factor := mod_imp_factor k j e_k_in_j
+  rw [i_factor] at j_factor
+  linarith
+
+
+lemma s_i_infinite (i: ℕ): (s_i i).Infinite := by
+  let n_to_multiple := fun n => (2^i + n*2^(i+1), basis_n (2^i + n*2^(i+1)))
+  have image_subset: Set.range n_to_multiple ⊆ (s_i i) := by
+    simp only [n_to_multiple, s_i]
+    rw [Set.subset_def]
+    intro x hx
+    simp at hx
+    obtain ⟨y, hy⟩ := hx
+    simp
+    left
+    refine ⟨?_, ?_⟩
+    use 2 ^ i + y * 2 ^ (i + 1)
+    rw [← hy]
+    simp [Nat.ModEq]
+
+
+  have injective_fun: Function.Injective (fun n => (2^i + n*2^(i+1), basis_n (2^i + n*2^(i+1)))) := by
+    -- ???: How does this simp work
+    simp [Function.Injective]
+
+  have range_infinite := Set.infinite_range_of_injective  injective_fun
+  simp only [n_to_multiple] at image_subset
+  apply Set.Infinite.mono image_subset range_infinite
+
+
+  -- Actual start of proof
+
 
 -- BAD - this is for intersction, not the whole union
 -- Simpler idea: What happens if j = 2^a mod 2^(a+1) and j = 2^b mod 2^(b+1) for a ≠ b?
@@ -197,110 +223,84 @@ theorem foo: 1 = 1 := by
 -- Then, j = 2^a + (j - 2^a)
 --
 
-  have s_i_infinite: ∀ i, (s_i i).Infinite := by
-    intro i
-    let n_to_multiple := fun n => (2^i + n*2^(i+1), basis_n (2^i + n*2^(i+1)))
-    have image_subset: Set.range n_to_multiple ⊆ (s_i i) := by
-      simp only [n_to_multiple, s_i]
-      rw [Set.subset_def]
-      intro x hx
-      simp at hx
-      obtain ⟨y, hy⟩ := hx
+
+
+
+lemma s_i_union_basis: ⋃ i, s_i i = all_basis := by
+  ext ⟨k, e_k⟩
+  refine ⟨?_, ?_⟩
+  . intro e_k_in_union
+    simp at e_k_in_union
+    obtain ⟨i, e_k_in_i⟩ := e_k_in_union
+    simp [s_i] at e_k_in_i
+    simp [all_basis]
+    cases e_k_in_i with
+    | inl left =>
+      exact left.1
+    | inr right =>
+      rw [right.2.1, right.2.2]
+  .
+    intro e_k_in_basis
+    by_cases is_k_zero: k = 0
+    . simp [is_k_zero, s_i]
+      use 0
+      right
+      simp [all_basis, is_k_zero] at e_k_in_basis
+      rw [e_k_in_basis]
       simp
-      left
-      refine ⟨?_, ?_⟩
-      use 2 ^ i + y * 2 ^ (i + 1)
-      rw [← hy]
-      simp [Nat.ModEq]
-
-
-    have injective_fun: Function.Injective (fun n => (2^i + n*2^(i+1), basis_n (2^i + n*2^(i+1)))) := by
-      -- ???: How does this simp work
-      simp [Function.Injective]
-
-    have range_infinite := Set.infinite_range_of_injective  injective_fun
-    simp only [n_to_multiple] at image_subset
-    apply Set.Infinite.mono image_subset range_infinite
-
-
-
-  have new_si_union_basis: ⋃ i, s_i i = all_basis := by
-    ext ⟨k, e_k⟩
-    refine ⟨?_, ?_⟩
-    . intro e_k_in_union
-      simp at e_k_in_union
-      obtain ⟨i, e_k_in_i⟩ := e_k_in_union
-      simp [s_i] at e_k_in_i
-      simp [all_basis]
-      cases e_k_in_i with
-      | inl left =>
-        exact left.1
-      | inr right =>
-        rw [right.2.1, right.2.2]
     .
-      intro e_k_in_basis
-      by_cases is_k_zero: k = 0
-      . simp [is_k_zero, s_i]
-        use 0
-        right
-        simp [all_basis, is_k_zero] at e_k_in_basis
-        rw [e_k_in_basis]
-        simp
+      simp [is_k_zero, s_i]
+      by_cases two_div_k: 2 ∣ k
       .
-        simp [is_k_zero, s_i]
-        by_cases two_div_k: 2 ∣ k
-        .
-          have pow_two_div_k := Nat.dvd_ord_proj_of_dvd is_k_zero Nat.prime_two two_div_k
+        have pow_two_div_k := Nat.dvd_ord_proj_of_dvd is_k_zero Nat.prime_two two_div_k
 
-          have k_pow_two: k = 2^(k.factorization 2) * ( k / 2^(k.factorization 2)) := by
-            exact Eq.symm (Nat.ord_proj_mul_ord_compl_eq_self k 2)
+        have k_pow_two: k = 2^(k.factorization 2) * ( k / 2^(k.factorization 2)) := by
+          exact Eq.symm (Nat.ord_proj_mul_ord_compl_eq_self k 2)
 
-          have two_not_div := Nat.not_dvd_ord_compl Nat.prime_two is_k_zero
+        have two_not_div := Nat.not_dvd_ord_compl Nat.prime_two is_k_zero
 
-          have odd_val: Odd (k / 2 ^ k.factorization 2) := by
-            refine Nat.odd_iff.mpr ?_
-            rw [Nat.two_dvd_ne_zero] at two_not_div
-            exact two_not_div
+        have odd_val: Odd (k / 2 ^ k.factorization 2) := by
+          refine Nat.odd_iff.mpr ?_
+          rw [Nat.two_dvd_ne_zero] at two_not_div
+          exact two_not_div
 
-          obtain ⟨f, hf⟩ := odd_val
-          rw [hf] at k_pow_two
+        obtain ⟨f, hf⟩ := odd_val
+        rw [hf] at k_pow_two
 
-          have dummy := calc
-            (k: ℤ) - (2^(k.factorization 2): ℕ) = (2 ^ k.factorization 2 * (2 * f + 1) : ℕ) - 2^(k.factorization 2) := by
-              nth_rewrite 1 [k_pow_two]
-              norm_cast
-            _ = (2 ^ k.factorization 2 * (2 * f + 1) : ℕ)  -2^(k.factorization 2)*1 := by ring
-            _ = (2 ^ k.factorization 2 * ((2 * f + 1) - 1) : ℕ) := by
-              push_cast
-              ring
-            _ = 2 ^ k.factorization 2 * (2 * f) := by simp
-            _ = (2 ^ (1 + k.factorization 2) : ℕ) * (f : ℤ) := by
-              norm_cast
-              ring
+        have dummy := calc
+          (k: ℤ) - (2^(k.factorization 2): ℕ) = (2 ^ k.factorization 2 * (2 * f + 1) : ℕ) - 2^(k.factorization 2) := by
+            nth_rewrite 1 [k_pow_two]
+            norm_cast
+          _ = (2 ^ k.factorization 2 * (2 * f + 1) : ℕ)  -2^(k.factorization 2)*1 := by ring
+          _ = (2 ^ k.factorization 2 * ((2 * f + 1) - 1) : ℕ) := by
+            push_cast
+            ring
+          _ = 2 ^ k.factorization 2 * (2 * f) := by simp
+          _ = (2 ^ (1 + k.factorization 2) : ℕ) * (f : ℤ) := by
+            norm_cast
+            ring
 
-          have sub_div: (((2 ^ (1 + k.factorization 2)) : ℕ ) : ℤ) ∣ (k: ℤ) - ((2 ^ k.factorization 2): ℕ) := by
-            exact Dvd.intro f (id (Eq.symm dummy))
+        have sub_div: (((2 ^ (1 + k.factorization 2)) : ℕ ) : ℤ) ∣ (k: ℤ) - ((2 ^ k.factorization 2): ℕ) := by
+          exact Dvd.intro f (id (Eq.symm dummy))
 
-          have k_mod: 2 ^ k.factorization 2 ≡ k [MOD 2 ^ (1 + k.factorization 2)] := by
-            exact Nat.modEq_of_dvd sub_div
+        have k_mod: 2 ^ k.factorization 2 ≡ k [MOD 2 ^ (1 + k.factorization 2)] := by
+          exact Nat.modEq_of_dvd sub_div
 
-          have k_mod_reverse: k ≡ 2 ^ k.factorization 2 [MOD 2 ^ (1 + k.factorization 2)] := by
-            exact Nat.ModEq.symm k_mod
+        have k_mod_reverse: k ≡ 2 ^ k.factorization 2 [MOD 2 ^ (1 + k.factorization 2)] := by
+          exact Nat.ModEq.symm k_mod
 
-          have k_mod_swap: k ≡ 2 ^ k.factorization 2 [MOD 2 ^ (k.factorization 2 + 1)] := by
-            rwa [Nat.add_comm]
+        have k_mod_swap: k ≡ 2 ^ k.factorization 2 [MOD 2 ^ (k.factorization 2 + 1)] := by
+          rwa [Nat.add_comm]
 
-          simp [all_basis] at e_k_in_basis
-          refine ⟨e_k_in_basis, ?_⟩
-          use k.factorization 2
-        . simp [all_basis] at e_k_in_basis
-          refine ⟨e_k_in_basis, ?_⟩
-          use 0
-          simp_all only [Nat.two_dvd_ne_zero]
-          exact two_div_k
+        simp [all_basis] at e_k_in_basis
+        refine ⟨e_k_in_basis, ?_⟩
+        use k.factorization 2
+      . simp [all_basis] at e_k_in_basis
+        refine ⟨e_k_in_basis, ?_⟩
+        use 0
+        simp_all only [Nat.two_dvd_ne_zero]
+        exact two_div_k
 
-
-  rfl
 
 noncomputable def xSeq (n: ℕ): G := basis_n n
 

@@ -1982,37 +1982,37 @@ lemma partial_function {vals: XVals} (t1: @ReverseTree vals) (t2: ReverseTree) (
             match t2_parent with
             | .root =>
               simp [ReverseTree.getData] at h_a_eq
-              apply xseq_injective at h_a_eq
+              apply vals.x_inj at h_a_eq
               have val_gt_one := newnem_gt_one t1_parent_parent
               omega
             | .left t2_parent_parent =>
               -- If both parents are left trees - we know that left trees have unique 'b' values so their parents must be the same node. But then our original nodes are left children of the same node, so they're again the same node - contradiction
               simp [ReverseTree.getData] at h_a_eq
-              apply xseq_injective at h_a_eq
+              apply vals.x_inj at h_a_eq
               apply newnum_injective at h_a_eq
               rw [h_a_eq] at this
               contradiction
             | .right t2_parent_parent =>
-                simp [ReverseTree.getData, xSeq] at h_a_eq
+                simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
                 rw [← Finsupp.single_neg] at h_a_eq
-                have vals_neq := basis_neq_elem_diff t2_parent_parent (newNum t1_parent_parent) (1) (-1) (-1) (by simp) (by simp) (by simp)
+                have vals_neq := basis_neq_elem_diff t2_parent_parent (vals.x_to_index (newNum t1_parent_parent)) (1) (-1) (-1) (by simp) (by simp) (by simp)
                 simp at vals_neq
                 rw [← sub_eq_add_neg, ← Finsupp.single_neg] at vals_neq
                 contradiction
         | .right t1_parent_parent =>
           match t2_parent with
           | .root =>
-            simp [ReverseTree.getData, xSeq] at h_a_eq
+            simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
             rw [← Finsupp.single_neg] at h_a_eq
-            have vals_neq := basis_neq_elem_diff t1_parent_parent 1 (1) (-1) (-1) (by simp) (by simp) (by simp)
+            have vals_neq := basis_neq_elem_diff t1_parent_parent (vals.x_to_index 1) (1) (-1) (-1) (by simp) (by simp) (by simp)
             simp only [one_smul, neg_one_smul] at vals_neq
             rw [← sub_eq_add_neg] at vals_neq
             rw [eq_comm] at h_a_eq
             contradiction
           | .left t2_parent_parent =>
-            simp [ReverseTree.getData, xSeq] at h_a_eq
+            simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
             rw [← Finsupp.single_neg] at h_a_eq
-            have vals_neq := basis_neq_elem_diff t1_parent_parent (newNum t2_parent_parent) (1) (-1) (-1) (by simp) (by simp) (by simp)
+            have vals_neq := basis_neq_elem_diff t1_parent_parent (vals.x_to_index (newNum t2_parent_parent)) 1 (-1) (-1) (by simp) (by simp) (by simp)
             simp only [one_smul, neg_one_smul] at vals_neq
             rw [← sub_eq_add_neg] at vals_neq
             rw [eq_comm] at h_a_eq
@@ -2064,12 +2064,12 @@ lemma partial_function {vals: XVals} (t1: @ReverseTree vals) (t2: ReverseTree) (
       simp [ReverseTree.getData] at h_a_eq
       match t1_parent with
       | .root =>
-        simp [ReverseTree.getData, xSeq] at h_a_eq
+        simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
         have fun_neq := finsupp_new_one_newnum t2_parent (-1) 1 (by simp)
         rw [← Finsupp.single_neg] at h_a_eq
         contradiction
       | .left t1_parent_parent =>
-        simp [ReverseTree.getData, xSeq] at h_a_eq
+        simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
         rw [← Finsupp.single_neg] at h_a_eq
         rw [Finsupp.single_eq_single_iff] at h_a_eq
         match h_a_eq with
@@ -2078,8 +2078,8 @@ lemma partial_function {vals: XVals} (t1: @ReverseTree vals) (t2: ReverseTree) (
         | .inr ⟨neq_eq_one, _⟩ =>
           contradiction
       | .right t1_parent_parent =>
-        simp [ReverseTree.getData, xSeq] at h_a_eq
-        have vals_neq := basis_neq_elem_diff t1_parent_parent (newNum t2_parent) 1 (-1) 1 (by simp) (by simp) (by simp)
+        simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
+        have vals_neq := basis_neq_elem_diff t1_parent_parent (vals.x_to_index (newNum t2_parent)) 1 (-1) 1 (by simp) (by simp) (by simp)
         simp only [one_smul, neg_one_smul, ← sub_eq_add_neg] at vals_neq
         rw [eq_comm] at h_a_eq
         contradiction
@@ -2088,20 +2088,21 @@ lemma partial_function {vals: XVals} (t1: @ReverseTree vals) (t2: ReverseTree) (
     | .root =>
         simp [ReverseTree.getData] at h_a_eq
         have newnum_gt_one := newnem_gt_one t1_parent
-        simp [xSeq] at h_a_eq
+        simp [vals.x_to_index_eq, basis_n] at h_a_eq
         have one_ne_zero: (1 : ℚ) ≠ 0 := by
           simp
         have single_injective := Finsupp.single_left_injective (α := ℕ) one_ne_zero
         simp [Function.Injective] at single_injective
-        specialize @single_injective (newNum t1_parent) 0 h_a_eq
+        specialize @single_injective (vals.x_to_index (newNum t1_parent)) (vals.x_to_index 0) h_a_eq
+        apply vals.x_to_index_inj at single_injective
         linarith
     | .left t2_parent =>
       simp [ReverseTree.getData] at h_a_eq
       match t2_parent with
       | .root =>
-        simp [ReverseTree.getData, xSeq] at h_a_eq
+        simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
         rw [← Finsupp.single_neg] at h_a_eq
-        have eval_at: (fun₀ | newNum t1_parent => 1) (newNum t1_parent) = (fun₀ | 1 => (-1: ℚ)) (newNum t1_parent) := by
+        have eval_at: (fun₀ | (vals.x_to_index (newNum t1_parent)) => 1) (vals.x_to_index (newNum t1_parent)) = (fun₀ | (vals.x_to_index 1) => (-1: ℚ)) (vals.x_to_index (newNum t1_parent)) := by
           refine DFunLike.congr ?h₁ rfl
           exact h_a_eq
         simp at eval_at
@@ -2109,8 +2110,10 @@ lemma partial_function {vals: XVals} (t1: @ReverseTree vals) (t2: ReverseTree) (
           exact newnem_gt_one t1_parent
         have newnum_neq_one: 1 ≠ newNum t1_parent := by
           linarith
+        have index_one_neq: vals.x_to_index 1 ≠ vals.x_to_index (newNum t1_parent) := by
+          apply Function.Injective.ne vals.x_to_index_inj newnum_neq_one
         rw [Finsupp.single_apply] at eval_at
-        simp [newnum_neq_one] at eval_at
+        simp [index_one_neq] at eval_at
       | .left t2_parent_parent =>
           -- b is fresh - it must therefore come from a different node, which will therefore have a different basis element - contradiction.
           simp [ReverseTree.getData, xSeq] at h_a_eq

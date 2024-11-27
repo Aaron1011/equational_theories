@@ -1233,19 +1233,24 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
         simp [bar] at x_in_cur
 
         have x_lt_max := Finset.le_max x_in_parent
-        have support_subset := Finsupp.support_finset_sum (s := Finset.range (vals.x_to_index m)) (f := fun i => g i • vals.x_vals i)
+        have support_subset := Finsupp.support_finset_sum (s := Finset.range m) (f := fun i => g i • vals.x_vals i)
         --simp [basis_n] at support_subset
 
-        have supp_single: ∀ x ∈ Finset.range (vals.x_to_index m), ((g x) • (Finsupp.single x 1 : ℕ →₀ ℚ)).support ⊆ Finset.range (vals.x_to_index m) := by
+        have supp_single: ∀ x ∈ Finset.range m, ((g x) • vals.x_vals x).support ⊆ Finset.range (vals.x_to_index m) := by
           intro x hx
-          have foo := Finsupp.support_single_subset (a := x) (b := ( 1: ℚ))
-          have x_single_subset: {x} ⊆ Finset.range (vals.x_to_index m) := by
+          have old_foo := Finsupp.support_single_subset (a := x) (b := ( 1: ℚ))
+          have single_supp: (vals.x_vals x).support ⊆ {vals.x_to_index x} := by
+            rw [vals.x_to_index_eq]
+            simp only [basis_n]
+            apply Finsupp.support_single_subset
+          have x_val_subset: {vals.x_to_index x} ⊆ Finset.range (vals.x_to_index m) := by
             simp
             simp at hx
+            apply vals.x_to_index_increasing
             exact hx
-          have mul_support := Finsupp.support_smul (b := g x) (g := fun₀ | x => (1: ℚ))
-          have first_trans := Finset.Subset.trans mul_support foo
-          have second_trans := Finset.Subset.trans first_trans x_single_subset
+          have mul_support := Finsupp.support_smul (b := g x) (g := vals.x_vals x)
+          have first_trans := Finset.Subset.trans mul_support single_supp
+          have second_trans := Finset.Subset.trans first_trans x_val_subset
           exact second_trans
 
 
@@ -1260,13 +1265,13 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
 
 
 
-        have bar := (Finset.biUnion_subset (s := Finset.range (vals.x_to_index m)) (t := fun x => (g x • (Finsupp.single x 1 : ℕ →₀ ℚ)).support)).mpr supp_single
-        have x_in_biunion: x ∈ ((Finset.range (vals.x_to_index m)).biUnion fun x ↦ (g x • vals.x_vals x).support) := by
+        have bar := (Finset.biUnion_subset (s := Finset.range (m)) (t := fun x => (g x • vals.x_vals x).support)).mpr supp_single
+        have x_in_biunion: x ∈ ((Finset.range m).biUnion fun x ↦ (g x • vals.x_vals x).support) := by
           apply Finset.mem_of_subset support_subset x_in_parent
 
         simp only [basis_n, Finsupp.coe_basisSingleOne] at x_in_biunion
         -- TODO - this seems wrong. x is in range 'm' - we need to map this to the potentnial larger 'x_to_index'
-        have x_in_range: x ∈ Finset.range m := by
+        have x_in_range: x ∈ Finset.range (vals.x_to_index m) := by
           apply Finset.mem_of_subset bar x_in_biunion
 
         have index_m_lt_newnum: vals.x_to_index m ≤ vals.x_to_index (newNum parent) := by

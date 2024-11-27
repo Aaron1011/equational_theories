@@ -1413,7 +1413,7 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
       linarith
 #print axioms tree_supp_disjoint
 
-lemma tree_vals_nonzero (t: ReverseTree) : t.getData.a ≠ 0 ∧ t.getData.b ≠ 0 := by
+lemma tree_vals_nonzero {vals: XVals} (t: @ReverseTree vals) : t.getData.a ≠ 0 ∧ t.getData.b ≠ 0 := by
   have a_neq_zero: t.getData.a ≠ 0 := by
     have bar := LinearIndependent.ne_zero 0 (tree_linear_independent t)
     simp at bar
@@ -1424,7 +1424,7 @@ lemma tree_vals_nonzero (t: ReverseTree) : t.getData.a ≠ 0 ∧ t.getData.b ≠
     assumption
   exact ⟨a_neq_zero, b_neq_zero⟩
 
-lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ) (b c r: ℚ) (hb: b ≠ 0) (hc: c ≠ 0) (hr: r ≠ 0): Finsupp.single a r ≠ b • t.getData.b + c • t.getData.a := by
+lemma basis_neq_elem_diff {vals: XVals} (t:@ ReverseTree vals) (a: ℕ) (b c r: ℚ) (hb: b ≠ 0) (hc: c ≠ 0) (hr: r ≠ 0): Finsupp.single a r ≠ b • t.getData.b + c • t.getData.a := by
   by_contra!
   have coord_intersect: t.getData.b.support ∩ t.getData.a.support = ∅ := by
     apply tree_supp_disjoint t
@@ -1507,38 +1507,51 @@ lemma basis_neq_elem_diff (t: ReverseTree) (a: ℕ) (b c r: ℚ) (hb: b ≠ 0) (
   rw [support_sum, card_union_sum] at card_eq
   linarith
 
-lemma finsupp_new_zero_newnum (t: ReverseTree) (a b: ℚ) (hb: b ≠ 0): (fun₀ | 0 => (a: ℚ)) ≠ (fun₀ | newNum t => (b: ℚ)) := by
+lemma finsupp_new_zero_newnum {vals: XVals} (t: @ReverseTree vals) (a b: ℚ) (hb: b ≠ 0): (fun₀ | vals.x_to_index 0 => (a: ℚ)) ≠ (fun₀ | (vals.x_to_index (newNum t)) => (b: ℚ)) := by
   by_contra!
-  have eval_at := DFunLike.congr (x := newNum t) (y := newNum t) this rfl
+  have eval_at := DFunLike.congr (x := (vals.x_to_index (newNum t))) (y := vals.x_to_index (newNum t)) this rfl
   simp at eval_at
   have t2_gt_one := newnem_gt_one t
-  have newnum_new_zero: 0 ≠ newNum t := by
+  have newnum_neq_zero: 0 ≠ newNum t := by
     omega
-  simp [newnum_new_zero] at eval_at
+  have vals_neq: vals.x_to_index 0 ≠ vals.x_to_index (newNum t) := by
+    apply Function.Injective.ne vals.x_to_index_inj
+    exact newnum_neq_zero
+  simp [vals_neq] at eval_at
   rw [eq_comm] at eval_at
   contradiction
 
-lemma finsupp_new_one_newnum (t: ReverseTree) (a b: ℚ) (hb: b ≠ 0): (fun₀ | 1 => (a: ℚ)) ≠ (fun₀ | newNum t => (b: ℚ)) := by
+lemma finsupp_new_one_newnum {vals: XVals} (t: @ReverseTree vals) (a b: ℚ) (hb: b ≠ 0): (fun₀ | vals.x_to_index 1 => (a: ℚ)) ≠ (fun₀ | (vals.x_to_index (newNum t)) => (b: ℚ)) := by
   by_contra!
-  have eval_at := DFunLike.congr (x := newNum t) (y := newNum t) this rfl
+  have eval_at := DFunLike.congr (x := (vals.x_to_index (newNum t))) (y := vals.x_to_index (newNum t)) this rfl
   simp at eval_at
   have t2_gt_one := newnem_gt_one t
-  have newnum_new_zero: 1 ≠ newNum t := by
+  have newnum_neq_one: 1 ≠ newNum t := by
     omega
-  simp [newnum_new_zero] at eval_at
+  have vals_neq: vals.x_to_index 1 ≠ vals.x_to_index (newNum t) := by
+    apply Function.Injective.ne vals.x_to_index_inj
+    exact newnum_neq_one
+  simp [vals_neq] at eval_at
   rw [eq_comm] at eval_at
   contradiction
 
-lemma xseq_zero_neq_b (t: ReverseTree) (s: ℚ) (hs: s ≠ 0): xSeq 0 ≠ s • t.getData.b := by
+lemma xseq_zero_neq_b {vals: XVals} (t: @ReverseTree vals) (s: ℚ) (hs: s ≠ 0): basis_n (vals.x_to_index 0) ≠ s • t.getData.b := by
   by_contra!
   match t with
   | .root =>
       -- TODO - there must be a simpler way of doing 'congr'
       simp [ReverseTree.getData, xSeq] at this
-      have eval_at := DFunLike.congr (x := 0) (y := 0) this rfl
-      simp at eval_at
+      have eval_at := DFunLike.congr (x := (vals.x_to_index 0)) (y := (vals.x_to_index 0)) this rfl
+      rw [vals.x_to_index_eq] at eval_at
+      simp [basis_n] at eval_at
+      have vals_neq: vals.x_to_index 1 ≠ vals.x_to_index 0 := by
+        apply Function.Injective.ne vals.x_to_index_inj
+        simp
+      simp [vals_neq] at eval_at
   | .left t2_parent_parent =>
       simp [ReverseTree.getData, xSeq] at this
+      rw [vals.x_to_index_eq] at this
+      simp [basis_n] at this
       have fun_neq := finsupp_new_zero_newnum t2_parent_parent 1 s hs
       contradiction
     | .right t2_parent_parent =>
@@ -1546,7 +1559,7 @@ lemma xseq_zero_neq_b (t: ReverseTree) (s: ℚ) (hs: s ≠ 0): xSeq 0 ≠ s • 
       have neg_s_neq_zero: (-s) ≠ 0 := by
         simp
         exact hs
-      have vals_neq := basis_neq_elem_diff t2_parent_parent 0 (-s) s 1 neg_s_neq_zero hs (by simp)
+      have vals_neq := basis_neq_elem_diff t2_parent_parent (vals.x_to_index 0) (-s) s 1 neg_s_neq_zero hs (by simp)
       simp only [one_smul, neg_one_smul, add_comm] at vals_neq
       rw [neg_smul, ← sub_eq_add_neg] at vals_neq
       rw [smul_sub] at this

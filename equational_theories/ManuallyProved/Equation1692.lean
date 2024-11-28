@@ -346,8 +346,8 @@ noncomputable def mk_x_vals (i: ℕ): XVals := by
     x_inj := by
       simp [Function.Injective]
       intro a1 a2 funs_eq
-      have apply_eq: ((fun₀ | 2 ^ i + a1 * 2 ^ (i + 1) => 1)) ( 2 ^ i + a1 * 2 ^ (i + 1)) = ((fun₀ | 2 ^ i + a2 * 2 ^ (i + 1) => 1)) (2 ^ i + a1 * 2 ^ (i + 1)) := by
-        sorry
+      have apply_eq: ((fun₀ | 2 ^ i + a1 * 2 ^ (i + 1) => (1: ℚ))) ( 2 ^ i + a1 * 2 ^ (i + 1)) = ((fun₀ | 2 ^ i + a2 * 2 ^ (i + 1) => 1)) (2 ^ i + a1 * 2 ^ (i + 1)) := by
+        rw [funs_eq]
       simp at apply_eq
       simp [Finsupp.single_apply] at apply_eq
       rw [eq_comm] at apply_eq

@@ -2378,6 +2378,8 @@ noncomputable abbrev g_enumerate: ℕ → G := by
   have bar := Classical.choice nonempty_denum
   exact Denumerable.ofNat G
 
+noncomputable def g_to_num (g: G): ℕ := by
+  exact Encodable.encode g
 
 def tree_to_supp {vals: XVals} (t: @ReverseTree vals): Set ℕ :=
   t.getData.a.support.toSet
@@ -2400,10 +2402,17 @@ noncomputable def full_x_vals: ℕ → Set XVals
       exact prev_x_vals ∪ {new_tree}
 
 
+-- Maps the nth element of G by applying our construced function 'f'
+noncomputable def full_fun_from_n (n: ℕ): G := by
+  let candidate_x_vals := full_x_vals n
+  have val_in_x_vals: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ candidate_x_vals ∧ t.getData.a = (g_enumerate n) := by
+    sorry
+  let h_x_val := Classical.choose_spec val_in_x_vals
+  let tree := Classical.choose h_x_val
+  exact tree.getData.b
 
-noncomputable def full_fun (n: ℕ): G := by
-  let g := g_enumerate n
-  exact g
+
+noncomputable def full_fun (g: G): G := full_fun_from_n (g_to_num g)
 
 #print axioms temp_partial_function
 

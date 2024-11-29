@@ -2565,13 +2565,45 @@ lemma diamond_real_f (x y: G): x = (diamond f (x + (y - x) + (f (-(y - x)))) (di
   rw [← other_equiv]
 
 
-lemma not_equation_23: (f 0) + (f (- (f 0))) = 0 := by
+lemma not_equation_23: (f 0) + (f (- (f 0))) ≠ 0 := by
   simp [f]
   have eq_left_child: (full_fun_from_n (g_to_num (-(full_fun_from_n (g_to_num 0)).tree.getData.b))).tree.getData.b = (full_fun_from_n (g_to_num 0)).tree.left.getData.b := by
     sorry
   rw [eq_left_child]
   simp [ReverseTree.getData]
-  sorry
+  -- TODO - when starting a new tree, we need to make our new element the root
+  have zero_eq_x_vals_zero: (full_fun_from_n (g_to_num 0)).tree.getData.b = (full_fun_from_n (g_to_num 0)).x_vals.x_vals 0 := by
+    sorry
+  rw [zero_eq_x_vals_zero]
+  have newnum_neq_zero: 0 ≠ newNum (full_fun_from_n (g_to_num 0)).tree := by
+    have gt_one := newnem_gt_one (full_fun_from_n (g_to_num 0)).tree
+    linarith
+
+  simp [XVals.x_to_index_eq]
+
+  -- TODO - extract this out to apply linear independence to pair of finsupp
+  have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
+  rw [linearIndependent_iff'] at basis_indep
+
+  let zero_val := (full_fun_from_n (g_to_num 0)).x_vals.x_to_index 0
+  let one_val := (full_fun_from_n (g_to_num 0)).x_vals.x_to_index (newNum (full_fun_from_n (g_to_num 0)).tree)
+  have my_set: Finset ℕ := {zero_val, one_val}
+  have eq_false: (∀ i ∈ my_set, 1 = 0) = False := by
+    sorry
+  specialize basis_indep {zero_val, one_val} fun g => 1
+
+  have zero_val_neq: zero_val ≠ one_val := by
+    sorry
+
+  -- TODO - this is really messy
+  rw [Finset.sum_pair zero_val_neq] at basis_indep
+  simp [zero_val_neq, zero_val_neq.symm] at basis_indep
+  apply not_imp_not.mpr at basis_indep
+  simp at basis_indep
+  specialize basis_indep one_val
+  simp [zero_val, one_val] at basis_indep
+  exact basis_indep
+
 
 lemma not_equation_47: 0 ≠ f (f (f 0)) := by
   rw [f]

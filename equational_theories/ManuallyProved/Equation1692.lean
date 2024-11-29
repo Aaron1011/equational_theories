@@ -2373,13 +2373,21 @@ lemma g_countable: Countable (@Set.univ G) := by
   simp [G]
   exact Set.countable_univ
 
+noncomputable def g_denumerable: Denumerable G := by
+  have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
+  exact Classical.choice nonempty_denum
+
 noncomputable abbrev g_enumerate: ℕ → G := by
   have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
   have bar := Classical.choice nonempty_denum
   exact Denumerable.ofNat G
 
+#synth Encodable G
+
 noncomputable def g_to_num (g: G): ℕ := by
-  exact Encodable.encode g
+  have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
+  have bar := Classical.choice nonempty_denum
+  exact bar.toEncodable.encode g
 
 def tree_to_supp {vals: XVals} (t: @ReverseTree vals): Set ℕ :=
   t.getData.a.support.toSet
@@ -2402,17 +2410,68 @@ noncomputable def full_x_vals: ℕ → Set XVals
       exact prev_x_vals ∪ {new_tree}
 
 
+structure GAndProof (n: ℕ) where
+  x_vals: XVals
+  tree: @ReverseTree x_vals
+  proof: tree.getData.a = (g_enumerate n)
+
 -- Maps the nth element of G by applying our construced function 'f'
-noncomputable def full_fun_from_n (n: ℕ): G := by
+noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
   let candidate_x_vals := full_x_vals n
   have val_in_x_vals: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ candidate_x_vals ∧ t.getData.a = (g_enumerate n) := by
     sorry
   let h_x_val := Classical.choose_spec val_in_x_vals
   let tree := Classical.choose h_x_val
-  exact tree.getData.b
+  have simplified: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, t.getData.a = (g_enumerate n) := by
+    obtain ⟨x_vals, t, h⟩ := val_in_x_vals
+    use x_vals
+    use t
+    exact h.2
+  obtain ⟨_, tree_eq⟩ := Classical.choose_spec h_x_val
+
+  exact {
+    x_vals := (Classical.choose val_in_x_vals),
+    tree := tree,
+    proof := tree_eq
+  }
 
 
-noncomputable def full_fun (g: G): G := full_fun_from_n (g_to_num g)
+noncomputable abbrev f (g: G): G := (full_fun_from_n (g_to_num g)).tree.getData.b
+
+-- Starting value: a
+
+--        - (-b, c)
+-- (a, b)
+--        - (c, a - b)
+
+-- LHS
+-- -f (a) = -b
+-- f(-b) = c
+-- f(c) = a - b
+-- RHS
+-- a - f(a) = a - b
+
+lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
+  simp [f]
+  have first_eq_left: -(full_fun_from_n (g_to_num g)).tree.getData.b = (full_fun_from_n (g_to_num g)).tree.left.getData.a := by
+    simp [ReverseTree.getData]
+  rw [first_eq_left]
+
+  have same_x_vals: (full_fun_from_n (g_to_num g)).x_vals = (full_fun_from_n (g_to_num (full_fun_from_n (g_to_num g)).tree.left.getData.a)).x_vals := by
+    sorry
+
+  have tree_val_eq: (full_fun_from_n (g_to_num g)).tree.left.getData.b = (full_fun_from_n (g_to_num (full_fun_from_n (g_to_num g)).tree.left.getData.a)).tree.getData.b := by
+    sorry
+  rw [← tree_val_eq]
+
+  have eval_to_right: (full_fun_from_n (g_to_num (full_fun_from_n (g_to_num g)).tree.left.getData.b)).tree.getData.b = (full_fun_from_n (g_to_num g)).tree.right.getData.b := by
+    sorry
+  rw [eval_to_right]
+  simp [ReverseTree.getData]
+  have tree_a_eq := (full_fun_from_n (g_to_num g)).proof
+  rw [tree_a_eq]
+  simp [g_to_num]
+
 
 #print axioms temp_partial_function
 

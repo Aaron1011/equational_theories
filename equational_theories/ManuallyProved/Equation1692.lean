@@ -2496,10 +2496,12 @@ lemma second_equiv (f: G → G) (hf: ∀ g: G, f (f (- f g)) = g - (f g)): ∀ x
     specialize hf (x - y)
     simp [hf]
 
-lemma functional_equiv (f: G → G) (x y: G):
-  (f (f (-(f x))) = x - (f x)) ↔ (x = diamond f (x + (y - x) + (f (-(y - x)))) (diamond f (x + (y - x) + (f (-(y - x)))) (x + y - x))) := by
-  simp [diamond]
-  sorry
+-- TODO - don't use 'f' for both our real function and a variable
+-- Our constructed function 'f' satisfies the diamond law
+lemma diamond_real_f (x y: G): x = (diamond f (x + (y - x) + (f (-(y - x)))) (diamond f (x + (y - x) + (f (-(y - x)))) (x + y - x))) := by
+  rw [first_equiv]
+  have other_equiv := second_equiv f f_function_eq x y
+  rw [← other_equiv]
 
 
 -- noncomputable def total_function (x: G): G := by

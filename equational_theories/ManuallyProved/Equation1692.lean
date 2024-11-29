@@ -2504,6 +2504,19 @@ lemma diamond_real_f (x y: G): x = (diamond f (x + (y - x) + (f (-(y - x)))) (di
   rw [← other_equiv]
 
 
+lemma not_equation_23: (f 0) + (f (- (f 0))) = 0 := by
+  simp [f]
+  have eq_left_child: (full_fun_from_n (g_to_num (-(full_fun_from_n (g_to_num 0)).tree.getData.b))).tree.getData.b = (full_fun_from_n (g_to_num 0)).tree.left.getData.b := by
+    sorry
+  rw [eq_left_child]
+  simp [ReverseTree.getData]
+  sorry
+
+lemma not_equation_47: 0 ≠ f (f (f 0)) := by
+  rw [f]
+  exact (tree_vals_nonzero (full_fun_from_n (g_to_num (f (f 0)))).tree).2.symm
+
+
 -- noncomputable def total_function (x: G): G := by
 --   by_cases x_in_tree: ∃ t: ReverseTree, x = t.getData.a
 --   . let t := Classical.choose x_in_tree

@@ -39,7 +39,7 @@ noncomputable abbrev all_basis := (λ n: ℕ => (n, basis_n n)) '' Set.univ
 -- Hack - include the basis element 0, since the proof pdf starts numbering them at 1
 def s_i := λ i: ℕ => {val ∈ all_basis | val.1 ≡ 2^i [MOD 2^(i + 1)] } ∪ (if i = 0 then {(0, basis_n 0)} else {})
 
-lemma s_i_no_overlap (i j: ℕ) (i_lt_j: i < j): s_i i ∩ s_i j = ∅ := by
+lemma s_i_disjoint (i j: ℕ) (i_lt_j: i < j): s_i i ∩ s_i j = ∅ := by
   by_contra!
   have i_neq_zero: i ≠ 0 := by
     by_contra! i_eq_zero
@@ -223,6 +223,12 @@ lemma s_i_infinite (i: ℕ): (s_i i).Infinite := by
 -- Then, j = 2^a + (j - 2^a)
 --
 
+lemma s_i_from_basis (i: ℕ): ∀ x ∈ s_i i, x.2 = basis_n x.1 := by
+  intro x hx
+  dsimp [s_i] at hx
+  sorry
+
+
 
 
 
@@ -373,6 +379,61 @@ noncomputable def mk_x_vals (i: ℕ): XVals := by
       obtain ⟨h, hy⟩ := hx
       use 2 ^ i + h * 2 ^ (i + 1)
   }
+
+def mk_vals_range_s_i (i: ℕ): Set.range (mk_x_vals i).x_vals ⊆ (λ b => b.2) '' (s_i i) := by
+  simp [mk_x_vals, s_i]
+  intro x hx
+  simp at hx
+  simp
+  obtain ⟨y, hy⟩ := hx
+  use 2 ^ i + y * 2 ^ (i + 1)
+  left
+  refine ⟨hy, ?_⟩
+  simp [Nat.ModEq]
+
+
+
+def mk_vals_disjoint: ∀ i j, i ≠ j → Set.range (mk_x_vals i).x_vals ∩ Set.range (mk_x_vals j).x_vals = ∅ := by
+  intro i j i_neq_j
+  have i_subset := mk_vals_range_s_i i
+  have j_subset := mk_vals_range_s_i j
+  have disjoint: s_i i ∩ s_i j = ∅ := by
+    by_cases i_lt_j: i < j
+    . exact s_i_disjoint i j i_lt_j
+    . simp at i_lt_j
+      have j_neq_i: j ≠ i := i_neq_j.symm
+      have j_lt_i: j < i := by
+        exact Nat.lt_of_le_of_ne i_lt_j j_neq_i
+      rw [Set.inter_comm]
+      exact s_i_disjoint j i j_lt_i
+  by_contra!
+  obtain ⟨x, x_in_i, x_in_j⟩ := this
+  have x_in_s_i: x ∈ (λ b => b.2) '' (s_i i) := by
+    exact i_subset x_in_i
+  have x_in_s_j: x ∈ (λ b => b.2) '' (s_i j) := by
+    exact j_subset x_in_j
+
+  simp at x_in_s_i
+  simp at x_in_s_j
+  obtain ⟨a, ha⟩ := x_in_s_i
+  obtain ⟨b, hb⟩ := x_in_s_j
+  have x_eq_basis_a := s_i_from_basis i ⟨a, x⟩ ha
+  have x_eq_basis_b := s_i_from_basis j ⟨b, x⟩ hb
+  simp at x_eq_basis_a
+  simp at x_eq_basis_b
+
+  have a_eq_b: a = b := by
+    rw [x_eq_basis_a] at x_eq_basis_b
+    have foo := Finsupp.single_left_inj (a := a) (a' := b) (b := (1:ℚ)) (by simp)
+    apply foo.mp x_eq_basis_b
+
+  rw [a_eq_b] at ha
+  have inter_elem: ⟨b, x⟩ ∈ (s_i i) ∩ (s_i j) := by
+    refine ⟨ha, hb⟩
+  have inter_nonempty: (s_i i) ∩ (s_i j) ≠ ∅ := by
+    exact ne_of_mem_of_not_mem' inter_elem fun a ↦ a
+  contradiction
+
 
 inductive ReverseTree {vals: XVals} where
 | root: ReverseTree
@@ -2515,6 +2576,11 @@ lemma not_equation_23: (f 0) + (f (- (f 0))) = 0 := by
 lemma not_equation_47: 0 ≠ f (f (f 0)) := by
   rw [f]
   exact (tree_vals_nonzero (full_fun_from_n (g_to_num (f (f 0)))).tree).2.symm
+
+
+lemma not_equation_1832: 0 ≠ f (f 0) + f ((f 0) - f (f 0)) := by
+  sorry
+
 
 
 -- noncomputable def total_function (x: G): G := by

@@ -2570,6 +2570,28 @@ lemma diamond_real_f (x y: G): x = (diamond f (x + (y - x) + (f (-(y - x)))) (di
   have other_equiv := second_equiv f f_function_eq x y
   rw [← other_equiv]
 
+
+lemma f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
+  simp [f]
+  rw [g_to_num_zero]
+  have proof := (full_fun_from_n 0).proof
+  rw [g_enum_zero] at proof
+  have x_vals_eq: (full_fun_from_n 0).x_vals = mk_x_vals 0 := by
+    sorry
+  have tree_eq: (ReverseTree.root (vals := (full_fun_from_n 0).x_vals)).getData.a = (g_enumerate 0) := by
+    rw [x_vals_eq]
+    simp [ReverseTree.getData]
+  rw [g_enum_zero] at tree_eq
+  rw [← proof] at tree_eq
+  have fun_tree_eq := temp_partial_function tree_eq
+  rw [← fun_tree_eq]
+  simp [ReverseTree.getData]
+  rw [x_vals_eq]
+
+lemma f_eval_at: {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
+  sorry
+
+
 lemma not_equation_23: (f 0) + (f (- (f 0))) ≠ 0 := by
   simp [f]
   have eq_left_child: (full_fun_from_n (g_to_num (-(full_fun_from_n (g_to_num 0)).tree.getData.b))).tree.getData.b = (full_fun_from_n (g_to_num 0)).tree.left.getData.b := by
@@ -2621,15 +2643,13 @@ lemma not_equation_1832: 0 ≠ f (f 0) + f ((f 0) - f (f 0)) := by
     sorry
   have neg_4_not_all: ∀ {vals: XVals}, ∀ t: @ReverseTree vals, t.getData.b ≠ - (mk_x_vals 0).x_vals 4 := by
     sorry
-  have f_0_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
-    sorry
   have f_1_eq: f ((mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 4 := by
     sorry
 
   conv =>
     rhs
     pattern f 0
-    rw [f_0_eq]
+    rw [f_zero_eq]
   rw [f_1_eq]
   rw [f]
   specialize neg_4_not_all ((full_fun_from_n (g_to_num (f 0 - f (f 0)))).tree)
@@ -2638,22 +2658,8 @@ lemma not_equation_1832: 0 ≠ f (f 0) + f ((f 0) - f (f 0)) := by
   apply?
 
 
-lemma f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
-  simp [f]
-  rw [g_to_num_zero]
-  have proof := (full_fun_from_n 0).proof
-  rw [g_enum_zero] at proof
-  have x_vals_eq: (full_fun_from_n 0).x_vals = mk_x_vals 0 := by
-    sorry
-  have tree_eq: (ReverseTree.root (vals := (full_fun_from_n 0).x_vals)).getData.a = (g_enumerate 0) := by
-    rw [x_vals_eq]
-    simp [ReverseTree.getData]
-  rw [g_enum_zero] at tree_eq
-  rw [← proof] at tree_eq
-  have fun_tree_eq := temp_partial_function tree_eq
-  rw [← fun_tree_eq]
-  simp [ReverseTree.getData]
-  rw [x_vals_eq]
+lemma f_neg_f: f (- (f 0)) = ((mk_x_vals 0).x_vals 2) := by
+  simp [f_zero_eq]
 
 lemma not_equation_2441: 0 ≠ (f ((f 0) + f (-(f 0)))) + (f ( -(f ((f 0) + f (- (f 0))))) ) := by
   have f_neq_one_eq: f (- (mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 2 := by

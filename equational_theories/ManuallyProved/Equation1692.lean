@@ -2675,6 +2675,8 @@ lemma not_equation_3456: f 0 ≠ f ((f 0) + f (- (f 0))) := by
   repeat rw [Finsupp.single_apply] at app_eq
   norm_cast at app_eq
 
+lemma not_equation_4065: f 0 ≠ (f 0) + f (- f 0) + f ((- f 0) + f (- (f 0) - f (-f 0))) := by
+  sorry
 
 -- noncomputable def total_function (x: G): G := by
 --   by_cases x_in_tree: ∃ t: ReverseTree, x = t.getData.a

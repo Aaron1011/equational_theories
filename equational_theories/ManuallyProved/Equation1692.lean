@@ -2034,7 +2034,7 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
 
 #print axioms cross_eq_same_parent
 
-lemma partial_function {vals: XVals} (t1: @ReverseTree vals) (t2: ReverseTree) (h_a_eq: t1.getData.a = t2.getData.a) (h_min: ∀ (tree1 tree2: @ReverseTree vals), tree1.getData.a = tree2.getData.a ∧ tree1 ≠ tree2 → newNum t1 ≤ newNum tree1) (this: t1 ≠ t2): False := by
+lemma partial_function {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_eq: t1.getData.a = t2.getData.a) (h_min: ∀ (tree1 tree2: @ReverseTree vals), tree1.getData.a = tree2.getData.a ∧ tree1 ≠ tree2 → newNum t1 ≤ newNum tree1) (this: t1 ≠ t2): False := by
   match t1 with
   | .root =>
     match t2 with
@@ -2386,14 +2386,14 @@ lemma partial_function {vals: XVals} (t1: @ReverseTree vals) (t2: ReverseTree) (
 ----------
 --
 
-lemma temp_partial_function {vals: XVals}: ∀ (t1 t2: @ReverseTree vals), (t1.getData.a = t2.getData.a) → t1 = t2 := by
+lemma temp_partial_function {vals: XVals}: ∀ {t1 t2: @ReverseTree vals}, (t1.getData.a = t2.getData.a) → t1 = t2 := by
+  intro t1 t2
   by_contra!
   let counterexamples := {(t1, t2) : (@ReverseTree vals × ReverseTree) | t1.getData.a = t2.getData.a ∧ t1 ≠ t2}
   let first_newnum := fun ((t1, t2): (@ReverseTree vals × @ReverseTree vals)) => newNum t1
 
   --let min_num := counter_nums.min counter_nonempty
   have counter_nonempty: counterexamples.Nonempty := by
-    obtain ⟨t1, t2, h_t1_eq⟩ := this
     simp [Set.Nonempty, counterexamples]
     use t1
     use t2
@@ -2427,7 +2427,7 @@ lemma temp_partial_function {vals: XVals}: ∀ (t1 t2: @ReverseTree vals), (t1.g
   obtain ⟨t1, t2, h_t1_eq, h_min⟩ := min_pair
   simp [counterexamples] at h_t1_eq
   rw [← h_min] at min_newnum_le
-  exact partial_function t1 t2 h_t1_eq.1 min_newnum_le h_t1_eq.2
+  exact partial_function h_t1_eq.1 min_newnum_le h_t1_eq.2
 
 lemma g_countable: Countable (@Set.univ G) := by
   simp [G]
@@ -2442,12 +2442,18 @@ noncomputable abbrev g_enumerate: ℕ → G := by
   have bar := Classical.choice nonempty_denum
   exact Denumerable.ofNat G
 
+lemma g_enum_zero: g_enumerate 0 = 0 := by
+  sorry
+
 #synth Encodable G
 
 noncomputable def g_to_num (g: G): ℕ := by
   have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
   have bar := Classical.choice nonempty_denum
   exact bar.toEncodable.encode g
+
+def g_to_num_zero: g_to_num 0 = 0 := by
+  sorry
 
 def tree_to_supp {vals: XVals} (t: @ReverseTree vals): Set ℕ :=
   t.getData.a.support.toSet
@@ -2632,9 +2638,24 @@ lemma not_equation_1832: 0 ≠ f (f 0) + f ((f 0) - f (f 0)) := by
   apply?
 
 
-lemma not_equation_2441: 0 ≠ (f ((f 0) + f (-(f 0)))) + (f ( -(f ((f 0) + f (- (f 0))))) ) := by
-  have f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
+lemma f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
+  simp [f]
+  rw [g_to_num_zero]
+  have proof := (full_fun_from_n 0).proof
+  rw [g_enum_zero] at proof
+  have x_vals_eq: (full_fun_from_n 0).x_vals = mk_x_vals 0 := by
     sorry
+  have tree_eq: (ReverseTree.root (vals := (full_fun_from_n 0).x_vals)).getData.a = (g_enumerate 0) := by
+    rw [x_vals_eq]
+    simp [ReverseTree.getData]
+  rw [g_enum_zero] at tree_eq
+  rw [← proof] at tree_eq
+  have fun_tree_eq := temp_partial_function tree_eq
+  rw [← fun_tree_eq]
+  simp [ReverseTree.getData]
+  rw [x_vals_eq]
+
+lemma not_equation_2441: 0 ≠ (f ((f 0) + f (-(f 0)))) + (f ( -(f ((f 0) + f (- (f 0))))) ) := by
   have f_neq_one_eq: f (- (mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 2 := by
     sorry
   have f_x_plus: f (((mk_x_vals 0).x_vals 1) + ((mk_x_vals 0).x_vals 2)) = (mk_x_vals 0).x_vals 6 := by
@@ -2652,16 +2673,11 @@ lemma not_equation_2441: 0 ≠ (f ((f 0) + f (-(f 0)))) + (f ( -(f ((f 0) + f (-
 
 
 lemma not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0))) := by
-  have f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
-    sorry
   have f_neq_one_eq: f (- (mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 2 := by
     sorry
   sorry
 
 lemma not_equation_3456: f 0 ≠ f ((f 0) + f (- (f 0))) := by
-  have f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
-    sorry
-
   have f_neq_one_eq: f (- (mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 2 := by
     sorry
 

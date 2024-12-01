@@ -2651,8 +2651,29 @@ lemma not_equation_2441: 0 ≠ (f ((f 0) + f (-(f 0)))) + (f ( -(f ((f 0) + f (-
   norm_cast at app_eq
 
 
+lemma not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0))) := by
+  have f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
+    sorry
+  have f_neq_one_eq: f (- (mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 2 := by
+    sorry
+  sorry
 
+lemma not_equation_3456: f 0 ≠ f ((f 0) + f (- (f 0))) := by
+  have f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
+    sorry
 
+  have f_neq_one_eq: f (- (mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 2 := by
+    sorry
+
+  have f_x_plus: f (((mk_x_vals 0).x_vals 1) + ((mk_x_vals 0).x_vals 2)) = (mk_x_vals 0).x_vals 6 := by
+    sorry
+
+  simp [f_zero_eq, f_neq_one_eq, f_x_plus]
+  simp [mk_x_vals]
+  by_contra!
+  have app_eq := DFunLike.congr (x := 13) this rfl
+  repeat rw [Finsupp.single_apply] at app_eq
+  norm_cast at app_eq
 
 
 -- noncomputable def total_function (x: G): G := by

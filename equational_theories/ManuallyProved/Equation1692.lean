@@ -341,7 +341,6 @@ structure XVals where
   x_increasing: ∀ n: ℕ, ∀ m, m < n → (x_vals m).support.max' (x_supp_nonempty m) < (x_vals n).support.min' (x_supp_nonempty n)
   x_basis: Set.range x_vals ⊆ Set.range basis_n
 
-
 noncomputable def mk_x_vals (i: ℕ): XVals := by
   exact {
     x_vals := λ n => basis_n (2^(i) + n*2^(i+1)),
@@ -2521,8 +2520,9 @@ lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
   have same_x_vals: (full_fun_from_n (g_to_num g)).x_vals = (full_fun_from_n (g_to_num (full_fun_from_n (g_to_num g)).tree.left.getData.a)).x_vals := by
     sorry
 
+  -- TODO - is this statement correct?
   have tree_val_eq: (full_fun_from_n (g_to_num g)).tree.left.getData.b = (full_fun_from_n (g_to_num (full_fun_from_n (g_to_num g)).tree.left.getData.a)).tree.getData.b := by
-    sorry
+    simp [ReverseTree.getData]
   rw [← tree_val_eq]
 
   have eval_to_right: (full_fun_from_n (g_to_num (full_fun_from_n (g_to_num g)).tree.left.getData.b)).tree.getData.b = (full_fun_from_n (g_to_num g)).tree.right.getData.b := by
@@ -2563,7 +2563,6 @@ lemma diamond_real_f (x y: G): x = (diamond f (x + (y - x) + (f (-(y - x)))) (di
   rw [first_equiv]
   have other_equiv := second_equiv f f_function_eq x y
   rw [← other_equiv]
-
 
 lemma not_equation_23: (f 0) + (f (- (f 0))) ≠ 0 := by
   simp [f]
@@ -2610,8 +2609,31 @@ lemma not_equation_47: 0 ≠ f (f (f 0)) := by
   exact (tree_vals_nonzero (full_fun_from_n (g_to_num (f (f 0)))).tree).2.symm
 
 
+
 lemma not_equation_1832: 0 ≠ f (f 0) + f ((f 0) - f (f 0)) := by
-  sorry
+  have neg_4_not_in: ∀ t: @ReverseTree (mk_x_vals 0), t.getData.b ≠ - (mk_x_vals 0).x_vals 4 := by
+    sorry
+  have neg_4_not_all: ∀ {vals: XVals}, ∀ t: @ReverseTree vals, t.getData.b ≠ - (mk_x_vals 0).x_vals 4 := by
+    sorry
+  have f_0_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
+    sorry
+  have f_1_eq: f ((mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 4 := by
+    sorry
+
+  conv =>
+    rhs
+    pattern f 0
+    rw [f_0_eq]
+  rw [f_1_eq]
+  rw [f]
+  specialize neg_4_not_all ((full_fun_from_n (g_to_num (f 0 - f (f 0)))).tree)
+  rw [Ne, eq_comm, add_eq_zero_iff_eq_neg, ← Ne]
+  rw [Ne, eq_comm, ← Ne] at neg_4_not_all
+  apply?
+
+
+
+
 
 
 

@@ -4,6 +4,9 @@ import Mathlib
 
 #synth AddGroup (∀ n: ℕ, ℤ)
 
+
+
+
 -- TODO -  only finitely many entries are non-zero?
 abbrev G := (ℕ →₀ ℚ)
 
@@ -2488,6 +2491,7 @@ structure GAndProof (n: ℕ) where
   tree: @ReverseTree x_vals
   proof: tree.getData.a = (g_enumerate n)
 
+
 -- Maps the nth element of G by applying our construced function 'f'
 noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
   let candidate_x_vals := full_x_vals n
@@ -2577,6 +2581,8 @@ lemma diamond_real_f (x y: G): x = (diamond f (x + (y - x) + (f (-(y - x)))) (di
   have other_equiv := second_equiv f f_function_eq x y
   rw [← other_equiv]
 
+lemma f_zero_tree: f 0 = f (ReverseTree.root (vals := (mk_x_vals 0))).getData.a := by
+  sorry
 
 lemma f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
   simp [f]
@@ -2597,15 +2603,33 @@ lemma f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
   simp [ReverseTree.getData]
   rw [x_vals_eq]
 
+
+
 lemma x_vals_preserved {vals: XVals} (t: @ReverseTree vals): (full_fun_from_n (g_to_num t.getData.a)).x_vals = vals := by
   sorry
 
+
+structure MyInner where
+  data: ℕ
+  with_prop: 1 = 1
+
+inductive Outer {a: MyInner} where
+| root: Outer
+| other: Outer → Outer
+
+lemma cast_outer (a_1 a_2: MyInner) (outer_a: @Outer a_1) (outer_b: @Outer a_2) (h_a_eq: a_1 = a_2): True := by
+  have first_eq: ∃ b, b = outer_b := by
+    sorry
+  rw [← h_a_eq] at outer_b
+
+
 lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
   simp [f]
-  have proof := (full_fun_from_n (g_to_num t.getData.a)).proof
   have preserved := x_vals_preserved t
-  simp [g_enum_inverse] at proof
-  have tree_eq := temp_partial_function proof
+  have tree_eq: (full_fun_from_n (g_to_num t.getData.a)).tree.getData.b = t.getData.b := by
+    sorry
+  exact tree_eq
+    --temp_partial_function proof
 
 
 
@@ -2666,13 +2690,16 @@ lemma not_equation_1832: 0 ≠ f (f 0) + f ((f 0) - f (f 0)) := by
   conv =>
     rhs
     pattern f 0
-    rw [f_zero_eq]
+    rw [f_zero_tree]
+
+  rw [f_eval_at]
+  simp [ReverseTree.getData]
   rw [f_1_eq]
   rw [f]
   specialize neg_4_not_all ((full_fun_from_n (g_to_num (f 0 - f (f 0)))).tree)
-  rw [Ne, eq_comm, add_eq_zero_iff_eq_neg, ← Ne]
-  rw [Ne, eq_comm, ← Ne] at neg_4_not_all
-  apply?
+  rw [eq_comm, add_eq_zero_iff_eq_neg]
+  rw [Ne, eq_comm, neg_eq_iff_eq_neg] at neg_4_not_all
+  exact neg_4_not_all
 
 
 lemma f_neg_f: f (- (f 0)) = ((mk_x_vals 0).x_vals 2) := by

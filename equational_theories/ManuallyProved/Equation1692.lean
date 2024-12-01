@@ -2490,6 +2490,7 @@ structure GAndProof (n: ℕ) where
   x_vals: XVals
   tree: @ReverseTree x_vals
   proof: tree.getData.a = (g_enumerate n)
+  zero_if_zero: n = 0 → x_vals = mk_x_vals 0
 
 
 -- Maps the nth element of G by applying our construced function 'f'
@@ -2506,10 +2507,27 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
     exact h.2
   obtain ⟨_, tree_eq⟩ := Classical.choose_spec h_x_val
 
+
+  have zero_if_zero: n = 0 → (Classical.choose val_in_x_vals) = mk_x_vals 0 := by
+    by_cases n_eq_zero: n = 0
+    .
+      simp [n_eq_zero]
+      have choose_in := Classical.choose_spec val_in_x_vals
+      have candidate_eq_zero: candidate_x_vals = {mk_x_vals 0} := by
+        simp [candidate_x_vals, n_eq_zero, full_x_vals]
+      simp only [candidate_eq_zero, Set.mem_singleton_iff] at val_in_x_vals
+      simp only [candidate_eq_zero, Set.mem_singleton_iff] at choose_in
+      obtain ⟨_, choose_eq, _⟩ := choose_in
+      simp [candidate_eq_zero]
+      simp [n_eq_zero] at choose_eq
+      exact choose_eq
+    . simp [n_eq_zero]
+
   exact {
     x_vals := (Classical.choose val_in_x_vals),
     tree := tree,
     proof := tree_eq,
+    zero_if_zero := zero_if_zero
   }
 
 
@@ -2589,8 +2607,11 @@ lemma f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
   rw [g_to_num_zero]
   have proof := (full_fun_from_n 0).proof
   rw [g_enum_zero] at proof
+  have x_vals_zero: full_x_vals 0 = {mk_x_vals 0} := by
+    simp [full_x_vals]
   have x_vals_eq: (full_fun_from_n 0).x_vals = mk_x_vals 0 := by
-    sorry
+    simp [full_fun_from_n]
+    simp [x_vals_zero]
   have tree_eq: (ReverseTree.root (vals := (full_fun_from_n 0).x_vals)).getData.a = (g_enumerate 0) := by
     rw [x_vals_eq, g_enum_zero]
     simp [ReverseTree.getData]
@@ -2713,6 +2734,10 @@ lemma not_equation_2441: 0 ≠ (f ((f 0) + f (-(f 0)))) + (f ( -(f ((f 0) + f (-
   have f_x_minus_7: f (- (mk_x_vals 0).x_vals 6) = (mk_x_vals 0).x_vals 11 := by
     sorry
 
+  rw [f_zero_tree, f_eval_at]
+  simp [ReverseTree.getData]
+  simp [f_neq_one_eq]
+
   simp [f_zero_eq, f_neq_one_eq, f_x_plus, f_x_minus_7]
   simp [mk_x_vals]
   rw [eq_comm, add_eq_zero_iff_eq_neg, ← Finsupp.single_neg]
@@ -2722,7 +2747,7 @@ lemma not_equation_2441: 0 ≠ (f ((f 0) + f (-(f 0)))) + (f ( -(f ((f 0) + f (-
   norm_cast at app_eq
 
 
-lemma not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0))) := by
+lemma not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0)))) := by
   have f_neq_one_eq: f (- (mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 2 := by
     sorry
   sorry

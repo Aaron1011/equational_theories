@@ -2543,27 +2543,38 @@ noncomputable abbrev f (g: G): G := (full_fun_from_n (g_to_num g)).tree.getData.
 -- RHS
 -- a - f(a) = a - b
 
-lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
+
+lemma x_vals_preserved {vals: XVals} (t: @ReverseTree vals): (full_fun_from_n (g_to_num t.getData.a)).x_vals = vals := by
+  sorry
+
+
+lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
   simp [f]
-  have first_eq_left: -(full_fun_from_n (g_to_num g)).tree.getData.b = (full_fun_from_n (g_to_num g)).tree.left.getData.a := by
-    simp [ReverseTree.getData]
-  rw [first_eq_left]
-
-  have same_x_vals: (full_fun_from_n (g_to_num g)).x_vals = (full_fun_from_n (g_to_num (full_fun_from_n (g_to_num g)).tree.left.getData.a)).x_vals := by
+  have preserved := x_vals_preserved t
+  have tree_eq: (full_fun_from_n (g_to_num t.getData.a)).tree.getData.b = t.getData.b := by
     sorry
+  exact tree_eq
+    --temp_partial_function proof
 
-  -- TODO - is this statement correct?
-  have tree_val_eq: (full_fun_from_n (g_to_num g)).tree.left.getData.b = (full_fun_from_n (g_to_num (full_fun_from_n (g_to_num g)).tree.left.getData.a)).tree.getData.b := by
+lemma f_eval_at_b (vals: XVals) (t: @ReverseTree vals): f (-t.getData.b) = t.left.getData.b := by
+  simp [f]
+  sorry
+
+
+lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
+  conv =>
+    pattern - f g
+    simp [f]
+  rw [f_eval_at_b]
+
+  have left_b_eq: (full_fun_from_n (g_to_num g)).tree.left.getData.b = (full_fun_from_n (g_to_num g)).tree.right.getData.a := by
     simp [ReverseTree.getData]
-  rw [← tree_val_eq]
 
-  have eval_to_right: (full_fun_from_n (g_to_num (full_fun_from_n (g_to_num g)).tree.left.getData.b)).tree.getData.b = (full_fun_from_n (g_to_num g)).tree.right.getData.b := by
-    sorry
-  rw [eval_to_right]
+  rw [left_b_eq]
+  rw [f_eval_at]
   simp [ReverseTree.getData]
-  have tree_a_eq := (full_fun_from_n (g_to_num g)).proof
-  rw [tree_a_eq]
-  simp [g_to_num]
+  rw [(full_fun_from_n (g_to_num g)).proof]
+  rw [g_enum_inverse]
 
 
 #print axioms temp_partial_function
@@ -2626,9 +2637,6 @@ lemma f_zero_eq: f (g_enumerate 0) = (mk_x_vals 0).x_vals 1 := by
 
 
 
-lemma x_vals_preserved {vals: XVals} (t: @ReverseTree vals): (full_fun_from_n (g_to_num t.getData.a)).x_vals = vals := by
-  sorry
-
 
 structure MyInner where
   data: ℕ
@@ -2643,18 +2651,6 @@ lemma cast_outer (a_1 a_2: MyInner) (outer_a: @Outer a_1) (outer_b: @Outer a_2) 
     sorry
   rw [← h_a_eq] at outer_b
 
-
-lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
-  simp [f]
-  have preserved := x_vals_preserved t
-  have tree_eq: (full_fun_from_n (g_to_num t.getData.a)).tree.getData.b = t.getData.b := by
-    sorry
-  exact tree_eq
-    --temp_partial_function proof
-
-lemma f_eval_at_b (vals: XVals) (t: @ReverseTree vals): f (-t.getData.b) = t.left.getData.b := by
-  simp [f]
-  sorry
 
 
 lemma not_equation_23: (f 0) + (f (- (f 0))) ≠ 0 := by

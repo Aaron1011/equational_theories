@@ -2596,10 +2596,13 @@ lemma diamond_real_f (x y: G): x = (diamond f (x + (y - x) + (f (-(y - x)))) (di
   have other_equiv := second_equiv f f_function_eq x y
   rw [← other_equiv]
 
-lemma f_zero_tree: f 0 = f (ReverseTree.root (vals := (mk_x_vals 0))).getData.a := by
-  sorry
 
 noncomputable abbrev f_0 := f (g_enumerate 0)
+
+lemma f_zero_tree: f_0 = f (ReverseTree.root (vals := (mk_x_vals 0))).getData.a := by
+  simp [f_0, ReverseTree.getData, g_enum_zero_eq_one]
+  simp [mk_x_vals]
+
 
 lemma f_zero_eq: f (g_enumerate 0) = (mk_x_vals 0).x_vals 1 := by
   simp [f]
@@ -2649,6 +2652,9 @@ lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getDat
   exact tree_eq
     --temp_partial_function proof
 
+lemma f_eval_at_b (vals: XVals) (t: @ReverseTree vals): f (-t.getData.b) = t.left.getData.b := by
+  simp [f]
+  sorry
 
 
 lemma not_equation_23: (f 0) + (f (- (f 0))) ≠ 0 := by
@@ -2749,20 +2755,17 @@ lemma not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)))
     sorry
   sorry
 
-lemma not_equation_3456: f 0 ≠ f ((f 0) + f (- (f 0))) := by
-  have f_neq_one_eq: f (- (mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 2 := by
-    sorry
 
-  have f_x_plus: f (((mk_x_vals 0).x_vals 1) + ((mk_x_vals 0).x_vals 2)) = (mk_x_vals 0).x_vals 6 := by
-    sorry
 
-  simp [f_zero_eq, f_neq_one_eq, f_x_plus]
+lemma not_equation_3456: f_0 ≠ f ((f_0) + f (- (f_0))) := by
+  have f_one_two: f ((mk_x_vals 0).x_vals 1 + (mk_x_vals 0).x_vals 2) = (mk_x_vals 0).x_vals 6 := by
+    sorry
+  simp  [f_zero_tree, f_eval_at, f_eval_at_b]
+  simp [ReverseTree.getData, newNum, f_one_two]
   simp [mk_x_vals]
-  by_contra!
-  have app_eq := DFunLike.congr (x := 13) this rfl
-  repeat rw [Finsupp.single_apply] at app_eq
-  norm_cast at app_eq
-
+  refine Finsupp.ne_iff.mpr ?_
+  use 3
+  simp
 lemma not_equation_4065: f 0 ≠ (f 0) + f (- f 0) + f ((- f 0) + f (- (f 0) - f (-f 0))) := by
   sorry
 

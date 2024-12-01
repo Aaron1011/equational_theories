@@ -2455,6 +2455,13 @@ noncomputable def g_to_num (g: G): ℕ := by
 def g_to_num_zero: g_to_num 0 = 0 := by
   sorry
 
+def g_num_inverse (n: ℕ): g_to_num (g_enumerate n) = n := by
+  sorry
+
+def g_enum_inverse (g: G): g_enumerate (g_to_num g) = g := by
+  sorry
+
+
 def tree_to_supp {vals: XVals} (t: @ReverseTree vals): Set ℕ :=
   t.getData.a.support.toSet
 
@@ -2498,7 +2505,7 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
   exact {
     x_vals := (Classical.choose val_in_x_vals),
     tree := tree,
-    proof := tree_eq
+    proof := tree_eq,
   }
 
 
@@ -2579,8 +2586,10 @@ lemma f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
   have x_vals_eq: (full_fun_from_n 0).x_vals = mk_x_vals 0 := by
     sorry
   have tree_eq: (ReverseTree.root (vals := (full_fun_from_n 0).x_vals)).getData.a = (g_enumerate 0) := by
-    rw [x_vals_eq]
+    rw [x_vals_eq, g_enum_zero]
     simp [ReverseTree.getData]
+    sorry
+
   rw [g_enum_zero] at tree_eq
   rw [← proof] at tree_eq
   have fun_tree_eq := temp_partial_function tree_eq
@@ -2588,8 +2597,16 @@ lemma f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
   simp [ReverseTree.getData]
   rw [x_vals_eq]
 
-lemma f_eval_at: {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
+lemma x_vals_preserved {vals: XVals} (t: @ReverseTree vals): (full_fun_from_n (g_to_num t.getData.a)).x_vals = vals := by
   sorry
+
+lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
+  simp [f]
+  have proof := (full_fun_from_n (g_to_num t.getData.a)).proof
+  have preserved := x_vals_preserved t
+  simp [g_enum_inverse] at proof
+  have tree_eq := temp_partial_function proof
+
 
 
 lemma not_equation_23: (f 0) + (f (- (f 0))) ≠ 0 := by

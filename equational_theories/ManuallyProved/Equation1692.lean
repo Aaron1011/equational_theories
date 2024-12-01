@@ -2758,14 +2758,20 @@ lemma not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)))
 
 
 lemma not_equation_3456: f_0 ≠ f ((f_0) + f (- (f_0))) := by
-  have f_one_two: f ((mk_x_vals 0).x_vals 1 + (mk_x_vals 0).x_vals 2) = (mk_x_vals 0).x_vals 6 := by
+  have tree_eq: ReverseTree.root (vals := (mk_x_vals 0)).left.right.getData.b = -((mk_x_vals 0).x_vals 1 + (mk_x_vals 0).x_vals 2) := by
     sorry
+
+  have f_double_neg: f ((mk_x_vals 0).x_vals 1 + (mk_x_vals 0).x_vals 2) = f (-(-((mk_x_vals 0).x_vals 1 + (mk_x_vals 0).x_vals 2))) := by
+    simp
+
   simp  [f_zero_tree, f_eval_at, f_eval_at_b]
-  simp [ReverseTree.getData, newNum, f_one_two]
-  simp [mk_x_vals]
+  simp [ReverseTree.getData, newNum]
+  rw [f_double_neg, ← tree_eq, f_eval_at_b]
+  simp [mk_x_vals, ReverseTree.getData, newNum]
   refine Finsupp.ne_iff.mpr ?_
   use 3
   simp
+
 lemma not_equation_4065: f 0 ≠ (f 0) + f (- f 0) + f ((- f 0) + f (- (f 0) - f (-f 0))) := by
   sorry
 

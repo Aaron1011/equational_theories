@@ -2445,7 +2445,7 @@ noncomputable abbrev g_enumerate: ℕ → G := by
   have bar := Classical.choice nonempty_denum
   exact Denumerable.ofNat G
 
-lemma g_enum_zero: g_enumerate 0 = 0 := by
+lemma g_enum_zero_eq_one: g_enumerate 0 = basis_n 1 := by
   sorry
 
 #synth Encodable G
@@ -2454,9 +2454,6 @@ noncomputable def g_to_num (g: G): ℕ := by
   have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
   have bar := Classical.choice nonempty_denum
   exact bar.toEncodable.encode g
-
-def g_to_num_zero: g_to_num 0 = 0 := by
-  sorry
 
 def g_num_inverse (n: ℕ): g_to_num (g_enumerate n) = n := by
   sorry
@@ -2602,24 +2599,24 @@ lemma diamond_real_f (x y: G): x = (diamond f (x + (y - x) + (f (-(y - x)))) (di
 lemma f_zero_tree: f 0 = f (ReverseTree.root (vals := (mk_x_vals 0))).getData.a := by
   sorry
 
-lemma f_zero_eq: f 0 = (mk_x_vals 0).x_vals 1 := by
-  simp [f]
-  rw [g_to_num_zero]
-  have proof := (full_fun_from_n 0).proof
-  rw [g_enum_zero] at proof
-  have x_vals_zero: full_x_vals 0 = {mk_x_vals 0} := by
-    simp [full_x_vals]
-  have x_vals_eq: (full_fun_from_n 0).x_vals = mk_x_vals 0 := by
-    simp [full_fun_from_n]
-    simp [x_vals_zero]
-  have tree_eq: (ReverseTree.root (vals := (full_fun_from_n 0).x_vals)).getData.a = (g_enumerate 0) := by
-    rw [x_vals_eq, g_enum_zero]
-    simp [ReverseTree.getData]
-    sorry
+noncomputable abbrev f_0 := f (g_enumerate 0)
 
-  rw [g_enum_zero] at tree_eq
+lemma f_zero_eq: f (g_enumerate 0) = (mk_x_vals 0).x_vals 1 := by
+  simp [f]
+  have proof := (full_fun_from_n 0).proof
+  have x_vals_eq: (full_fun_from_n 0).x_vals = mk_x_vals 0 := by
+    have proof := (full_fun_from_n 0).zero_if_zero
+    simp at proof
+    exact proof
+
+  have tree_eq: (ReverseTree.root (vals := (full_fun_from_n 0).x_vals)).getData.a = (g_enumerate 0) := by
+    rw [x_vals_eq, g_enum_zero_eq_one]
+    simp [ReverseTree.getData]
+    simp [mk_x_vals]
+
   rw [← proof] at tree_eq
   have fun_tree_eq := temp_partial_function tree_eq
+  rw [g_num_inverse]
   rw [← fun_tree_eq]
   simp [ReverseTree.getData]
   rw [x_vals_eq]

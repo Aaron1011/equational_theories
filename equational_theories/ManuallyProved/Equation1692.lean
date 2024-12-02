@@ -2596,18 +2596,18 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
       preserved_val := by
         intro vals h_t
         obtain ⟨first_t, h_first_t⟩ := h_t
-        let second_vals := Classical.choose n_tree_left
         let second_t := Classical.choose (Classical.choose_spec n_tree_left)
         have h_second_t := Classical.choose_spec (Classical.choose_spec n_tree_left)
         --obtain ⟨second_vals, second_t, h_second_t⟩ := n_tree_left
         rw [← h_second_t] at h_first_t
         obtain ⟨⟨first_g, first_m, first_m_lt, first_m_supp, first_data_eq⟩, _⟩ := tree_linear_comb first_t
         obtain ⟨⟨second_g, second_m, second_lt, second_m_supp, second_data_eq⟩, _⟩ := tree_linear_comb second_t
+        have first_data_eq_orig := first_data_eq
 
-        have vals_eq: vals = second_vals := by
+        have vals_eq: vals = (Classical.choose n_tree_left) := by
           by_contra! vals_neq
           have i_neq := neq_implies_neq_i vals_neq
-          have vals_disjoint := mk_vals_disjoint vals second_vals i_neq
+          have vals_disjoint := mk_vals_disjoint vals (Classical.choose n_tree_left) i_neq
 
           have inject_sum := LinearIndependent.injective_linearCombination (Basis.linearIndependent n_q_basis)
 
@@ -2655,13 +2655,27 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
           rw [first_data_eq, second_data_eq] at h_first_t
           rw [first_comp_apply, second_comp_apply] at h_first_t
           apply inject_sum at h_first_t
-          simp at h_first_t
+          simp only [Finsupp.lmapDomain_apply] at h_first_t
+          have map_inj := Finsupp.mapDomain_injective (M := ℚ) (vals.x_to_index_inj)
 
+          have g_eq_zero: ∀ n, first_g n = 0 := by
+            intro n
+            have my_arg := congr_arg (Finsupp.mapDomain (fun x ↦ vals.x_to_index x) first_g) (a₁ := vals.x_to_index n) rfl
+            nth_rw 1 [h_first_t] at my_arg
+            have map_apply_first := Finsupp.mapDomain_apply (vals.x_to_index_inj) first_g n
+            have map_apply_second := Finsupp.mapDomain_apply ((Classical.choose n_tree_left).x_to_index_inj) second_g n
+            simp only [map_apply_first] at my_arg
+            simp  [Finsupp.mapDomain, Finsupp.sum] at my_arg
+            simp [Finsupp.single_apply] at my_arg
 
+            have index_not_eq: ∀ c: ℕ , (Classical.choose n_tree_left).x_to_index c ≠ (vals.x_to_index n) := by
+              sorry
+            simp [index_not_eq] at my_arg
+            exact my_arg.symm
 
-          have app_eq := DFunLike.congr (x := vals.x_to_index 0) h_first_t rfl
-          sorry
-        simp only [second_vals] at vals_eq
+          simp [g_eq_zero] at first_data_eq_orig
+          have first_t_neq_zero := (tree_vals_nonzero first_t).1
+          contradiction
         exact vals_eq.symm
         -- have types_eq: @ReverseTree vals = @ReverseTree second_vals := by
         --   simp [vals_eq]

@@ -2483,12 +2483,12 @@ noncomputable def full_x_vals: ℕ → Set XVals
       exact prev_x_vals ∪ {new_tree}
 
 
+
 structure GAndProof (n: ℕ) where
   x_vals: XVals
   tree: @ReverseTree x_vals
   proof: tree.getData.a = (g_enumerate n)
   zero_if_zero: n = 0 → x_vals = mk_x_vals 0
-
 
 -- Maps the nth element of G by applying our construced function 'f'
 noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
@@ -2548,11 +2548,41 @@ lemma x_vals_preserved {vals: XVals} (t: @ReverseTree vals): (full_fun_from_n (g
   sorry
 
 
+-- TODO - what exactly is the interpretation of this lemma, and why can't lean figure it our for us?
+lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 = vals2) (hv: @ReverseTree vals1 = @ReverseTree vals2): t.getData = (cast hv t).getData := by
+  congr
+  rw [heq_comm]
+  simp
+
 lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
   simp [f]
   have preserved := x_vals_preserved t
+  have proof := (full_fun_from_n (g_to_num t.getData.a)).proof
+  rw [g_enum_inverse] at proof
+  have types_eq: @ReverseTree (full_fun_from_n (g_to_num t.getData.a)).x_vals = @ReverseTree vals := by
+    simp [preserved]
+
+  have cast_data_eq := cast_data_eq t preserved.symm types_eq.symm
+  conv at proof =>
+    rhs
+    rw [cast_data_eq]
+
+
+  let t_1: @ReverseTree (full_fun_from_n (g_to_num t.getData.a)).x_vals := by
+    rw [← preserved] at t
+    exact t
+
+  have new_proof : (full_fun_from_n (g_to_num t.getData.a)).tree.getData.a = t_1.getData.a := by
+    simp [proof, t_1]
+    congr
+    exact preserved.symm
+    apply eqRec_heq
+
+  -- rw [← preserved] at t
+
+  have bar := temp_partial_function proof
   have tree_eq: (full_fun_from_n (g_to_num t.getData.a)).tree.getData.b = t.getData.b := by
-    sorry
+    rw [bar]
   exact tree_eq
     --temp_partial_function proof
 
@@ -2648,8 +2678,12 @@ inductive Outer {a: MyInner} where
 
 lemma cast_outer (a_1 a_2: MyInner) (outer_a: @Outer a_1) (outer_b: @Outer a_2) (h_a_eq: a_1 = a_2): True := by
   have first_eq: ∃ b, b = outer_b := by
+    use outer_b
+  have types_eq: @Outer a_1 = @Outer a_2 := by
+    rw [h_a_eq]
+  subst types_eq
+  have other_eq: ∃ b: @Outer a_1, b = outer_b := by
     sorry
-  rw [← h_a_eq] at outer_b
 
 
 

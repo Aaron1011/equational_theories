@@ -2540,7 +2540,6 @@ structure GAndProof (n: ℕ) where
   proof: tree.getData.a = (g_enumerate n)
   zero_if_zero: n = 0 → x_vals = mk_x_vals 0
   preserved_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = (g_enumerate n)) → x_vals = vals
-  other_preserved: ∃ vals: XVals, ∃ t: @ReverseTree vals, t.getData.a = (g_enumerate n) → x_vals = vals
 
 lemma neq_implies_neq_i {vals1 vals2: XVals} (h_vals: vals1 ≠ vals2): vals1.i ≠ vals2.i := by
   by_contra! vals_eq
@@ -2604,11 +2603,28 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
         rw [← h_second_t] at h_first_t
         obtain ⟨⟨first_g, first_m, first_m_lt, first_m_supp, first_data_eq⟩, _⟩ := tree_linear_comb first_t
         obtain ⟨⟨second_g, second_m, second_lt, second_m_supp, second_data_eq⟩, _⟩ := tree_linear_comb second_t
+
         have vals_eq: vals = second_vals := by
           by_contra! vals_neq
           have i_neq := neq_implies_neq_i vals_neq
           have vals_disjoint := mk_vals_disjoint vals second_vals i_neq
+
+          have first_lin_comb := Fintype.linearCombination_apply (S := ℚ) ℚ (λ n: (Fin first_m) => vals.x_vals n) (λ n => first_g n)
+          have first_sum_eq: (∑ i : Fin first_m, first_g ↑i • vals.x_vals ↑i) = (∑ i ∈ Finset.range first_m, first_g i • vals.x_vals i) := by
+            apply Fin.sum_univ_eq_sum_range (λ i => first_g i • vals.x_vals i) first_m
+          rw [first_sum_eq] at first_lin_comb
+          rw [← first_lin_comb] at first_data_eq
+
+          have second_lin_comb := Fintype.linearCombination_apply (S := ℚ) ℚ (λ n: (Fin second_m) => (Classical.choose n_tree_left).x_vals n) (λ n => second_g n)
+          have second_sum_eq: (∑ i : Fin second_m, second_g ↑i • (Classical.choose n_tree_left).x_vals ↑i) = (∑ i ∈ Finset.range second_m, second_g i • (Classical.choose n_tree_left).x_vals i) := by
+            apply Fin.sum_univ_eq_sum_range (λ i => second_g i • (Classical.choose n_tree_left).x_vals i) second_m
+          rw [second_sum_eq] at second_lin_comb
+          rw [← second_lin_comb] at second_data_eq
+
           rw [first_data_eq, second_data_eq] at h_first_t
+          have inject_sum := LinearIndependent.injective_linearCombination (Basis.linearIndependent n_q_basis)
+          simp at inject_sum
+
           have app_eq := DFunLike.congr (x := vals.x_to_index 0) h_first_t rfl
           sorry
         simp only [second_vals] at vals_eq

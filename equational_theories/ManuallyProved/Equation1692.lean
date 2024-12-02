@@ -2562,7 +2562,7 @@ noncomputable def full_x_vals (n: ℕ): XValsFullData n := by
 structure GAndProof (n: ℕ) where
   x_vals: XVals
   tree: @ReverseTree x_vals
-  proof: tree.getData.a = (g_enumerate n)
+  --proof: tree.getData.a = (g_enumerate n)
   new_proof: ∀ t: @ReverseTree x_vals, t.getData.a = (g_enumerate n) → t = tree
   --zero_if_zero: n = 0 → x_vals = mk_x_vals 0
   preserved_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = (g_enumerate n)) → x_vals = vals
@@ -2590,7 +2590,7 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
     exact {
       x_vals := Classical.choose n_tree_left,
       tree := Classical.choose (Classical.choose_spec n_tree_left),
-      proof := Classical.choose_spec (Classical.choose_spec n_tree_left),
+      -- proof := Classical.choose_spec (Classical.choose_spec n_tree_left),
       new_proof := by
         intro t ht
         let same_x_vals := Classical.choose n_tree_left
@@ -2799,7 +2799,7 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
   exact {
     x_vals := (Classical.choose val_in_x_vals),
     tree := tree,
-    proof := tree_eq,
+    -- proof := tree_eq,
     --zero_if_zero := zero_if_zero,
     preserved_val := by
       intro vals

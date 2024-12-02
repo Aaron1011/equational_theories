@@ -2816,7 +2816,7 @@ noncomputable def f (g: G): G := by
   by_cases has_tree: ∃ t: @ReverseTree (full_fun_from_n (g_to_num g)).x_vals, t.getData.a = g
   . exact (full_fun_from_n (g_to_num g)).tree.getData.b
   . --FINAL TODO: What x_vals should we actually use here?
-    exact (mk_x_vals 1).x_vals 0
+    exact (mk_x_vals 1).x_vals 2
 -- Starting value: a
 
 --        - (-b, c)
@@ -2886,8 +2886,17 @@ lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
     rw [new_proof]
     rw [f_eval_at]
 
-  . have eval_to_fresh: ∃ n,
-    sorry
+  . conv =>
+      pattern f g
+      simp [f, has_tree]
+    have tree_left_eq: (@ReverseTree.root (mk_x_vals 1)).left.getData.b = (mk_x_vals 1).x_vals 2 := by
+      simp [ReverseTree.getData, newNum]
+    rw [← tree_left_eq, f_eval_at_b]
+    have left_b_eq: (@ReverseTree.root (mk_x_vals 1)).left.left.getData.b = (@ReverseTree.root (mk_x_vals 1)).left.right.getData.a := by
+      simp [ReverseTree.getData]
+    rw [left_b_eq, f_eval_at]
+    simp [ReverseTree.getData]
+    simp [f, has_tree, newNum]
 
 
 #print axioms temp_partial_function

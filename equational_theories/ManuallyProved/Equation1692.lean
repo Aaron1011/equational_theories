@@ -334,52 +334,52 @@ structure TreeData where
 deriving DecidableEq
 
 structure XVals where
-  x_vals: ℕ → G
-  x_to_index: ℕ → ℕ
-  x_to_index_increasing: StrictMono x_to_index
-  x_to_index_inj: Function.Injective x_to_index
-  x_to_index_eq: ∀ n, x_vals n = basis_n (x_to_index n)
-  x_inj: Function.Injective x_vals
-  x_supp_nonempty: ∀ n: ℕ, (x_vals n).support.Nonempty
-  x_increasing: ∀ n: ℕ, ∀ m, m < n → (x_vals m).support.max' (x_supp_nonempty m) < (x_vals n).support.min' (x_supp_nonempty n)
-  x_basis: Set.range x_vals ⊆ Set.range basis_n
+  i: ℕ
+  --x_to_index_increasing: StrictMono x_to_index
+  --x_to_index_inj: Function.Injective x_to_index
+  -- x_to_index_eq: ∀ n, x_vals n = basis_n (x_to_index n)
+  -- x_inj: Function.Injective x_vals
+  -- x_supp_nonempty: ∀ n: ℕ, (x_vals n).support.Nonempty
+  -- x_increasing: ∀ n: ℕ, ∀ m, m < n → (x_vals m).support.max' (x_supp_nonempty m) < (x_vals n).support.min' (x_supp_nonempty n)
+  -- x_basis: Set.range x_vals ⊆ Set.range basis_n
 
+noncomputable def XVals.x_vals (vals: XVals) (n: ℕ): G := basis_n (2^(vals.i) + n*2^(vals.i+1))
+noncomputable def XVals.x_to_index (vals: XVals) (n: ℕ): ℕ := (2^(vals.i) + n*2^(vals.i+1))
 noncomputable def mk_x_vals (i: ℕ): XVals := by
   exact {
-    x_vals := λ n => basis_n (2^(i) + n*2^(i+1)),
-    x_to_index := λ n => (2^(i) + n*2^(i+1)),
-    x_to_index_inj := by simp [Function.Injective],
-    x_to_index_increasing := by simp [StrictMono],
-    x_to_index_eq := by simp,
-    x_inj := by
-      simp [Function.Injective]
-      intro a1 a2 funs_eq
-      have apply_eq: ((fun₀ | 2 ^ i + a1 * 2 ^ (i + 1) => (1: ℚ))) ( 2 ^ i + a1 * 2 ^ (i + 1)) = ((fun₀ | 2 ^ i + a2 * 2 ^ (i + 1) => 1)) (2 ^ i + a1 * 2 ^ (i + 1)) := by
-        rw [funs_eq]
-      simp at apply_eq
-      simp [Finsupp.single_apply] at apply_eq
-      rw [eq_comm] at apply_eq
-      simp at apply_eq
-      exact apply_eq.symm
+    i := i,
+    -- x_to_index_inj := by simp [Function.Injective],
+    -- x_to_index_increasing := by simp [StrictMono],
+    -- x_to_index_eq := by simp,
+    -- x_inj := by
+    --   simp [Function.Injective]
+    --   intro a1 a2 funs_eq
+    --   have apply_eq: ((fun₀ | 2 ^ i + a1 * 2 ^ (i + 1) => (1: ℚ))) ( 2 ^ i + a1 * 2 ^ (i + 1)) = ((fun₀ | 2 ^ i + a2 * 2 ^ (i + 1) => 1)) (2 ^ i + a1 * 2 ^ (i + 1)) := by
+    --     rw [funs_eq]
+    --   simp at apply_eq
+    --   simp [Finsupp.single_apply] at apply_eq
+    --   rw [eq_comm] at apply_eq
+    --   simp at apply_eq
+    --   exact apply_eq.symm
 
-    x_supp_nonempty := by
-      intro n
-      simp [basis_n]
-      refine Finsupp.support_nonempty_iff.mpr ?_
-      simp
-    x_increasing := by
-      intro m n m_lt_n
-      simp only [basis_n, n_q_basis, Finsupp.coe_basisSingleOne]
-      have n_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ i + n * 2 ^ (i + 1)) (by simp)
-      have m_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ i + m * 2 ^ (i + 1)) (by simp)
-      simp [n_supp, m_supp]
-      exact m_lt_n
-    x_basis := by
-      intro x hx
-      simp at hx
-      simp
-      obtain ⟨h, hy⟩ := hx
-      use 2 ^ i + h * 2 ^ (i + 1)
+    -- x_supp_nonempty := by
+    --   intro n
+    --   simp [basis_n]
+    --   refine Finsupp.support_nonempty_iff.mpr ?_
+    --   simp
+    -- x_increasing := by
+    --   intro m n m_lt_n
+    --   simp only [basis_n, n_q_basis, Finsupp.coe_basisSingleOne]
+    --   have n_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ i + n * 2 ^ (i + 1)) (by simp)
+    --   have m_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ i + m * 2 ^ (i + 1)) (by simp)
+    --   simp [n_supp, m_supp]
+    --   exact m_lt_n
+    -- x_basis := by
+    --   intro x hx
+    --   simp at hx
+    --   simp
+    --   obtain ⟨h, hy⟩ := hx
+    --   use 2 ^ i + h * 2 ^ (i + 1)
   }
 
 def mk_vals_range_s_i (i: ℕ): Set.range (mk_x_vals i).x_vals ⊆ (λ b => b.2) '' (s_i i) := by
@@ -2467,24 +2467,34 @@ def tree_to_supp {vals: XVals} (t: @ReverseTree vals): Set ℕ :=
 
 structure XValsFullData where
   vals: Set XVals
+  from_mk: ∀ x_vals: XVals, x_vals ∈ vals → ∃ n, x_vals = mk_x_vals n
 
 
-noncomputable def full_x_vals: ℕ → Set XVals
-  | 0 => {mk_x_vals 0}
+noncomputable def full_x_vals: ℕ → XValsFullData
+  | 0 => {
+        vals := {mk_x_vals 0},
+        from_mk := by
+          simp
+      }
   | .succ n => by
     let prev_x_vals := full_x_vals n
-    by_cases exists_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals ∧ t.getData.a = (g_enumerate n)
+    by_cases exists_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = (g_enumerate n)
     . exact prev_x_vals
       -- TODO - build new tree
     .
       let x_vals_to_supp := (λ new_x_vals : XVals => (tree_to_supp '' Set.univ (α := @ReverseTree new_x_vals)).sUnion)
-      have all_prev_supps := (x_vals_to_supp '' prev_x_vals).sUnion
+      have all_prev_supps := (x_vals_to_supp '' prev_x_vals.vals).sUnion
       have s_i_without: ∃ i, ((g_enumerate n).support.toSet ∪ all_prev_supps) ∩ ((λ s => s.2.support.toSet) '' (s_i i)).sUnion = ∅ := by
         by_contra!
         sorry
       have i := Classical.choose s_i_without
       let new_tree  := mk_x_vals i
-      exact prev_x_vals ∪ {new_tree}
+      exact  {
+        vals := prev_x_vals.vals ∪ {new_tree},
+        from_mk := by
+          simp
+          exact prev_x_vals.from_mk
+      }
 
 
 
@@ -2498,7 +2508,7 @@ structure GAndProof (n: ℕ) where
 
 -- Maps the nth element of G by applying our construced function 'f'
 noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
-  let candidate_x_vals := full_x_vals n
+  let candidate_x_vals := (full_x_vals n).vals
   have val_in_x_vals: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ candidate_x_vals ∧ t.getData.a = (g_enumerate n) := by
     sorry
 
@@ -2508,6 +2518,11 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
     have proof := Classical.choose_spec val_in_x_vals
     obtain ⟨other_t, choose_in, other_a_eq⟩ := proof
     simp [← ht] at other_a_eq
+
+    obtain ⟨choose_index, h_choose_index⟩ := (full_x_vals n).from_mk (Classical.choose val_in_x_vals) choose_in
+
+
+
     sorry
 
 

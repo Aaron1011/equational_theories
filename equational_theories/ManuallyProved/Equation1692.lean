@@ -2563,6 +2563,7 @@ structure GAndProof (n: ℕ) where
   x_vals: XVals
   tree: @ReverseTree x_vals
   proof: tree.getData.a = (g_enumerate n)
+  new_proof: ∀ t: @ReverseTree x_vals, t.getData.a = (g_enumerate n) → t = tree
   --zero_if_zero: n = 0 → x_vals = mk_x_vals 0
   preserved_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = (g_enumerate n)) → x_vals = vals
 
@@ -2590,6 +2591,15 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
       x_vals := Classical.choose n_tree_left,
       tree := Classical.choose (Classical.choose_spec n_tree_left),
       proof := Classical.choose_spec (Classical.choose_spec n_tree_left),
+      new_proof := by
+        intro t ht
+        let same_x_vals := Classical.choose n_tree_left
+        have other_proof := Classical.choose_spec (Classical.choose_spec n_tree_left)
+        conv at other_proof =>
+          rhs
+          rw [← ht]
+        have same_tree := temp_partial_function other_proof
+        exact same_tree.symm
       -- zero_if_zero := by
       --   intro hn
       --   have my_spec := Classical.choose_spec (Classical.choose_spec n_tree_left)

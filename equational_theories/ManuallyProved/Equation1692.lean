@@ -228,8 +228,14 @@ lemma s_i_infinite (i: ℕ): (s_i i).Infinite := by
 
 lemma s_i_from_basis (i: ℕ): ∀ x ∈ s_i i, x.2 = basis_n x.1 := by
   intro x hx
-  dsimp [s_i] at hx
-  sorry
+  simp [s_i, Nat.ModEq] at hx
+  match hx with
+  | .inl left =>
+      obtain ⟨⟨x_basis, h_x_basis⟩, hy⟩ := left
+      rw [← h_x_basis]
+      simp
+  | .inr right =>
+      simp [right.2]
 
 
 
@@ -2530,6 +2536,8 @@ noncomputable def full_x_vals (n: ℕ): XValsFullData n := by
       }
       -- TODO - build new tree
     .
+      have candidate_val: ∃ new_vals: XVals, ∃ t :@ReverseTree new_vals, t.getData.a = (g_enumerate (n + 1)) := by
+        have
       let x_vals_to_supp := (λ new_x_vals : XVals => (tree_to_supp '' Set.univ (α := @ReverseTree new_x_vals)).sUnion)
       have all_prev_supps := (x_vals_to_supp '' prev_x_vals.vals).sUnion
       have s_i_without: ∃ i, ((g_enumerate n).support.toSet ∪ all_prev_supps) ∩ ((λ s => s.2.support.toSet) '' (s_i i)).sUnion = ∅ := by

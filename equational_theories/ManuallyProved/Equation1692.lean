@@ -2609,21 +2609,55 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
           have i_neq := neq_implies_neq_i vals_neq
           have vals_disjoint := mk_vals_disjoint vals second_vals i_neq
 
-          have first_lin_comb := Fintype.linearCombination_apply (S := ℚ) ℚ (λ n: (Fin first_m) => vals.x_vals n) (λ n => first_g n)
-          have first_sum_eq: (∑ i : Fin first_m, first_g ↑i • vals.x_vals ↑i) = (∑ i ∈ Finset.range first_m, first_g i • vals.x_vals i) := by
-            apply Fin.sum_univ_eq_sum_range (λ i => first_g i • vals.x_vals i) first_m
-          rw [first_sum_eq] at first_lin_comb
-          rw [← first_lin_comb] at first_data_eq
+          have inject_sum := LinearIndependent.injective_linearCombination (Basis.linearIndependent n_q_basis)
 
-          have second_lin_comb := Fintype.linearCombination_apply (S := ℚ) ℚ (λ n: (Fin second_m) => (Classical.choose n_tree_left).x_vals n) (λ n => second_g n)
-          have second_sum_eq: (∑ i : Fin second_m, second_g ↑i • (Classical.choose n_tree_left).x_vals ↑i) = (∑ i ∈ Finset.range second_m, second_g i • (Classical.choose n_tree_left).x_vals i) := by
-            apply Fin.sum_univ_eq_sum_range (λ i => second_g i • (Classical.choose n_tree_left).x_vals i) second_m
+          have first_lin_comb := Finsupp.linearCombination_apply (M := G) (v := λ x => basis_n (vals.x_to_index x)) ℚ (first_g)
+          simp only [Finsupp.sum] at first_lin_comb
+          have first_sum_eq: (∑ x ∈ first_g.support, first_g x • basis_n (vals.x_to_index x)) = ∑ i ∈ Finset.range first_m, first_g i • basis_n (vals.x_to_index i) := by
+            apply Finset.sum_subset
+            -- TODO - get 'max' working
+            . sorry
+            .
+              intro x hx x_not_supp
+              simp [Finsupp.not_mem_support_iff.mp x_not_supp]
+
+
+
+          rw [first_sum_eq] at first_lin_comb
+          simp only [vals.x_to_index_eq] at first_data_eq
+          rw [← first_lin_comb] at first_data_eq
+          have first_comp_eq: ((fun x ↦ basis_n x) ∘ fun x ↦ vals.x_to_index x) = fun x => basis_n (vals.x_to_index x) := by
+            exact rfl
+          have first_comp_apply := Finsupp.linearCombination_comp (R := ℚ) (v := λ x => basis_n x) (λ x => (vals).x_to_index x)
+          rw [first_comp_eq] at first_comp_apply
+
+
+          have second_lin_comb := Finsupp.linearCombination_apply (M := G) (v := λ x => basis_n ((Classical.choose n_tree_left).x_to_index x)) ℚ (second_g)
+          simp only [Finsupp.sum] at second_lin_comb
+          have second_sum_eq: (∑ x ∈ second_g.support, second_g x • basis_n ((Classical.choose n_tree_left).x_to_index x)) = ∑ i ∈ Finset.range second_m, second_g i • basis_n ((Classical.choose n_tree_left).x_to_index i) := by
+            apply Finset.sum_subset
+            -- TODO - get 'max' working
+            . sorry
+            .
+              intro x hx x_not_supp
+              simp [Finsupp.not_mem_support_iff.mp x_not_supp]
+
+
+
           rw [second_sum_eq] at second_lin_comb
+          simp only [(Classical.choose n_tree_left).x_to_index_eq] at second_data_eq
           rw [← second_lin_comb] at second_data_eq
+          have second_comp_eq: ((fun x ↦ basis_n x) ∘ fun x ↦ (Classical.choose n_tree_left).x_to_index x) = fun x => basis_n ((Classical.choose n_tree_left).x_to_index x) := by
+            exact rfl
+          have second_comp_apply := Finsupp.linearCombination_comp (R := ℚ) (v := λ x => basis_n x) (λ x => (Classical.choose n_tree_left).x_to_index x)
+          rw [second_comp_eq] at second_comp_apply
 
           rw [first_data_eq, second_data_eq] at h_first_t
-          have inject_sum := LinearIndependent.injective_linearCombination (Basis.linearIndependent n_q_basis)
-          simp at inject_sum
+          rw [first_comp_apply, second_comp_apply] at h_first_t
+          apply inject_sum at h_first_t
+          simp at h_first_t
+
+
 
           have app_eq := DFunLike.congr (x := vals.x_to_index 0) h_first_t rfl
           sorry

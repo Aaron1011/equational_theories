@@ -2538,7 +2538,7 @@ structure GAndProof (n: ℕ) where
   x_vals: XVals
   tree: @ReverseTree x_vals
   proof: tree.getData.a = (g_enumerate n)
-  zero_if_zero: n = 0 → x_vals = mk_x_vals 0
+  --zero_if_zero: n = 0 → x_vals = mk_x_vals 0
   preserved_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = (g_enumerate n)) → x_vals = vals
 
 lemma neq_implies_neq_i {vals1 vals2: XVals} (h_vals: vals1 ≠ vals2): vals1.i ≠ vals2.i := by
@@ -2565,34 +2565,33 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
       x_vals := Classical.choose n_tree_left,
       tree := Classical.choose (Classical.choose_spec n_tree_left),
       proof := Classical.choose_spec (Classical.choose_spec n_tree_left),
-      zero_if_zero := by
-        intro hn
-        have my_spec := Classical.choose_spec (Classical.choose_spec n_tree_left)
-        have g_enum_eq_one: g_enumerate n = basis_n 1 := by
-          rw [hn, g_enum_zero_eq_one]
-        match h_eq : Classical.choose (Classical.choose_spec n_tree_left) with
-        | .root =>
-            simp only [h_eq] at my_spec
-            simp only [ReverseTree.getData] at my_spec
-            have mk_vals_zero_eq: (mk_x_vals 0).x_vals 0 = basis_n 1 := by
-              simp [mk_x_vals, XVals.x_vals]
-            by_contra!
-            -- TODO - there must be a simpler way to do this
-            have vals_i_neq: (Classical.choose n_tree_left).i ≠ (mk_x_vals 0).i := by
-              by_contra! vals_eq
-              have vals_destructure: (mk_x_vals 0) = { i := (mk_x_vals 0).i} := by
-                simp
-              have choose_destructure: (Classical.choose n_tree_left) = { i := (Classical.choose n_tree_left).i} := by
-                simp
-              rw [← vals_eq] at vals_destructure
-              rw [← choose_destructure] at vals_destructure
-              rw [eq_comm] at vals_destructure
-              contradiction
-            have vals_disjoint := mk_vals_disjoint (Classical.choose n_tree_left) (mk_x_vals 0) vals_i_neq
-            sorry
-        | .left t1_parent => sorry
-        | .right t1_parent => sorry
-      ,
+      -- zero_if_zero := by
+      --   intro hn
+      --   have my_spec := Classical.choose_spec (Classical.choose_spec n_tree_left)
+      --   have g_enum_eq_one: g_enumerate n = basis_n 1 := by
+      --     rw [hn, g_enum_zero_eq_one]
+      --   match h_eq : Classical.choose (Classical.choose_spec n_tree_left) with
+      --   | .root =>
+      --       simp only [h_eq] at my_spec
+      --       simp only [ReverseTree.getData] at my_spec
+      --       have mk_vals_zero_eq: (mk_x_vals 0).x_vals 0 = basis_n 1 := by
+      --         simp [mk_x_vals, XVals.x_vals]
+      --       by_contra!
+      --       -- TODO - there must be a simpler way to do this
+      --       have vals_i_neq: (Classical.choose n_tree_left).i ≠ (mk_x_vals 0).i := by
+      --         by_contra! vals_eq
+      --         have vals_destructure: (mk_x_vals 0) = { i := (mk_x_vals 0).i} := by
+      --           simp
+      --         have choose_destructure: (Classical.choose n_tree_left) = { i := (Classical.choose n_tree_left).i} := by
+      --           simp
+      --         rw [← vals_eq] at vals_destructure
+      --         rw [← choose_destructure] at vals_destructure
+      --         rw [eq_comm] at vals_destructure
+      --         contradiction
+      --       have vals_disjoint := mk_vals_disjoint (Classical.choose n_tree_left) (mk_x_vals 0) vals_i_neq
+      --       sorry
+      --   | .left t1_parent => sorry
+      --   | .right t1_parent => sorry
       preserved_val := by
         intro vals h_t
         obtain ⟨first_t, h_first_t⟩ := h_t
@@ -2720,6 +2719,7 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
 
 
     }
+
   let candidate_x_vals := (full_x_vals n).vals
   have val_in_x_vals: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ candidate_x_vals ∧ t.getData.a = (g_enumerate n) := by
     sorry
@@ -2783,27 +2783,32 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
   obtain ⟨_, tree_eq⟩ := Classical.choose_spec h_x_val
 
 
-  have zero_if_zero: n = 0 → (Classical.choose val_in_x_vals) = mk_x_vals 0 := by
-    by_cases n_eq_zero: n = 0
-    .
-      simp [n_eq_zero]
-      have choose_in := Classical.choose_spec val_in_x_vals
-      have candidate_eq_zero: candidate_x_vals = {mk_x_vals 0} := by
-        simp [candidate_x_vals, n_eq_zero, full_x_vals]
-      simp only [candidate_eq_zero, Set.mem_singleton_iff] at val_in_x_vals
-      simp only [candidate_eq_zero, Set.mem_singleton_iff] at choose_in
-      obtain ⟨_, choose_eq, _⟩ := choose_in
-      simp [candidate_eq_zero]
-      simp [n_eq_zero] at choose_eq
-      exact choose_eq
-    . simp [n_eq_zero]
+  -- have zero_if_zero: n = 0 → (Classical.choose val_in_x_vals) = mk_x_vals 0 := by
+  --   by_cases n_eq_zero: n = 0
+  --   .
+  --     simp [n_eq_zero]
+  --     have choose_in := Classical.choose_spec val_in_x_vals
+  --     have candidate_eq_zero: candidate_x_vals = {mk_x_vals 0} := by
+  --       simp [candidate_x_vals, n_eq_zero, full_x_vals]
+  --     simp only [candidate_eq_zero, Set.mem_singleton_iff] at val_in_x_vals
+  --     simp only [candidate_eq_zero, Set.mem_singleton_iff] at choose_in
+  --     obtain ⟨_, choose_eq, _⟩ := choose_in
+  --     simp [candidate_eq_zero]
+  --     simp [n_eq_zero] at choose_eq
+  --     exact choose_eq
+  --   . simp [n_eq_zero]
 
   exact {
     x_vals := (Classical.choose val_in_x_vals),
     tree := tree,
     proof := tree_eq,
-    zero_if_zero := zero_if_zero,
-    preserved_val := presered_vals
+    --zero_if_zero := zero_if_zero,
+    preserved_val := by
+      intro vals
+      simp only [not_exists] at n_tree_left
+      specialize n_tree_left vals
+      rw [← not_exists] at n_tree_left
+      simp [n_tree_left]
   }
 
 

@@ -2465,6 +2465,10 @@ def g_enum_inverse (g: G): g_enumerate (g_to_num g) = g := by
 def tree_to_supp {vals: XVals} (t: @ReverseTree vals): Set ℕ :=
   t.getData.a.support.toSet
 
+structure XValsFullData where
+  vals: Set XVals
+
+
 noncomputable def full_x_vals: ℕ → Set XVals
   | 0 => {mk_x_vals 0}
   | .succ n => by
@@ -2489,12 +2493,29 @@ structure GAndProof (n: ℕ) where
   tree: @ReverseTree x_vals
   proof: tree.getData.a = (g_enumerate n)
   zero_if_zero: n = 0 → x_vals = mk_x_vals 0
+  preserved_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = (g_enumerate n)) → x_vals = vals
+
 
 -- Maps the nth element of G by applying our construced function 'f'
 noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
   let candidate_x_vals := full_x_vals n
   have val_in_x_vals: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ candidate_x_vals ∧ t.getData.a = (g_enumerate n) := by
     sorry
+
+  have presered_vals: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = (g_enumerate n)) → Classical.choose val_in_x_vals = vals := by
+    intro vals exists_t
+    obtain ⟨t, ht⟩ := exists_t
+    have proof := Classical.choose_spec val_in_x_vals
+    obtain ⟨other_t, choose_in, other_a_eq⟩ := proof
+    simp [← ht] at other_a_eq
+    sorry
+
+
+
+    --have trees_eq := temp_partial_function (t1 := other_t) (t2 := t) other_a_eq
+
+    --simp [candidate_x_vals, full_x_vals] at h_other_t
+
   let h_x_val := Classical.choose_spec val_in_x_vals
   let tree := Classical.choose h_x_val
   have simplified: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, t.getData.a = (g_enumerate n) := by
@@ -2524,7 +2545,8 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
     x_vals := (Classical.choose val_in_x_vals),
     tree := tree,
     proof := tree_eq,
-    zero_if_zero := zero_if_zero
+    zero_if_zero := zero_if_zero,
+    preserved_val := presered_vals
   }
 
 
@@ -2545,7 +2567,12 @@ noncomputable abbrev f (g: G): G := (full_fun_from_n (g_to_num g)).tree.getData.
 
 
 lemma x_vals_preserved {vals: XVals} (t: @ReverseTree vals): (full_fun_from_n (g_to_num t.getData.a)).x_vals = vals := by
-  sorry
+  have proof := (full_fun_from_n (g_to_num t.getData.a)).preserved_val
+  have my_tree : (∃ t_1: @ReverseTree vals, t_1.getData.a = g_enumerate (g_to_num t.getData.a)) := by
+    use t
+    rw [g_enum_inverse]
+  exact proof vals my_tree
+
 
 
 -- TODO - what exactly is the interpretation of this lemma, and why can't lean figure it our for us?

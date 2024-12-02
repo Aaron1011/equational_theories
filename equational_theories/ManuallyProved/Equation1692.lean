@@ -2576,8 +2576,10 @@ lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getDat
     --temp_partial_function proof
 
 lemma f_eval_at_b (vals: XVals) (t: @ReverseTree vals): f (-t.getData.b) = t.left.getData.b := by
-  simp [f]
-  sorry
+  have t_left_a_eq: -t.getData.b = t.left.getData.a := by
+    simp [ReverseTree.getData]
+  rw [t_left_a_eq]
+  rw [f_eval_at t.left]
 
 
 lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by

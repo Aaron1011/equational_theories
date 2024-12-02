@@ -2505,6 +2505,7 @@ structure XValsFullData where
   from_mk: ∀ x_vals: XVals, x_vals ∈ vals → ∃ n, x_vals = mk_x_vals n
 
 
+
 noncomputable def full_x_vals: ℕ → XValsFullData
   | 0 => {
         vals := {mk_x_vals 0},
@@ -2539,10 +2540,89 @@ structure GAndProof (n: ℕ) where
   proof: tree.getData.a = (g_enumerate n)
   zero_if_zero: n = 0 → x_vals = mk_x_vals 0
   preserved_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = (g_enumerate n)) → x_vals = vals
+  other_preserved: ∃ vals: XVals, ∃ t: @ReverseTree vals, t.getData.a = (g_enumerate n) → x_vals = vals
 
+lemma neq_implies_neq_i {vals1 vals2: XVals} (h_vals: vals1 ≠ vals2): vals1.i ≠ vals2.i := by
+  by_contra! vals_eq
+  have vals_destructure: vals1 = { i := vals1.i} := by
+    simp
+  have choose_destructure: vals2 = { i := vals2.i} := by
+    simp
+  rw [vals_eq] at vals_destructure
+  rw [← choose_destructure] at vals_destructure
+  contradiction
+
+-- TODO - what exactly is the interpretation of this lemma, and why can't lean figure it our for us?
+lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 = vals2) (hv: @ReverseTree vals1 = @ReverseTree vals2): t.getData = (cast hv t).getData := by
+  congr
+  rw [heq_comm]
+  simp
 
 -- Maps the nth element of G by applying our construced function 'f'
 noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
+  by_cases n_tree_left: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, t.getData.a = (g_enumerate n)
+  .
+    exact {
+      x_vals := Classical.choose n_tree_left,
+      tree := Classical.choose (Classical.choose_spec n_tree_left),
+      proof := Classical.choose_spec (Classical.choose_spec n_tree_left),
+      zero_if_zero := by
+        intro hn
+        have my_spec := Classical.choose_spec (Classical.choose_spec n_tree_left)
+        have g_enum_eq_one: g_enumerate n = basis_n 1 := by
+          rw [hn, g_enum_zero_eq_one]
+        match h_eq : Classical.choose (Classical.choose_spec n_tree_left) with
+        | .root =>
+            simp only [h_eq] at my_spec
+            simp only [ReverseTree.getData] at my_spec
+            have mk_vals_zero_eq: (mk_x_vals 0).x_vals 0 = basis_n 1 := by
+              simp [mk_x_vals, XVals.x_vals]
+            by_contra!
+            -- TODO - there must be a simpler way to do this
+            have vals_i_neq: (Classical.choose n_tree_left).i ≠ (mk_x_vals 0).i := by
+              by_contra! vals_eq
+              have vals_destructure: (mk_x_vals 0) = { i := (mk_x_vals 0).i} := by
+                simp
+              have choose_destructure: (Classical.choose n_tree_left) = { i := (Classical.choose n_tree_left).i} := by
+                simp
+              rw [← vals_eq] at vals_destructure
+              rw [← choose_destructure] at vals_destructure
+              rw [eq_comm] at vals_destructure
+              contradiction
+            have vals_disjoint := mk_vals_disjoint (Classical.choose n_tree_left) (mk_x_vals 0) vals_i_neq
+            sorry
+        | .left t1_parent => sorry
+        | .right t1_parent => sorry
+      ,
+      preserved_val := by
+        intro vals h_t
+        obtain ⟨first_t, h_first_t⟩ := h_t
+        let second_vals := Classical.choose n_tree_left
+        let second_t := Classical.choose (Classical.choose_spec n_tree_left)
+        have h_second_t := Classical.choose_spec (Classical.choose_spec n_tree_left)
+        --obtain ⟨second_vals, second_t, h_second_t⟩ := n_tree_left
+        rw [← h_second_t] at h_first_t
+        obtain ⟨⟨first_g, first_m, first_m_lt, first_m_supp, first_data_eq⟩, _⟩ := tree_linear_comb first_t
+        obtain ⟨⟨second_g, second_m, second_lt, second_m_supp, second_data_eq⟩, _⟩ := tree_linear_comb second_t
+        have vals_eq: vals = second_vals := by
+          by_contra! vals_neq
+          have i_neq := neq_implies_neq_i vals_neq
+          have vals_disjoint := mk_vals_disjoint vals second_vals i_neq
+          rw [first_data_eq, second_data_eq] at h_first_t
+          have app_eq := DFunLike.congr (x := vals.x_to_index 0) h_first_t rfl
+          sorry
+        simp only [second_vals] at vals_eq
+        exact vals_eq.symm
+        -- have types_eq: @ReverseTree vals = @ReverseTree second_vals := by
+        --   simp [vals_eq]
+        -- have other := cast_data_eq first_t vals_eq types_eq
+        -- rw [other] at h_first_t
+        -- have trees_eq := temp_partial_function h_first_t
+
+
+
+
+    }
   let candidate_x_vals := (full_x_vals n).vals
   have val_in_x_vals: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ candidate_x_vals ∧ t.getData.a = (g_enumerate n) := by
     sorry
@@ -2647,6 +2727,10 @@ noncomputable abbrev f (g: G): G := (full_fun_from_n (g_to_num g)).tree.getData.
 
 
 lemma x_vals_preserved {vals: XVals} (t: @ReverseTree vals): (full_fun_from_n (g_to_num t.getData.a)).x_vals = vals := by
+  have simpler: (∃ other_vals: XVals, ∃ other_t: @ReverseTree other_vals, other_t.getData.a = (g_enumerate (g_to_num t.getData.a))) →
+    (∃ other_vals: XVals, ∃ other_t: @ReverseTree other_vals, other_t.getData.a = (g_enumerate (g_to_num t.getData.a)) ∧ (full_fun_from_n (g_to_num t.getData.a)).x_vals = other_vals) := by
+      sorry
+
   have proof := (full_fun_from_n (g_to_num t.getData.a)).preserved_val
   have my_tree : (∃ t_1: @ReverseTree vals, t_1.getData.a = g_enumerate (g_to_num t.getData.a)) := by
     use t
@@ -2654,12 +2738,6 @@ lemma x_vals_preserved {vals: XVals} (t: @ReverseTree vals): (full_fun_from_n (g
   exact proof vals my_tree
 
 
-
--- TODO - what exactly is the interpretation of this lemma, and why can't lean figure it our for us?
-lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 = vals2) (hv: @ReverseTree vals1 = @ReverseTree vals2): t.getData = (cast hv t).getData := by
-  congr
-  rw [heq_comm]
-  simp
 
 lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
   simp [f]

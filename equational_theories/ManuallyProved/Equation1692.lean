@@ -2901,7 +2901,7 @@ lemma not_equation_3456: f_0 ≠ f ((f_0) + f (- (f_0))) := by
   simp [mk_x_vals, ReverseTree.getData, newNum]
   refine Finsupp.ne_iff.mpr ?_
   use 3
-  simp
+  simp [XVals.x_vals]
 
 lemma not_equation_4065: f 0 ≠ (f 0) + f (- f 0) + f ((- f 0) + f (- (f 0) - f (-f 0))) := by
   sorry

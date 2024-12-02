@@ -2567,17 +2567,6 @@ lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getDat
     rhs
     rw [cast_data_eq]
 
-
-  let t_1: @ReverseTree (full_fun_from_n (g_to_num t.getData.a)).x_vals := by
-    rw [← preserved] at t
-    exact t
-
-  have new_proof : (full_fun_from_n (g_to_num t.getData.a)).tree.getData.a = t_1.getData.a := by
-    simp [proof, t_1]
-    congr
-    exact preserved.symm
-    apply eqRec_heq
-
   -- rw [← preserved] at t
 
   have bar := temp_partial_function proof

@@ -2616,7 +2616,16 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
           have first_sum_eq: (∑ x ∈ first_g.support, first_g x • basis_n (vals.x_to_index x)) = ∑ i ∈ Finset.range first_m, first_g i • basis_n (vals.x_to_index i) := by
             apply Finset.sum_subset
             -- TODO - get 'max' working
-            . sorry
+            .
+              intro x hx
+              simp
+
+              have x_le_max: x ≤ first_g.support.max := by
+                apply Finset.le_max hx
+
+              simp at x_le_max
+              have trans_le := LE.le.trans_lt x_le_max first_m_supp
+              exact WithBot.some_lt_some.mp trans_le
             .
               intro x hx x_not_supp
               simp [Finsupp.not_mem_support_iff.mp x_not_supp]

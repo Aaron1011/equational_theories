@@ -2,7 +2,9 @@ import Mathlib
 
 -- https://leanprover.zulipchat.com/user_uploads/3121/ASjTo5huToAvNGcg7pOGOOSy/Equation1692.pdf
 
-#synth AddGroup (∀ n: ℕ, ℤ)
+-- TODO - re-enable lints
+set_option linter.unusedVariables false
+
 
 
 
@@ -504,7 +506,6 @@ def treeDepth {vals: XVals}: @ReverseTree vals → ℕ
 --noncomputable def mkLeft (base: ReverseTree): ReverseTree := ReverseTree.left {a := -base.getData.b, b := xSeq (newNum base)} base
 --noncomputable def mkRight (base: ReverseTree): ReverseTree := ReverseTree.right {a := xSeq (newNum base), b := base.getData.a - base.getData.b} base
 
-#synth Neg (ℕ →₀ ℚ)
 
 noncomputable def my_set: Finset G := ({xSeq 0, xSeq 1} : Finset G)
 
@@ -2479,7 +2480,6 @@ noncomputable abbrev g_enumerate: ℕ → G := by
 lemma g_enum_zero_eq_one: g_enumerate 0 = basis_n 1 := by
   sorry
 
-#synth Encodable G
 
 noncomputable def g_to_num (g: G): ℕ := by
   have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩

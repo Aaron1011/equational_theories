@@ -2816,10 +2816,6 @@ noncomputable abbrev f (g: G): G := (full_fun_from_n (g_to_num g)).tree.getData.
 
 
 lemma x_vals_preserved {vals: XVals} (t: @ReverseTree vals): (full_fun_from_n (g_to_num t.getData.a)).x_vals = vals := by
-  have simpler: (∃ other_vals: XVals, ∃ other_t: @ReverseTree other_vals, other_t.getData.a = (g_enumerate (g_to_num t.getData.a))) →
-    (∃ other_vals: XVals, ∃ other_t: @ReverseTree other_vals, other_t.getData.a = (g_enumerate (g_to_num t.getData.a)) ∧ (full_fun_from_n (g_to_num t.getData.a)).x_vals = other_vals) := by
-      sorry
-
   have proof := (full_fun_from_n (g_to_num t.getData.a)).preserved_val
   have my_tree : (∃ t_1: @ReverseTree vals, t_1.getData.a = g_enumerate (g_to_num t.getData.a)) := by
     use t

@@ -2918,25 +2918,26 @@ lemma f_zero_tree: f_0 = f (ReverseTree.root (vals := (mk_x_vals 0))).getData.a 
   simp [mk_x_vals]
 
 
-lemma f_zero_eq: f (g_enumerate 0) = (mk_x_vals 0).x_vals 1 := by
-  simp [f]
-  have proof := (full_fun_from_n 0).proof
-  have x_vals_eq: (full_fun_from_n 0).x_vals = mk_x_vals 0 := by
-    have proof := (full_fun_from_n 0).zero_if_zero
-    simp at proof
-    exact proof
+-- lemma f_zero_eq: f (g_enumerate 0) = (mk_x_vals 0).x_vals 1 := by
+--   simp [f]
+--   have proof := (full_fun_from_n 0).proof
+--   have other_proof := (full_fun_from_n 0).preserved_val
+--   have x_vals_eq: (full_fun_from_n 0).x_vals = mk_x_vals 0 := by
+--     have proof := (full_fun_from_n 0).zero_if_zero
+--     simp at proof
+--     exact proof
 
-  have tree_eq: (ReverseTree.root (vals := (full_fun_from_n 0).x_vals)).getData.a = (g_enumerate 0) := by
-    rw [x_vals_eq, g_enum_zero_eq_one]
-    simp [ReverseTree.getData]
-    simp [mk_x_vals]
+--   have tree_eq: (ReverseTree.root (vals := (full_fun_from_n 0).x_vals)).getData.a = (g_enumerate 0) := by
+--     rw [x_vals_eq, g_enum_zero_eq_one]
+--     simp [ReverseTree.getData]
+--     simp [mk_x_vals]
 
-  rw [← proof] at tree_eq
-  have fun_tree_eq := temp_partial_function tree_eq
-  rw [g_num_inverse]
-  rw [← fun_tree_eq]
-  simp [ReverseTree.getData]
-  rw [x_vals_eq]
+--   rw [← proof] at tree_eq
+--   have fun_tree_eq := temp_partial_function tree_eq
+--   rw [g_num_inverse]
+--   rw [← fun_tree_eq]
+--   simp [ReverseTree.getData]
+--   rw [x_vals_eq]
 
 
 
@@ -3029,10 +3030,11 @@ lemma not_equation_1832: 0 ≠ f (f 0) + f ((f 0) - f (f 0)) := by
   exact neg_4_not_all
 
 
-lemma f_neg_f: f (- (f 0)) = ((mk_x_vals 0).x_vals 2) := by
-  simp [f_zero_eq]
+lemma f_neg_f: f (- (f_0)) = ((mk_x_vals 0).x_vals 2) := by
+  simp  [f_zero_tree, f_eval_at, f_eval_at_b]
+  simp [ReverseTree.getData, newNum]
 
-lemma not_equation_2441: 0 ≠ (f ((f 0) + f (-(f 0)))) + (f ( -(f ((f 0) + f (- (f 0))))) ) := by
+lemma not_equation_2441: 0 ≠ (f ((f_0) + f (-(f_0)))) + (f ( -(f ((f_0) + f (- (f_0))))) ) := by
   have f_neq_one_eq: f (- (mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 2 := by
     sorry
   have f_x_plus: f (((mk_x_vals 0).x_vals 1) + ((mk_x_vals 0).x_vals 2)) = (mk_x_vals 0).x_vals 6 := by
@@ -3044,8 +3046,8 @@ lemma not_equation_2441: 0 ≠ (f ((f 0) + f (-(f 0)))) + (f ( -(f ((f 0) + f (-
   simp [ReverseTree.getData]
   simp [f_neq_one_eq]
 
-  simp [f_zero_eq, f_neq_one_eq, f_x_plus, f_x_minus_7]
-  simp [mk_x_vals]
+  simp [f_neq_one_eq, f_x_plus, f_x_minus_7]
+  simp [mk_x_vals, XVals.x_vals]
   rw [eq_comm, add_eq_zero_iff_eq_neg, ← Finsupp.single_neg]
   by_contra!
   have app_eq := DFunLike.congr (x := 13) this rfl

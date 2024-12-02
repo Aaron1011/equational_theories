@@ -2669,7 +2669,23 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
             simp [Finsupp.single_apply] at my_arg
 
             have index_not_eq: ∀ c: ℕ , (Classical.choose n_tree_left).x_to_index c ≠ (vals.x_to_index n) := by
-              sorry
+              by_contra!
+              obtain ⟨c, hc⟩ := this
+              have basis_n_eq: basis_n ((Classical.choose n_tree_left).x_to_index c) = basis_n (vals.x_to_index n) := by
+                rw [hc]
+              rw [← vals.x_to_index_eq] at basis_n_eq
+              rw [← (Classical.choose n_tree_left).x_to_index_eq] at basis_n_eq
+              have val_n_range: vals.x_vals n ∈ Set.range vals.x_vals := by
+                simp
+              have val_c_range: (Classical.choose n_tree_left).x_vals c ∈ Set.range (Classical.choose n_tree_left).x_vals := by
+                simp
+              rw [basis_n_eq] at val_c_range
+              have val_n_intersect: vals.x_vals n ∈ Set.range vals.x_vals ∩ Set.range (Classical.choose n_tree_left).x_vals  := by
+                exact ⟨val_n_range, val_c_range⟩
+              have inter_nonempty: Set.range vals.x_vals ∩ Set.range (Classical.choose n_tree_left).x_vals ≠ ∅ := by
+                exact ne_of_mem_of_not_mem' val_n_intersect fun a ↦ a
+              contradiction
+
             simp [index_not_eq] at my_arg
             exact my_arg.symm
 

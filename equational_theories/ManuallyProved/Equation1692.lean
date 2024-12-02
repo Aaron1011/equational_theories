@@ -2562,16 +2562,16 @@ lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getDat
   have types_eq: @ReverseTree (full_fun_from_n (g_to_num t.getData.a)).x_vals = @ReverseTree vals := by
     simp [preserved]
 
-  have cast_data_eq := cast_data_eq t preserved.symm types_eq.symm
+  have my_cast_data := cast_data_eq t preserved.symm types_eq.symm
   conv at proof =>
     rhs
-    rw [cast_data_eq]
+    rw [my_cast_data]
 
   -- rw [← preserved] at t
 
   have bar := temp_partial_function proof
   have tree_eq: (full_fun_from_n (g_to_num t.getData.a)).tree.getData.b = t.getData.b := by
-    rw [bar]
+    rw [bar, ← my_cast_data]
   exact tree_eq
     --temp_partial_function proof
 

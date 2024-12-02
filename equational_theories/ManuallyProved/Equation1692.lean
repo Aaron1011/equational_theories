@@ -2810,8 +2810,13 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
   }
 
 
-noncomputable abbrev f (g: G): G := (full_fun_from_n (g_to_num g)).tree.getData.b
+--noncomputable abbrev f (g: G): G := (full_fun_from_n (g_to_num g)).tree.getData.b
 
+noncomputable def f (g: G): G := by
+  by_cases has_tree: ∃ t: @ReverseTree (full_fun_from_n (g_to_num g)).x_vals, t.getData.a = g
+  . exact (full_fun_from_n (g_to_num g)).tree.getData.b
+  . --FINAL TODO: What x_vals should we actually use here?
+    exact (mk_x_vals 1).x_vals 0
 -- Starting value: a
 
 --        - (-b, c)
@@ -2856,14 +2861,15 @@ lemma f_eval_at_b (vals: XVals) (t: @ReverseTree vals): f (-t.getData.b) = t.lef
 
 
 lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
-  conv =>
-    pattern - f g
-    simp [f]
-  rw [f_eval_at_b]
-
   have new_proof := (full_fun_from_n (g_to_num g)).new_proof
   by_cases has_tree: ∃ t: @ReverseTree (full_fun_from_n (g_to_num g)).x_vals, t.getData.a = g
   .
+    conv =>
+      pattern - f g
+      simp [f]
+    simp [has_tree]
+    have orig_has_tree := has_tree
+    rw [f_eval_at_b]
     obtain ⟨t, h_t⟩ := has_tree
     have left_b_eq: (full_fun_from_n (g_to_num g)).tree.left.getData.b = (full_fun_from_n (g_to_num g)).tree.right.getData.a := by
       simp [ReverseTree.getData]
@@ -2878,7 +2884,10 @@ lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
     simp [g_enum_inverse] at new_proof
     simp [← h_t] at new_proof
     rw [new_proof]
-  . sorry
+    rw [f_eval_at]
+
+  . have eval_to_fresh: ∃ n,
+    sorry
 
 
 #print axioms temp_partial_function

@@ -2838,8 +2838,6 @@ lemma x_vals_preserved {vals: XVals} (t: @ReverseTree vals): (full_fun_from_n (g
 lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
   simp [f]
   have preserved := x_vals_preserved t
-  have proof := (full_fun_from_n (g_to_num t.getData.a)).proof
-  rw [g_enum_inverse] at proof
   have types_eq: @ReverseTree (full_fun_from_n (g_to_num t.getData.a)).x_vals = @ReverseTree vals := by
     simp [preserved]
 

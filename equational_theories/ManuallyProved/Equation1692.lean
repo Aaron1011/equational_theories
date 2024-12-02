@@ -936,25 +936,15 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
     simp [ReverseTree.getData] at eq_zero
     have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
     rw [linearIndependent_iff'] at basis_indep
-    have vals_zero_basis: vals.x_vals 0 ∈ Set.range basis_n := Set.mem_of_mem_of_subset (by simp) vals.x_basis
-    have vals_one_basis: vals.x_vals 1 ∈ Set.range basis_n := Set.mem_of_mem_of_subset (by simp) vals.x_basis
-    obtain ⟨zero_val, h_zero_val⟩ := vals_zero_basis
-    obtain ⟨one_val, h_one_val⟩ := vals_one_basis
 
-    specialize basis_indep {zero_val, one_val} fun g => if g = zero_val then p else q
+    specialize basis_indep {2 ^ vals.i, (2 ^ vals.i) + 2 ^ (vals.i + 1)} fun g => if g = 2 ^ vals.i then p else q
     have vals_neq: vals.x_vals 0 ≠ vals.x_vals 1 := by
       apply (Function.Injective.ne_iff vals.x_inj).mpr
       simp
 
-    rw [← h_zero_val, ← h_one_val] at vals_neq
-    have zero_val_neq: zero_val ≠ one_val := by
-      apply (Function.Injective.ne_iff basis_n_injective).mp
-      exact vals_neq
-
-    rw [Finset.sum_pair zero_val_neq] at basis_indep
-    simp [zero_val_neq, zero_val_neq.symm] at basis_indep
-    rw [← h_zero_val, ← h_one_val] at eq_zero
-    simp [basis_n] at eq_zero
+    rw [Finset.sum_pair (by simp)] at basis_indep
+    simp at basis_indep
+    simp [basis_n, XVals.x_vals] at eq_zero
     exact basis_indep eq_zero
   | left prev h_prev =>
     simp [ReverseTree.getData]
@@ -2858,6 +2848,12 @@ lemma f_eval_at_b (vals: XVals) (t: @ReverseTree vals): f (-t.getData.b) = t.lef
     simp [ReverseTree.getData]
   rw [t_left_a_eq]
   rw [f_eval_at t.left]
+
+  -- suppose f(g) = g + g
+  -- -f(g)= -g - g
+  -- f(-f(g))= (-g - g) + (-g - g) = -4g
+  -- f(f(-f(g))) = -4g + -4g = -8g
+
 
 
 lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by

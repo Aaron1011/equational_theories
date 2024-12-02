@@ -431,32 +431,31 @@ def mk_vals_range_s_i (i: ℕ): Set.range (mk_x_vals i).x_vals ⊆ (λ b => b.2)
 
 
 
-def mk_vals_disjoint: ∀ i j, i ≠ j → Set.range (mk_x_vals i).x_vals ∩ Set.range (mk_x_vals j).x_vals = ∅ := by
-  intro i j i_neq_j
-  have i_subset := mk_vals_range_s_i i
-  have j_subset := mk_vals_range_s_i j
-  have disjoint: s_i i ∩ s_i j = ∅ := by
-    by_cases i_lt_j: i < j
-    . exact s_i_disjoint i j i_lt_j
+def mk_vals_disjoint (vals1 vals2: XVals) (h_vals: vals1.i ≠ vals2.i): Set.range vals1.x_vals ∩ Set.range vals2.x_vals = ∅ := by
+  have i_subset := mk_vals_range_s_i vals1.i
+  have j_subset := mk_vals_range_s_i vals2.i
+  have disjoint: s_i vals1.i ∩ s_i vals2.i = ∅ := by
+    by_cases i_lt_j: vals1.i < vals2.i
+    . exact s_i_disjoint vals1.i vals2.i i_lt_j
     . simp at i_lt_j
-      have j_neq_i: j ≠ i := i_neq_j.symm
-      have j_lt_i: j < i := by
+      have j_neq_i: vals2.i ≠ vals1.i := h_vals.symm
+      have j_lt_i: vals2.i < vals1.i := by
         exact Nat.lt_of_le_of_ne i_lt_j j_neq_i
       rw [Set.inter_comm]
-      exact s_i_disjoint j i j_lt_i
+      exact s_i_disjoint vals2.i vals1.i j_lt_i
   by_contra!
   obtain ⟨x, x_in_i, x_in_j⟩ := this
-  have x_in_s_i: x ∈ (λ b => b.2) '' (s_i i) := by
+  have x_in_s_i: x ∈ (λ b => b.2) '' (s_i vals1.i) := by
     exact i_subset x_in_i
-  have x_in_s_j: x ∈ (λ b => b.2) '' (s_i j) := by
+  have x_in_s_j: x ∈ (λ b => b.2) '' (s_i vals2.i) := by
     exact j_subset x_in_j
 
   simp at x_in_s_i
   simp at x_in_s_j
   obtain ⟨a, ha⟩ := x_in_s_i
   obtain ⟨b, hb⟩ := x_in_s_j
-  have x_eq_basis_a := s_i_from_basis i ⟨a, x⟩ ha
-  have x_eq_basis_b := s_i_from_basis j ⟨b, x⟩ hb
+  have x_eq_basis_a := s_i_from_basis vals1.i ⟨a, x⟩ ha
+  have x_eq_basis_b := s_i_from_basis vals2.i ⟨b, x⟩ hb
   simp at x_eq_basis_a
   simp at x_eq_basis_b
 
@@ -466,9 +465,9 @@ def mk_vals_disjoint: ∀ i j, i ≠ j → Set.range (mk_x_vals i).x_vals ∩ Se
     apply foo.mp x_eq_basis_b
 
   rw [a_eq_b] at ha
-  have inter_elem: ⟨b, x⟩ ∈ (s_i i) ∩ (s_i j) := by
+  have inter_elem: ⟨b, x⟩ ∈ (s_i vals1.i) ∩ (s_i vals2.i) := by
     refine ⟨ha, hb⟩
-  have inter_nonempty: (s_i i) ∩ (s_i j) ≠ ∅ := by
+  have inter_nonempty: (s_i vals1.i) ∩ (s_i vals2.i) ≠ ∅ := by
     exact ne_of_mem_of_not_mem' inter_elem fun a ↦ a
   contradiction
 

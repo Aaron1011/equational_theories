@@ -2615,7 +2615,6 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
           simp only [Finsupp.sum] at first_lin_comb
           have first_sum_eq: (∑ x ∈ first_g.support, first_g x • basis_n (vals.x_to_index x)) = ∑ i ∈ Finset.range first_m, first_g i • basis_n (vals.x_to_index i) := by
             apply Finset.sum_subset
-            -- TODO - get 'max' working
             .
               intro x hx
               simp
@@ -2646,7 +2645,16 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
           have second_sum_eq: (∑ x ∈ second_g.support, second_g x • basis_n ((Classical.choose n_tree_left).x_to_index x)) = ∑ i ∈ Finset.range second_m, second_g i • basis_n ((Classical.choose n_tree_left).x_to_index i) := by
             apply Finset.sum_subset
             -- TODO - get 'max' working
-            . sorry
+            .
+              intro x hx
+              simp
+
+              have x_le_max: x ≤ second_g.support.max := by
+                apply Finset.le_max hx
+
+              simp at x_le_max
+              have trans_le := LE.le.trans_lt x_le_max second_m_supp
+              exact WithBot.some_lt_some.mp trans_le
             .
               intro x hx x_not_supp
               simp [Finsupp.not_mem_support_iff.mp x_not_supp]

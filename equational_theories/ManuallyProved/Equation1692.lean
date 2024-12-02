@@ -2957,22 +2957,22 @@ lemma f_zero_tree: f_0 = f (ReverseTree.root (vals := (mk_x_vals 0))).getData.a 
 
 
 
-structure MyInner where
-  data: ℕ
-  with_prop: 1 = 1
+-- structure MyInner where
+--   data: ℕ
+--   with_prop: 1 = 1
 
-inductive Outer {a: MyInner} where
-| root: Outer
-| other: Outer → Outer
+-- inductive Outer {a: MyInner} where
+-- | root: Outer
+-- | other: Outer → Outer
 
-lemma cast_outer (a_1 a_2: MyInner) (outer_a: @Outer a_1) (outer_b: @Outer a_2) (h_a_eq: a_1 = a_2): True := by
-  have first_eq: ∃ b, b = outer_b := by
-    use outer_b
-  have types_eq: @Outer a_1 = @Outer a_2 := by
-    rw [h_a_eq]
-  subst types_eq
-  have other_eq: ∃ b: @Outer a_1, b = outer_b := by
-    sorry
+-- lemma cast_outer (a_1 a_2: MyInner) (outer_a: @Outer a_1) (outer_b: @Outer a_2) (h_a_eq: a_1 = a_2): True := by
+--   have first_eq: ∃ b, b = outer_b := by
+--     use outer_b
+--   have types_eq: @Outer a_1 = @Outer a_2 := by
+--     rw [h_a_eq]
+--   subst types_eq
+--   have other_eq: ∃ b: @Outer a_1, b = outer_b := by
+--     sorry
 
 
 
@@ -2980,45 +2980,48 @@ lemma not_equation_23: (f 0) + (f (- (f 0))) ≠ 0 := by
   simp [f]
   have eq_left_child: (full_fun_from_n (g_to_num (-(full_fun_from_n (g_to_num 0)).tree.getData.b))).tree.getData.b = (full_fun_from_n (g_to_num 0)).tree.left.getData.b := by
     sorry
-  rw [eq_left_child]
-  simp [ReverseTree.getData]
-  -- TODO - when starting a new tree, we need to make our new element the root
-  have zero_eq_x_vals_zero: (full_fun_from_n (g_to_num 0)).tree.getData.b = (full_fun_from_n (g_to_num 0)).x_vals.x_vals 0 := by
-    sorry
-  rw [zero_eq_x_vals_zero]
-  have newnum_neq_zero: 0 ≠ newNum (full_fun_from_n (g_to_num 0)).tree := by
-    have gt_one := newnem_gt_one (full_fun_from_n (g_to_num 0)).tree
-    linarith
+  sorry
 
-  simp [XVals.x_to_index_eq]
+  -- rw [eq_left_child]
+  -- simp [ReverseTree.getData]
+  -- -- TODO - when starting a new tree, we need to make our new element the root
+  -- have zero_eq_x_vals_zero: (full_fun_from_n (g_to_num 0)).tree.getData.b = (full_fun_from_n (g_to_num 0)).x_vals.x_vals 0 := by
+  --   sorry
+  -- rw [zero_eq_x_vals_zero]
+  -- have newnum_neq_zero: 0 ≠ newNum (full_fun_from_n (g_to_num 0)).tree := by
+  --   have gt_one := newnem_gt_one (full_fun_from_n (g_to_num 0)).tree
+  --   linarith
 
-  -- TODO - extract this out to apply linear independence to pair of finsupp
-  have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
-  rw [linearIndependent_iff'] at basis_indep
+  -- simp [XVals.x_to_index_eq]
 
-  let zero_val := (full_fun_from_n (g_to_num 0)).x_vals.x_to_index 0
-  let one_val := (full_fun_from_n (g_to_num 0)).x_vals.x_to_index (newNum (full_fun_from_n (g_to_num 0)).tree)
-  have my_set: Finset ℕ := {zero_val, one_val}
-  have eq_false: (∀ i ∈ my_set, 1 = 0) = False := by
-    sorry
-  specialize basis_indep {zero_val, one_val} fun g => 1
+  -- -- TODO - extract this out to apply linear independence to pair of finsupp
+  -- have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
+  -- rw [linearIndependent_iff'] at basis_indep
 
-  have zero_val_neq: zero_val ≠ one_val := by
-    sorry
+  -- let zero_val := (full_fun_from_n (g_to_num 0)).x_vals.x_to_index 0
+  -- let one_val := (full_fun_from_n (g_to_num 0)).x_vals.x_to_index (newNum (full_fun_from_n (g_to_num 0)).tree)
+  -- have my_set: Finset ℕ := {zero_val, one_val}
+  -- have eq_false: (∀ i ∈ my_set, 1 = 0) = False := by
+  --   sorry
+  -- specialize basis_indep {zero_val, one_val} fun g => 1
 
-  -- TODO - this is really messy
-  rw [Finset.sum_pair zero_val_neq] at basis_indep
-  simp [zero_val_neq, zero_val_neq.symm] at basis_indep
-  apply not_imp_not.mpr at basis_indep
-  simp at basis_indep
-  specialize basis_indep one_val
-  simp [zero_val, one_val] at basis_indep
-  exact basis_indep
+  -- have zero_val_neq: zero_val ≠ one_val := by
+  --   sorry
+
+  -- -- TODO - this is really messy
+  -- rw [Finset.sum_pair zero_val_neq] at basis_indep
+  -- simp [zero_val_neq, zero_val_neq.symm] at basis_indep
+  -- apply not_imp_not.mpr at basis_indep
+  -- simp at basis_indep
+  -- specialize basis_indep one_val
+  -- simp [zero_val, one_val] at basis_indep
+  -- exact basis_indep
 
 
 lemma not_equation_47: 0 ≠ f (f (f 0)) := by
   rw [f]
-  exact (tree_vals_nonzero (full_fun_from_n (g_to_num (f (f 0)))).tree).2.symm
+  sorry
+  -- exact (tree_vals_nonzero (full_fun_from_n (g_to_num (f (f 0)))).tree).2.symm
 
 
 
@@ -3033,16 +3036,17 @@ lemma not_equation_1832: 0 ≠ f (f 0) + f ((f 0) - f (f 0)) := by
   conv =>
     rhs
     pattern f 0
-    rw [f_zero_tree]
+    --rw [f_zero_tree]
 
-  rw [f_eval_at]
-  simp [ReverseTree.getData]
-  rw [f_1_eq]
-  rw [f]
-  specialize neg_4_not_all ((full_fun_from_n (g_to_num (f 0 - f (f 0)))).tree)
-  rw [eq_comm, add_eq_zero_iff_eq_neg]
-  rw [Ne, eq_comm, neg_eq_iff_eq_neg] at neg_4_not_all
-  exact neg_4_not_all
+  sorry
+  -- rw [f_eval_at]
+  -- simp [ReverseTree.getData]
+  -- rw [f_1_eq]
+  -- rw [f]
+  -- specialize neg_4_not_all ((full_fun_from_n (g_to_num (f 0 - f (f 0)))).tree)
+  -- rw [eq_comm, add_eq_zero_iff_eq_neg]
+  -- rw [Ne, eq_comm, neg_eq_iff_eq_neg] at neg_4_not_all
+  -- exact neg_4_not_all
 
 
 lemma f_neg_f: f (- (f_0)) = ((mk_x_vals 0).x_vals 2) := by

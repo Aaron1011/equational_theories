@@ -2500,22 +2500,34 @@ def g_enum_inverse (g: G): g_enumerate (g_to_num g) = g := by
 def tree_to_supp {vals: XVals} (t: @ReverseTree vals): Set ℕ :=
   t.getData.a.support.toSet
 
-structure XValsFullData where
+structure XValsFullData (n: ℕ) where
   vals: Set XVals
   from_mk: ∀ x_vals: XVals, x_vals ∈ vals → ∃ n, x_vals = mk_x_vals n
+  contains_n: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ vals ∧ t.getData.a = (g_enumerate n)
 
 
 
-noncomputable def full_x_vals: ℕ → XValsFullData
-  | 0 => {
+
+noncomputable def full_x_vals (n: ℕ): XValsFullData n := by
+  match n with
+  | 0 => exact {
         vals := {mk_x_vals 0},
         from_mk := by
           simp
+        contains_n := by
+          use mk_x_vals 0
+          use ReverseTree.root
+          simp [g_enum_zero_eq_one]
+          simp [ReverseTree.getData, mk_x_vals, XVals.x_vals]
       }
-  | .succ n => by
+  | n + 1 =>
     let prev_x_vals := full_x_vals n
-    by_cases exists_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = (g_enumerate n)
-    . exact prev_x_vals
+    by_cases exists_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = (g_enumerate (n + 1))
+    . exact {
+        vals := prev_x_vals.vals,
+        from_mk := prev_x_vals.from_mk,
+        contains_n := exists_tree
+      }
       -- TODO - build new tree
     .
       let x_vals_to_supp := (λ new_x_vals : XVals => (tree_to_supp '' Set.univ (α := @ReverseTree new_x_vals)).sUnion)
@@ -2524,12 +2536,16 @@ noncomputable def full_x_vals: ℕ → XValsFullData
         by_contra!
         sorry
       have i := Classical.choose s_i_without
-      let new_tree  := mk_x_vals i
+      let new_x_vals  := mk_x_vals i
       exact  {
-        vals := prev_x_vals.vals ∪ {new_tree},
+        vals := prev_x_vals.vals ∪ {new_x_vals},
         from_mk := by
           simp
           exact prev_x_vals.from_mk
+        contains_n := by
+          use mk_x_vals i
+
+
       }
 
 
@@ -2722,7 +2738,15 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
 
   let candidate_x_vals := (full_x_vals n).vals
   have val_in_x_vals: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ candidate_x_vals ∧ t.getData.a = (g_enumerate n) := by
-    sorry
+    have my_proof := (full_x_vals n).contains_n
+    simp [candidate_x_vals]
+    obtain ⟨new_vals , ⟨t, h_vals_and_t⟩⟩ := my_proof
+    use new_vals
+    refine ⟨?_, ?_⟩
+    exact h_vals_and_t.1
+    use t
+    exact h_vals_and_t.2
+
 
     --have trees_eq := temp_partial_function (t1 := other_t) (t2 := t) other_a_eq
 

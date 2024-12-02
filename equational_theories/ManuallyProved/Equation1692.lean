@@ -2861,14 +2861,24 @@ lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
     simp [f]
   rw [f_eval_at_b]
 
-  have left_b_eq: (full_fun_from_n (g_to_num g)).tree.left.getData.b = (full_fun_from_n (g_to_num g)).tree.right.getData.a := by
-    simp [ReverseTree.getData]
+  have new_proof := (full_fun_from_n (g_to_num g)).new_proof
+  by_cases has_tree: ∃ t: @ReverseTree (full_fun_from_n (g_to_num g)).x_vals, t.getData.a = g
+  .
+    obtain ⟨t, h_t⟩ := has_tree
+    have left_b_eq: (full_fun_from_n (g_to_num g)).tree.left.getData.b = (full_fun_from_n (g_to_num g)).tree.right.getData.a := by
+      simp [ReverseTree.getData]
 
-  rw [left_b_eq]
-  rw [f_eval_at]
-  simp [ReverseTree.getData]
-  rw [(full_fun_from_n (g_to_num g)).proof]
-  rw [g_enum_inverse]
+    rw [left_b_eq]
+    rw [f_eval_at]
+    simp [ReverseTree.getData]
+    conv =>
+      rhs
+      rw [← h_t]
+    specialize new_proof t
+    simp [g_enum_inverse] at new_proof
+    simp [← h_t] at new_proof
+    rw [new_proof]
+  . sorry
 
 
 #print axioms temp_partial_function

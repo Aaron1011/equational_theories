@@ -2508,7 +2508,7 @@ structure XValsFullData (n: ℕ) where
 -- where 'fresh_tree_elem' is an element that would make us start a new tree, 'correct_tree' is that tree, and 'a' is the 'a' value of the root of that new tree.
 
 -- TODO - do we need to worry about duplicates here
-def my_subset := {g: G | ∃ a: G, ∀ vals: XVals, ∀ t: @ReverseTree vals, t.getData.a ≠ a ∧ g = a - (@ReverseTree.root (mk_x_vals (g_to_num a))).getData.a }
+def my_subset := {g: G | ∃ a: G, g = a - (@ReverseTree.root (mk_x_vals (g_to_num a))).getData.a ∧ ∀ vals: XVals, ∀ t: @ReverseTree vals, t.getData.a ≠ a}
 noncomputable def submod := Submodule.span ℚ my_subset
 
 noncomputable def full_x_vals (n: ℕ): XValsFullData n := by
@@ -2565,6 +2565,7 @@ structure GAndProof (n: ℕ) where
   --zero_if_zero: n = 0 → x_vals = mk_x_vals 0
   preserved_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = (g_enumerate n)) → x_vals = vals
   in_quot : ∃ t: @ReverseTree x_vals, (Submodule.Quotient.mk (p := submod) t.getData.a) = Submodule.Quotient.mk (g_enumerate n)
+  better_in_quot: (Submodule.Quotient.mk (p := submod) tree.getData.a) = Submodule.Quotient.mk (g_enumerate n)
 
 lemma neq_implies_neq_i {vals1 vals2: XVals} (h_vals: vals1 ≠ vals2): vals1.i ≠ vals2.i := by
   by_contra! vals_eq
@@ -2591,6 +2592,8 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
       tree := Classical.choose (Classical.choose_spec n_tree_left),
       in_quot := by
         use Classical.choose (Classical.choose_spec n_tree_left)
+        rw [Classical.choose_spec (Classical.choose_spec n_tree_left)]
+      better_in_quot := by
         rw [Classical.choose_spec (Classical.choose_spec n_tree_left)]
       -- proof := Classical.choose_spec (Classical.choose_spec n_tree_left),
       new_proof := by
@@ -2781,21 +2784,31 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
         have diff_in_subset: (g_enumerate n - (@ReverseTree.root (mk_x_vals n)).getData.a) ∈ my_subset := by
           simp only [my_subset, ne_eq, Option.some.injEq, Set.mem_setOf_eq]
           use g_enumerate n
+          refine ⟨by (simp [ReverseTree.getData, g_num_inverse]), ?_⟩
           intro vals t
           rw [not_exists] at n_tree_left
           specialize n_tree_left vals
           rw [not_exists] at n_tree_left
           specialize n_tree_left t
-          refine ⟨n_tree_left, ?_⟩
-          simp
-          have vals_eq: (mk_x_vals (g_to_num (g_enumerate n))) = mk_x_vals n := by
-            simp [g_num_inverse]
-          have types_eq: @ReverseTree (mk_x_vals (g_to_num (g_enumerate n))) = @ReverseTree (mk_x_vals n) := by
-            simp [vals_eq]
-
-          have my_cast_data := cast_data_eq ReverseTree.root vals_eq.symm types_eq.symm
-          simp only [ReverseTree.getData]
-          simp only [g_num_inverse]
+          exact n_tree_left
+        simp only [submod]
+        exact span_subset diff_in_subset
+      -- TODO - deduplicate this or remove 'in_quot'
+      better_in_quot := by
+        rw [eq_comm]
+        simp only [ReverseTree.getData]
+        refine (Submodule.Quotient.eq submod).mpr ?_
+        have span_subset := Submodule.subset_span (R := ℚ) (s := my_subset)
+        have diff_in_subset: (g_enumerate n - (@ReverseTree.root (mk_x_vals n)).getData.a) ∈ my_subset := by
+          simp only [my_subset, ne_eq, Option.some.injEq, Set.mem_setOf_eq]
+          use g_enumerate n
+          refine ⟨by (simp [ReverseTree.getData, g_num_inverse]), ?_⟩
+          intro vals t
+          rw [not_exists] at n_tree_left
+          specialize n_tree_left vals
+          rw [not_exists] at n_tree_left
+          specialize n_tree_left t
+          exact n_tree_left
         simp only [submod]
         exact span_subset diff_in_subset
   }
@@ -2803,11 +2816,25 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
 
 #synth Module ℚ G
 
-noncomputable def f (g: G): G := by
-  by_cases has_tree: ∃ t: @ReverseTree (full_fun_from_n (g_to_num g)).x_vals, t.getData.a = g
-  . exact (full_fun_from_n (g_to_num g)).tree.getData.b
-  . --FINAL TODO: What x_vals should we actually use here?
-    exact (mk_x_vals 1).x_vals 2
+abbrev G' := G ⧸ submod
+
+noncomputable def f (g: G'): G' := by
+  simp [G']
+
+  -- The 'g_to_num' values of all elements in the quotient equivalene class of 't.getData.a'
+  have nums_related := {n: ℕ | ∃ a: G, g_to_num a = n ∧ (Submodule.Quotient.mk (p := submod) a) = g}
+  let min_num := sInf nums_related
+  exact Submodule.Quotient.mk (full_fun_from_n min_num).tree.getData.b
+
+  -- TODO - is there a better way to do this?
+  --have eq_mk_repr := Submodule.Quotient.mk_surjective submod g
+  --let g_repr := Classical.choose eq_mk_repr
+  --exact Submodule.Quotient.mk ((full_fun_from_n (g_to_num g_repr)).tree.getData.b)
+
+  -- by_cases has_tree: ∃ t: @ReverseTree (full_fun_from_n (g_to_num g_repr)).x_vals, t.getData.a = g_repr
+  -- . exact Submodule.Quotient.mk ((full_fun_from_n (g_to_num g_repr)).tree.getData.b)
+  -- . --FINAL TODO: What x_vals should we actually use here?
+  --   exact Submodule.Quotient.mk ((@ReverseTree.root (mk_x_vals (g_to_num g_repr))).getData.b)
 -- Starting value: a
 
 --        - (-b, c)
@@ -2831,17 +2858,90 @@ lemma x_vals_preserved {vals: XVals} (t: @ReverseTree vals): (full_fun_from_n (g
 
 
 
-lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
+lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (Submodule.Quotient.mk t.getData.a) = (Submodule.Quotient.mk t.getData.b) := by
   simp [f]
+
+  let my_set := {n | ∃ a, g_to_num a = n ∧ Submodule.Quotient.mk a = Submodule.Quotient.mk (p := submod) t.getData.a}
+  have g_num_in: (g_to_num t.getData.a) ∈ my_set := by
+    simp [my_set, Set.Nonempty]
+    use t.getData.a
+
+  have my_set_nonempty : my_set.Nonempty := by
+    exact Set.nonempty_of_mem g_num_in
+
+  let my_val := (sInf my_set)
+  have sinf_in := Nat.sInf_mem my_set_nonempty
+  simp only [my_set] at sinf_in
+  rw [Set.mem_setOf_eq] at sinf_in
+  obtain ⟨a, h_num, h_eq⟩ := sinf_in
+
+
+
+  have sinf_eq_num: sInf my_set = (g_to_num) t.getData.a := by
+    by_contra!
+    have sinf_le_num: sInf my_set ≤ (g_to_num) t.getData.a := by
+      exact Nat.sInf_le g_num_in
+    have sinf_lt: sInf my_set < (g_to_num) t.getData.a := by
+      omega
+    simp [my_set] at sinf_lt
+
+
+
+
+
+  have eq_my_val: (Submodule.Quotient.mk (p := submod) (g_enumerate my_val)) = Submodule.Quotient.mk t.getData.a := by
+    rw [← h_eq]
+    simp only [my_val, my_set]
+    rw [← h_num]
+    rw [g_enum_inverse]
+
+  have eq_t_a : (full_fun_from_n (sInf {n | ∃ a, g_to_num a = n ∧ Submodule.Quotient.mk a = Submodule.Quotient.mk (p := submod) t.getData.a})).tree.getData.a = t.getData.a := by
+    sorry
+
   have preserved := x_vals_preserved t
   have types_eq: @ReverseTree (full_fun_from_n (g_to_num t.getData.a)).x_vals = @ReverseTree vals := by
     simp [preserved]
 
+  have orig_new_proof := (full_fun_from_n (g_to_num t.getData.a)).new_proof
   have new_proof := (full_fun_from_n (g_to_num t.getData.a)).new_proof (cast types_eq.symm t)
   have my_cast_data := cast_data_eq t preserved.symm types_eq.symm
 
+  have choose_spec := Classical.choose_spec (Submodule.Quotient.mk_surjective submod (Submodule.Quotient.mk t.getData.a))
+  let val := Classical.choose (Submodule.Quotient.mk_surjective submod (Submodule.Quotient.mk t.getData.a))
+  have other_quot_eq: Submodule.Quotient.mk (t.getData.a) = Submodule.Quotient.mk (p := submod)  val := by
+    simp [val]
+    exact id (Eq.symm choose_spec)
+
+
+  -- have quot_singleton: ∀ other_t, (Submodule.Quotient.mk t.getData.a) = (Submodule.Quotient.mk (p := submod) other_t.getData.a) → t = other_t := by
+  --   intro other_t quot_eq
+  --   have diff_in := Submodule.Quotient.eq submod (x := (t.getData.a)) (y := other_t.getData.a)
+  --   apply diff_in.mp at quot_eq
+  --   simp [submod] at quot_eq
+  --   have span_subset := Submodule.subset_span (R := ℚ) (s := my_subset)
+
+  --   have diff_not_in_subset: t.getData.a - other_t.getData.a ∉ my_subset := by
+  --     simp only [my_subset]
+  --     rw [Set.mem_setOf_eq]
+  --     rw [not_exists]
+  --     intro a
+  --     simp
+  --     intro h_eq
+  --     use vals
+  --     use t
+  --     simp [ReverseTree.getData] at h_eq
+
+
+
+
+
+  have in_quot := (full_fun_from_n (g_to_num t.getData.a)).better_in_quot
+  simp [g_enum_inverse] at in_quot
   simp [g_enum_inverse, my_cast_data] at new_proof
+  rw [← new_proof] at in_quot
+
   rw [← new_proof]
+
   rw [← my_cast_data]
 
 lemma f_eval_at_b (vals: XVals) (t: @ReverseTree vals): f (-t.getData.b) = t.left.getData.b := by
@@ -2897,6 +2997,7 @@ lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
 
 
 #print axioms temp_partial_function
+
 
 -- inductive MyTree {α: Type} where
 --   | root: TreeData (α := α) 0 → MyTree

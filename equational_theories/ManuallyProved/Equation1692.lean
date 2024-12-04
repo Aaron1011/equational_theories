@@ -2502,7 +2502,14 @@ structure XValsFullData (n: ℕ) where
   contains_n: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ vals ∧ t.getData.a = (g_enumerate n)
 
 
+--noncomputable abbrev f (g: G): G := (full_fun_from_n (g_to_num g)).tree.getData.b
 
+-- Quotient - we want to form Submodule.span from all elements of the form 'fresh_tree_elem - (@ReverseTree.root (correct_tree)).getData.a',
+-- where 'fresh_tree_elem' is an element that would make us start a new tree, 'correct_tree' is that tree, and 'a' is the 'a' value of the root of that new tree.
+
+-- TODO - do we need to worry about duplicates here
+def my_subset := {g: G | ∃ a: G, ∀ vals: XVals, ∀ t: @ReverseTree vals, t.getData.a ≠ a ∧ g = a - (@ReverseTree.root (mk_x_vals (g_to_num a))).getData.a }
+noncomputable def submod := Submodule.span ℚ my_subset
 
 noncomputable def full_x_vals (n: ℕ): XValsFullData n := by
   match n with
@@ -2548,6 +2555,7 @@ noncomputable def full_x_vals (n: ℕ): XValsFullData n := by
       }
 
 
+#check G ⧸ submod
 
 structure GAndProof (n: ℕ) where
   x_vals: XVals
@@ -2556,6 +2564,7 @@ structure GAndProof (n: ℕ) where
   new_proof: ∀ t: @ReverseTree x_vals, t.getData.a = (g_enumerate n) → t = tree
   --zero_if_zero: n = 0 → x_vals = mk_x_vals 0
   preserved_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = (g_enumerate n)) → x_vals = vals
+  in_quot : ∃ t: @ReverseTree x_vals, (Submodule.Quotient.mk (p := submod) t.getData.a) = Submodule.Quotient.mk (g_enumerate n)
 
 lemma neq_implies_neq_i {vals1 vals2: XVals} (h_vals: vals1 ≠ vals2): vals1.i ≠ vals2.i := by
   by_contra! vals_eq
@@ -2580,6 +2589,9 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
     exact {
       x_vals := Classical.choose n_tree_left,
       tree := Classical.choose (Classical.choose_spec n_tree_left),
+      in_quot := by
+        use Classical.choose (Classical.choose_spec n_tree_left)
+        rw [Classical.choose_spec (Classical.choose_spec n_tree_left)]
       -- proof := Classical.choose_spec (Classical.choose_spec n_tree_left),
       new_proof := by
         intro t ht
@@ -2744,63 +2756,52 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
 
 
     }
+  . exact {
+      x_vals := mk_x_vals n,
+      tree := ReverseTree.root,
+      new_proof := by
+        intro t
+        rw [not_exists] at n_tree_left
+        specialize n_tree_left (mk_x_vals n)
+        rw [not_exists] at n_tree_left
+        specialize n_tree_left t
+        simp [n_tree_left]
+      preserved_val := by
+        intro vals
+        simp [not_exists] at n_tree_left
+        specialize n_tree_left vals
+        rw [← not_exists] at n_tree_left
+        simp [n_tree_left]
+      in_quot := by
+        use @ReverseTree.root (mk_x_vals n)
+        rw [eq_comm]
+        simp only [ReverseTree.getData]
+        refine (Submodule.Quotient.eq submod).mpr ?_
+        have span_subset := Submodule.subset_span (R := ℚ) (s := my_subset)
+        have diff_in_subset: (g_enumerate n - (@ReverseTree.root (mk_x_vals n)).getData.a) ∈ my_subset := by
+          simp only [my_subset, ne_eq, Option.some.injEq, Set.mem_setOf_eq]
+          use g_enumerate n
+          intro vals t
+          rw [not_exists] at n_tree_left
+          specialize n_tree_left vals
+          rw [not_exists] at n_tree_left
+          specialize n_tree_left t
+          refine ⟨n_tree_left, ?_⟩
+          simp
+          have vals_eq: (mk_x_vals (g_to_num (g_enumerate n))) = mk_x_vals n := by
+            simp [g_num_inverse]
+          have types_eq: @ReverseTree (mk_x_vals (g_to_num (g_enumerate n))) = @ReverseTree (mk_x_vals n) := by
+            simp [vals_eq]
 
-  let candidate_x_vals := (full_x_vals n).vals
-  have val_in_x_vals: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ candidate_x_vals ∧ t.getData.a = (g_enumerate n) := by
-    have my_proof := (full_x_vals n).contains_n
-    simp [candidate_x_vals]
-    obtain ⟨new_vals , ⟨t, h_vals_and_t⟩⟩ := my_proof
-    use new_vals
-    refine ⟨?_, ?_⟩
-    exact h_vals_and_t.1
-    use t
-    exact h_vals_and_t.2
-
-
-    --have trees_eq := temp_partial_function (t1 := other_t) (t2 := t) other_a_eq
-
-    --simp [candidate_x_vals, full_x_vals] at h_other_t
-
-  let h_x_val := Classical.choose_spec val_in_x_vals
-  let tree := Classical.choose h_x_val
-  have simplified: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, t.getData.a = (g_enumerate n) := by
-    obtain ⟨x_vals, t, h⟩ := val_in_x_vals
-    use x_vals
-    use t
-    exact h.2
-  obtain ⟨_, tree_eq⟩ := Classical.choose_spec h_x_val
-
-
-  -- have zero_if_zero: n = 0 → (Classical.choose val_in_x_vals) = mk_x_vals 0 := by
-  --   by_cases n_eq_zero: n = 0
-  --   .
-  --     simp [n_eq_zero]
-  --     have choose_in := Classical.choose_spec val_in_x_vals
-  --     have candidate_eq_zero: candidate_x_vals = {mk_x_vals 0} := by
-  --       simp [candidate_x_vals, n_eq_zero, full_x_vals]
-  --     simp only [candidate_eq_zero, Set.mem_singleton_iff] at val_in_x_vals
-  --     simp only [candidate_eq_zero, Set.mem_singleton_iff] at choose_in
-  --     obtain ⟨_, choose_eq, _⟩ := choose_in
-  --     simp [candidate_eq_zero]
-  --     simp [n_eq_zero] at choose_eq
-  --     exact choose_eq
-  --   . simp [n_eq_zero]
-
-  exact {
-    x_vals := (Classical.choose val_in_x_vals),
-    tree := tree,
-    -- proof := tree_eq,
-    --zero_if_zero := zero_if_zero,
-    preserved_val := by
-      intro vals
-      simp only [not_exists] at n_tree_left
-      specialize n_tree_left vals
-      rw [← not_exists] at n_tree_left
-      simp [n_tree_left]
+          have my_cast_data := cast_data_eq ReverseTree.root vals_eq.symm types_eq.symm
+          simp only [ReverseTree.getData]
+          simp only [g_num_inverse]
+        simp only [submod]
+        exact span_subset diff_in_subset
   }
 
 
---noncomputable abbrev f (g: G): G := (full_fun_from_n (g_to_num g)).tree.getData.b
+#synth Module ℚ G
 
 noncomputable def f (g: G): G := by
   by_cases has_tree: ∃ t: @ReverseTree (full_fun_from_n (g_to_num g)).x_vals, t.getData.a = g

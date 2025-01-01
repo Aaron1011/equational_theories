@@ -2884,6 +2884,7 @@ lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (Submodule.Quotient.mk t
     have sinf_lt: sInf my_set < (g_to_num) t.getData.a := by
       omega
     simp [my_set] at sinf_lt
+    
 
 
 

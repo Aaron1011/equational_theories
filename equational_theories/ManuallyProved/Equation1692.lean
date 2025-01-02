@@ -2518,7 +2518,8 @@ structure XValsIso where
   iso: other_space ≃ₗ[ℚ] ((Submodule.span ℚ (make_range vals)))
 
 
-structure XValsFullData (g: G) where
+structure XValsFullData where
+  g: G
   vals: Set (XValsIso)
   target_val: XValsIso
   target_val_in: target_val ∈ vals
@@ -2526,13 +2527,19 @@ structure XValsFullData (g: G) where
   tree: @ReverseTree target_val.vals
   tree_iso_a: tree.getData.a = target_val.iso ⟨g, contains_n⟩
   b_in_range: tree.getData.b ∈ ((Submodule.span ℚ (make_range target_val.vals)))
+  tree_iso_b: tree.getData.b = target_val.iso.symm ⟨tree.getData.b, b_in_range⟩
   --preserves_x_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = g) → target_val.vals = vals
-  preserves_tree: ∀ other_vals: XVals, ∀ other_t: @ReverseTree other_vals, (other_t.getData.a = g) → tree.getData.b = other_t.getData.b
+  preserves_tree: ∀ other_vals: XVals, ∀ other_t: @ReverseTree other_vals, (other_t.getData.a = g) → tree.getData.b = other_t.getData.b ∧ tree.getData.a = other_t.getData.a
 
 
   --iso: ((Submodule.span ℚ (Set.range vals.x_vals: Set (ℕ →₀ ℚ) ))) ≃ₗ[ℚ] other_space
 
-noncomputable def full_x_vals (g: G): XValsFullData g := by
+-- TODO - is there a cleaner way of doing this?
+structure WrapperXValsFullData (g: G) where
+  inner: XValsFullData
+  g_eq: inner.g = g
+
+noncomputable def full_x_vals (g: G): WrapperXValsFullData g := by
   by_cases g_base: g = (mk_x_vals 0).x_vals 0
   .
     let initial_vals: XValsIso := {
@@ -2541,24 +2548,29 @@ noncomputable def full_x_vals (g: G): XValsFullData g := by
       iso := LinearEquiv.refl _ _
     }
     exact {
-      vals := {initial_vals},
-      target_val := initial_vals,
-      target_val_in := by simp,
-      contains_n := by
-        simp [make_range]
-        have g_in_range: g ∈ make_range (mk_x_vals 0) := by
-          simp [make_range]
-          simp [g_base]
-        exact Submodule.subset_span g_in_range,
-      tree := ReverseTree.root,
-      tree_iso_a := by
-        simp [initial_vals]
-        simp [ReverseTree.getData]
-        exact g_base.symm
-      preserves_tree := by
-        intro other_vals other_t data_eq
-        simp [ReverseTree.getData]
-        sorry
+        inner := {
+          g := g
+          vals := {initial_vals},
+          target_val := initial_vals,
+          target_val_in := by simp,
+          contains_n := by
+            simp [make_range]
+            have g_in_range: g ∈ make_range (mk_x_vals 0) := by
+              simp [make_range]
+              simp [g_base]
+            exact Submodule.subset_span g_in_range,
+          tree := ReverseTree.root,
+          tree_iso_a := by
+            simp [initial_vals]
+            simp [ReverseTree.getData]
+            exact g_base.symm
+          preserves_tree := by
+            intro other_vals other_t data_eq
+            simp [ReverseTree.getData]
+            sorry
+          b_in_range := by sorry
+        }
+        g_eq := rfl
     }
   . sorry
 
@@ -2566,7 +2578,7 @@ noncomputable def full_x_vals (g: G): XValsFullData g := by
 --   t: @ReverseTree (full_x_vals g).target_val.vals
 --   preserves_tree: (∃ vals: XVals, ∃ other_t: @ReverseTree vals, other_t.getData.a = g) → t.getData.a = g
 
-noncomputable def f (g: G): G := (full_x_vals g).target_val.iso.symm ⟨(full_x_vals g).tree.getData.b, (full_x_vals g).b_in_range⟩
+noncomputable def f (g: G): G := (full_x_vals g).inner.target_val.iso.symm ⟨(full_x_vals g).inner.tree.getData.b, (full_x_vals g).inner.b_in_range⟩
 
 -- TODO - what exactly is the interpretation of this lemma, and why can't lean figure it our for us?
 lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 = vals2) (hv: @ReverseTree vals1 = @ReverseTree vals2): t.getData = (cast hv t).getData := by
@@ -2577,8 +2589,24 @@ lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 =
 
 lemma new_f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
   simp [f]
-  have preserves_tree := (full_x_vals t.getData.a).preserves_tree vals t rfl
-  exact preserves_tree
+  have preserves_tree := (full_x_vals t.getData.a).inner.preserves_tree vals t
+  simp [(full_x_vals t.getData.a).g_eq] at preserves_tree
+  obtain ⟨preserves_b, preserves_a⟩ := preserves_tree
+  conv =>
+    lhs
+    --simp [preserves_tree]
+
+  have iso_b := (full_x_vals t.getData.a).inner.tree_iso_b
+  simp [← iso_b]
+
+
+  have a_iso := (full_x_vals t.getData.a).inner.tree_iso_a
+
+  conv =>
+    lhs
+    rw [preserves_b]
+
+
 
   -- have x_vals_eq := (full_x_vals t.getData.a)..preserves_x_val (vals) ⟨t, rfl⟩
   -- have cast_trees := cast_data_eq (full_x_vals t.getData.a).tree x_vals_eq

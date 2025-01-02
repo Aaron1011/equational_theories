@@ -2539,9 +2539,17 @@ structure WrapperXValsFullData (g: G) where
   inner: XValsFullData
   g_eq: inner.g = g
 
-noncomputable def full_x_vals (g: G): WrapperXValsFullData g := by
-  by_cases g_base: g = (mk_x_vals 0).x_vals 0
-  .
+
+
+noncomputable def full_x_vals_num (n: ℕ): WrapperXValsFullData (g_enumerate n) := by
+  let g := g_enumerate n
+  match hn: n with
+  | 0 =>
+    have g_vals_zero: g = (mk_x_vals 0).x_vals 0 := by
+      dsimp [g]
+      rw [hn]
+      rw [g_enum_zero_eq_one]
+      simp [mk_x_vals, XVals.x_vals]
     let initial_vals: XValsIso := {
       vals := mk_x_vals 0,
       other_space := Submodule.span ℚ (make_range (mk_x_vals 0)),
@@ -2557,13 +2565,13 @@ noncomputable def full_x_vals (g: G): WrapperXValsFullData g := by
             simp [make_range]
             have g_in_range: g ∈ make_range (mk_x_vals 0) := by
               simp [make_range]
-              simp [g_base]
+              simp [g_vals_zero]
             exact Submodule.subset_span g_in_range,
           tree := ReverseTree.root,
           tree_iso_a := by
             simp [initial_vals]
             simp [ReverseTree.getData]
-            exact g_base.symm
+            exact g_vals_zero.symm
           tree_iso_b := by
             simp [initial_vals]
           preserves_tree := by
@@ -2579,9 +2587,49 @@ noncomputable def full_x_vals (g: G): WrapperXValsFullData g := by
               simp [make_range]
             exact Submodule.subset_span vals_one_in
         }
-        g_eq := rfl
+        g_eq := by
+          dsimp [g]
+          rw [hn]
     }
-  . sorry
+  -- Note - we set up 'g_to_num' so that the first element is '(mk_x_vals 0).x_vals 0'
+  | a + 1 =>
+    by_cases have_tree: ∃ iso: XValsIso, iso ∈ (full_x_vals_num a).inner.vals ∧ ∃ t: @ReverseTree iso.vals, t.getData.a = g
+    . let iso := Classical.choose have_tree
+      exact {
+        inner := {
+          g := g
+          vals := (full_x_vals_num a).inner.vals,
+          target_val := iso,
+          target_val_in := by
+            dsimp [iso]
+            exact (Classical.choose_spec have_tree).1
+          contains_n := by
+            sorry
+          tree := Classical.choose ((Classical.choose_spec have_tree).2)
+          tree_iso_a := by
+            exact iso.tree_iso_a
+          tree_iso_b := by
+            simp
+          preserves_tree := by
+            intro other_vals other_t data_eq
+            simp
+            refine ⟨?_, ?_⟩
+            sorry
+            sorry
+          b_in_range := by
+            simp
+            exact have_tree
+        }
+        g_eq := by
+          dsimp [g]
+          rw [hn]
+      }
+    . sorry
+
+noncomputable def full_x_vals (g: G): WrapperXValsFullData g := by
+  let bar := full_x_vals_num (g_to_num g)
+  rw [g_enum_inverse] at bar
+  exact bar
 
 -- structure FAndData (g: G) where
 --   t: @ReverseTree (full_x_vals g).target_val.vals

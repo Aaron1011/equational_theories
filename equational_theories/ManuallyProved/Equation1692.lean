@@ -3069,18 +3069,18 @@ lemma f_eval_at_b (vals: XVals) (t: @ReverseTree vals): f (-t.getData.b) = t.lef
 
 
 lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
-  have neg_f: -(f g) = -(full_x_vals g).target_val.iso.symm ⟨(full_x_vals g).tree.getData.b, (full_x_vals g).b_in_range⟩ := by
+  have neg_f: -(f g) = -(full_x_vals g).inner.target_val.iso.symm ⟨(full_x_vals g).inner.tree.getData.b, (full_x_vals g).inner.b_in_range⟩ := by
     sorry
-  have f_neg_f: f (- f g) = (full_x_vals (f g)).target_val.iso.symm ⟨(full_x_vals (f g)).tree.left.getData.b, sorry⟩ := by
+  have f_neg_f: f (- f g) = (full_x_vals (f g)).inner.target_val.iso.symm ⟨(full_x_vals (f g)).inner.tree.left.getData.b, sorry⟩ := by
     sorry
-  have f_double: f (f (- f g)) = (full_x_vals (f g)).target_val.iso.symm ⟨(full_x_vals (f g)).tree.right.getData.b, sorry⟩ := by
+  have f_double: f (f (- f g)) = (full_x_vals (f g)).inner.target_val.iso.symm ⟨(full_x_vals (f g)).inner.tree.right.getData.b, sorry⟩ := by
     sorry
   rw [f_double]
   simp [ReverseTree.getData]
-  have g_eq_tree: g = (full_x_vals (f g)).tree.getData.a := by sorry
+  have g_eq_tree: g = (full_x_vals (f g)).inner.tree.getData.a := by sorry
   conv =>
     lhs
-    pattern (full_x_vals (f g)).tree.getData.a
+    pattern (full_x_vals (f g)).inner.tree.getData.a
     rw [← g_eq_tree]
   conv =>
     lhs
@@ -3088,26 +3088,40 @@ lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
     pattern g - _
     rw [sub_eq_add_neg]
 
-  have subtype_linear: (⟨g + -(full_x_vals (f g)).tree.getData.b, sorry⟩ : Submodule.span ℚ (make_range (full_x_vals (f g)).target_val.vals)) = ⟨g, sorry⟩ + ⟨-(full_x_vals (f g)).tree.getData.b, sorry⟩ := by
+  have subtype_linear: (⟨g + -(full_x_vals (f g)).inner.tree.getData.b, sorry⟩ : Submodule.span ℚ (make_range (full_x_vals (f g)).inner.target_val.vals)) = ⟨g, sorry⟩ + ⟨-(full_x_vals (f g)).inner.tree.getData.b, sorry⟩ := by
     simp only [AddMemClass.mk_add_mk]
 
   rw [subtype_linear]
   conv =>
     lhs
     rw [LinearEquiv.map_add]
-  have a_eq := (full_x_vals (f g)).tree_iso_a
+  have a_eq := (full_x_vals (f g)).inner.tree_iso_a
   conv at neg_f =>
     rhs
-    equals ↑((full_x_vals (f g)).target_val.iso.symm ⟨-(full_x_vals (f g)).tree.getData.b, sorry⟩) =>
+    equals ↑((full_x_vals (f g)).inner.target_val.iso.symm ⟨-(full_x_vals (f g)).inner.tree.getData.b, sorry⟩) =>
       sorry
 
-  have g_iso_eq: (full_x_vals (f g)).target_val = (full_x_vals g).target_val := by
+  have inner_target_eq: (full_x_vals (g)).inner.target_val = (full_x_vals (f g)).inner.target_val := by
     sorry
 
 
   simp [← neg_f]
-  rw [g_iso_eq]
-  have new_a_eq := (full_x_vals (g)).tree_iso_a
+  simp [(full_x_vals (f g)).g_eq] at a_eq
+
+  have other_a_eq := (full_x_vals g).inner.tree_iso_a
+  simp [(full_x_vals g).g_eq] at other_a_eq
+
+
+  rw [← inner_target_eq]
+  have preserves_data := (full_x_vals g).inner.preserves_tree
+
+
+
+
+
+
+
+
   sorry
 
 

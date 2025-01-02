@@ -392,8 +392,6 @@ lemma XVals.x_basis (vals: XVals): Set.range vals.x_vals ⊆ Set.range basis_n :
   simp [XVals.x_vals] at hy
   exact hy
 
-opaque make_range (vals: XVals): Set (ℕ →₀ ℚ) := Set.range vals.x_vals
-
 noncomputable def mk_x_vals (i: ℕ): XVals := by
   exact {
     i := i,
@@ -2511,6 +2509,9 @@ def tree_to_supp {vals: XVals} (t: @ReverseTree vals): Set ℕ :=
 def my_subset := {g: G | ∃ a: G, g = a - (@ReverseTree.root (mk_x_vals (g_to_num a))).getData.a ∧ ∀ vals: XVals, ∀ t: @ReverseTree vals, t.getData.a ≠ a}
 noncomputable def submod := Submodule.span ℚ my_subset
 
+-- 'opaque' speeds this up for some reason
+def make_range (vals: XVals): Set (ℕ →₀ ℚ) := Set.range vals.x_vals
+
 structure XValsIso where
   vals: XVals
   other_space: Submodule ℚ (ℕ →₀ ℚ)
@@ -2524,14 +2525,41 @@ structure XValsFullData (g: G) where
   contains_n: g ∈ target_val.other_space
   tree: @ReverseTree target_val.vals
   tree_iso_a: tree.getData.a = target_val.iso ⟨g, contains_n⟩
-  preserves_x_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = g) → target_val.vals = vals
+  --preserves_x_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = g) → target_val.vals = vals
   preserves_tree: ∀ other_vals: XVals, ∀ other_t: @ReverseTree other_vals, (other_t.getData.a = g) → tree.getData.b = other_t.getData.b
 
 
   --iso: ((Submodule.span ℚ (Set.range vals.x_vals: Set (ℕ →₀ ℚ) ))) ≃ₗ[ℚ] other_space
 
 noncomputable def full_x_vals (g: G): XValsFullData g := by
-  sorry
+  by_cases g_base: g = (mk_x_vals 0).x_vals 0
+  .
+    let initial_vals: XValsIso := {
+      vals := mk_x_vals 0,
+      other_space := Submodule.span ℚ (make_range (mk_x_vals 0)),
+      iso := LinearEquiv.refl _ _
+    }
+    exact {
+      vals := {initial_vals},
+      target_val := initial_vals,
+      target_val_in := by simp,
+      contains_n := by
+        simp [make_range]
+        have g_in_range: g ∈ make_range (mk_x_vals 0) := by
+          simp [make_range]
+          simp [g_base]
+        exact Submodule.subset_span g_in_range,
+      tree := ReverseTree.root,
+      tree_iso_a := by
+        simp [initial_vals]
+        simp [ReverseTree.getData]
+        exact g_base.symm
+      preserves_tree := by
+        intro other_vals other_t data_eq
+        simp [ReverseTree.getData]
+        sorry
+    }
+  . sorry
 
 structure FAndData (g: G) where
   t: @ReverseTree (full_x_vals g).target_val.vals

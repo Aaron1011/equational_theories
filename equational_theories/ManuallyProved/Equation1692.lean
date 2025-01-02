@@ -3055,7 +3055,7 @@ lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (Submodule.Quotient.mk t
 
   rw [← my_cast_data]
 
-lemma f_eval_at_b (vals: XVals) (t: @ReverseTree vals): f (-t.getData.b) = t.left.getData.b := by
+lemma f_eval_at_b {vals: XVals} (t: @ReverseTree vals): f (-t.getData.b) = t.left.getData.b := by
   have t_left_a_eq: -t.getData.b = t.left.getData.a := by
     simp [ReverseTree.getData]
   rw [t_left_a_eq]
@@ -3067,12 +3067,38 @@ lemma f_eval_at_b (vals: XVals) (t: @ReverseTree vals): f (-t.getData.b) = t.lef
   -- f(f(-f(g))) = -4g + -4g = -8g
 
 
-
 lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
   have neg_f: -(f g) = -(full_x_vals g).inner.target_val.iso.symm ⟨(full_x_vals g).inner.tree.getData.b, (full_x_vals g).inner.b_in_range⟩ := by
+    simp [f]
+  have neg_left_tree: ∃ vals: XVals, ∃ t: @ReverseTree vals, t.left.getData.a = - f g := by
     sorry
-  have f_neg_f: f (- f g) = (full_x_vals (f g)).inner.target_val.iso.symm ⟨(full_x_vals (f g)).inner.tree.left.getData.b, sorry⟩ := by
-    sorry
+  obtain ⟨vals, t_parent, ht_parent⟩ := neg_left_tree
+  have eval_at_neg := new_f_eval_at t_parent.left
+  rw [ht_parent] at eval_at_neg
+  rw [eval_at_neg]
+  have parent_right: t_parent.right.getData.a = t_parent.left.getData.b := by
+    simp [ReverseTree.getData]
+  rw [← parent_right]
+  rw [new_f_eval_at t_parent.right]
+  simp [ReverseTree.getData]
+  conv =>
+    rhs
+    rw [sub_eq_add_neg]
+  rw [← ht_parent]
+  simp [ReverseTree.getData]
+  rw [sub_eq_add_neg]
+  simp
+  -- WRONG - 'g' is not necessarily a left tree value
+
+
+
+
+
+  have f_neg_f: f (- f g) = (full_x_vals (- f g)).inner.target_val.iso.symm ⟨(full_x_vals (g)).inner.tree.left.getData.b, sorry⟩ := by
+
+    have preserves_tree := (full_x_vals (- f g)).inner.preserves_tree ((full_x_vals g).inner.target_val.vals) (full_x_vals g).inner.tree
+
+
   have f_double: f (f (- f g)) = (full_x_vals (f g)).inner.target_val.iso.symm ⟨(full_x_vals (f g)).inner.tree.right.getData.b, sorry⟩ := by
     sorry
   rw [f_double]

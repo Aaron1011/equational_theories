@@ -2525,6 +2525,7 @@ structure XValsFullData (g: G) where
   contains_n: g ∈ target_val.other_space
   tree: @ReverseTree target_val.vals
   tree_iso_a: tree.getData.a = target_val.iso ⟨g, contains_n⟩
+  b_in_range: tree.getData.b ∈ ((Submodule.span ℚ (make_range target_val.vals)))
   --preserves_x_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = g) → target_val.vals = vals
   preserves_tree: ∀ other_vals: XVals, ∀ other_t: @ReverseTree other_vals, (other_t.getData.a = g) → tree.getData.b = other_t.getData.b
 
@@ -2561,11 +2562,11 @@ noncomputable def full_x_vals (g: G): XValsFullData g := by
     }
   . sorry
 
-structure FAndData (g: G) where
-  t: @ReverseTree (full_x_vals g).target_val.vals
-  preserves_tree: (∃ vals: XVals, ∃ other_t: @ReverseTree vals, other_t.getData.a = g) → t.getData.a = g
+-- structure FAndData (g: G) where
+--   t: @ReverseTree (full_x_vals g).target_val.vals
+--   preserves_tree: (∃ vals: XVals, ∃ other_t: @ReverseTree vals, other_t.getData.a = g) → t.getData.a = g
 
-noncomputable def f (g: G): G := (full_x_vals g).tree.getData.b
+noncomputable def f (g: G): G := (full_x_vals g).target_val.iso.symm ⟨(full_x_vals g).tree.getData.b, (full_x_vals g).b_in_range⟩
 
 -- TODO - what exactly is the interpretation of this lemma, and why can't lean figure it our for us?
 lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 = vals2) (hv: @ReverseTree vals1 = @ReverseTree vals2): t.getData = (cast hv t).getData := by
@@ -3030,7 +3031,7 @@ lemma f_eval_at_b (vals: XVals) (t: @ReverseTree vals): f (-t.getData.b) = t.lef
   have t_left_a_eq: -t.getData.b = t.left.getData.a := by
     simp [ReverseTree.getData]
   rw [t_left_a_eq]
-  rw [f_eval_at t.left]
+  rw [new_f_eval_at t.left]
 
   -- suppose f(g) = g + g
   -- -f(g)= -g - g
@@ -3040,42 +3041,46 @@ lemma f_eval_at_b (vals: XVals) (t: @ReverseTree vals): f (-t.getData.b) = t.lef
 
 
 lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
-  have new_proof := (full_fun_from_n (g_to_num g)).new_proof
-  by_cases has_tree: ∃ t: @ReverseTree (full_fun_from_n (g_to_num g)).x_vals, t.getData.a = g
-  .
-    conv =>
-      pattern - f g
-      simp [f]
-    simp [has_tree]
-    have orig_has_tree := has_tree
-    rw [f_eval_at_b]
-    obtain ⟨t, h_t⟩ := has_tree
-    have left_b_eq: (full_fun_from_n (g_to_num g)).tree.left.getData.b = (full_fun_from_n (g_to_num g)).tree.right.getData.a := by
-      simp [ReverseTree.getData]
+  have neg_f: -(f g) = -(full_x_vals g).target_val.iso.symm ⟨(full_x_vals g).tree.getData.b, (full_x_vals g).b_in_range⟩ := by
+    sorry
+  have f_neg_f: f (- f g) = (full_x_vals (f g)).target_val.iso.symm ⟨(full_x_vals (f g)).tree.left.getData.b, sorry⟩ := by
+    sorry
+  have f_double: f (f (- f g)) = (full_x_vals (f g)).target_val.iso.symm ⟨(full_x_vals (f g)).tree.right.getData.b, sorry⟩ := by
+    sorry
+  rw [f_double]
+  simp [ReverseTree.getData]
+  have g_eq_tree: g = (full_x_vals (f g)).tree.getData.a := by sorry
+  conv =>
+    lhs
+    pattern (full_x_vals (f g)).tree.getData.a
+    rw [← g_eq_tree]
+  conv =>
+    lhs
+    simp
+    pattern g - _
+    rw [sub_eq_add_neg]
 
-    rw [left_b_eq]
-    rw [f_eval_at]
-    simp [ReverseTree.getData]
-    conv =>
-      rhs
-      rw [← h_t]
-    specialize new_proof t
-    simp [g_enum_inverse] at new_proof
-    simp [← h_t] at new_proof
-    rw [new_proof]
-    rw [f_eval_at]
+  have subtype_linear: (⟨g + -(full_x_vals (f g)).tree.getData.b, sorry⟩ : Submodule.span ℚ (make_range (full_x_vals (f g)).target_val.vals)) = ⟨g, sorry⟩ + ⟨-(full_x_vals (f g)).tree.getData.b, sorry⟩ := by
+    simp only [AddMemClass.mk_add_mk]
 
-  . conv =>
-      pattern f g
-      simp [f, has_tree]
-    have tree_left_eq: (@ReverseTree.root (mk_x_vals 1)).left.getData.b = (mk_x_vals 1).x_vals 2 := by
-      simp [ReverseTree.getData, newNum]
-    rw [← tree_left_eq, f_eval_at_b]
-    have left_b_eq: (@ReverseTree.root (mk_x_vals 1)).left.left.getData.b = (@ReverseTree.root (mk_x_vals 1)).left.right.getData.a := by
-      simp [ReverseTree.getData]
-    rw [left_b_eq, f_eval_at]
-    simp [ReverseTree.getData]
-    simp [f, has_tree, newNum]
+  rw [subtype_linear]
+  conv =>
+    lhs
+    rw [LinearEquiv.map_add]
+  have a_eq := (full_x_vals (f g)).tree_iso_a
+  conv at neg_f =>
+    rhs
+    equals ↑((full_x_vals (f g)).target_val.iso.symm ⟨-(full_x_vals (f g)).tree.getData.b, sorry⟩) =>
+      sorry
+
+  have g_iso_eq: (full_x_vals (f g)).target_val = (full_x_vals g).target_val := by
+    sorry
+
+
+  simp [← neg_f]
+  rw [g_iso_eq]
+  have new_a_eq := (full_x_vals (g)).tree_iso_a
+  sorry
 
 
 #print axioms temp_partial_function

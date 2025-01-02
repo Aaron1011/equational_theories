@@ -2564,11 +2564,20 @@ noncomputable def full_x_vals (g: G): WrapperXValsFullData g := by
             simp [initial_vals]
             simp [ReverseTree.getData]
             exact g_base.symm
+          tree_iso_b := by
+            simp [initial_vals]
           preserves_tree := by
             intro other_vals other_t data_eq
             simp [ReverseTree.getData]
+            refine ⟨?_, ?_⟩
             sorry
-          b_in_range := by sorry
+            sorry
+          b_in_range := by
+            simp [make_range]
+            simp [ReverseTree.getData]
+            have vals_one_in: (mk_x_vals 0).x_vals 1 ∈ make_range (mk_x_vals 0) := by
+              simp [make_range]
+            exact Submodule.subset_span vals_one_in
         }
         g_eq := rfl
     }

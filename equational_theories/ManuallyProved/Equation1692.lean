@@ -1,4 +1,5 @@
 import Mathlib
+import Mathlib.Algebra.Module.Equiv.Defs
 
 -- https://leanprover.zulipchat.com/user_uploads/3121/ASjTo5huToAvNGcg7pOGOOSy/Equation1692.pdf
 
@@ -11,6 +12,8 @@ set_option linter.unusedVariables false
 
 -- TODO -  only finitely many entries are non-zero?
 abbrev G := (ℕ →₀ ℚ)
+
+abbrev MyMod := Module ℚ (ℕ →₀ ℚ)
 
 noncomputable abbrev n_q_basis := Finsupp.basisSingleOne (R := ℚ) (ι := ℕ)
 noncomputable abbrev basis_n := DFunLike.coe n_q_basis
@@ -388,6 +391,8 @@ lemma XVals.x_basis (vals: XVals): Set.range vals.x_vals ⊆ Set.range basis_n :
   use 2 ^ vals.i + h * 2 ^ (vals.i + 1)
   simp [XVals.x_vals] at hy
   exact hy
+
+opaque make_range (vals: XVals): Set (ℕ →₀ ℚ) := Set.range vals.x_vals
 
 noncomputable def mk_x_vals (i: ℕ): XVals := by
   exact {
@@ -2496,11 +2501,6 @@ def g_enum_inverse (g: G): g_enumerate (g_to_num g) = g := by
 def tree_to_supp {vals: XVals} (t: @ReverseTree vals): Set ℕ :=
   t.getData.a.support.toSet
 
-structure XValsFullData (n: ℕ) where
-  vals: Set XVals
-  from_mk: ∀ x_vals: XVals, x_vals ∈ vals → ∃ n, x_vals = mk_x_vals n
-  contains_n: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ vals ∧ t.getData.a = (g_enumerate n)
-
 
 --noncomputable abbrev f (g: G): G := (full_fun_from_n (g_to_num g)).tree.getData.b
 
@@ -2511,48 +2511,109 @@ structure XValsFullData (n: ℕ) where
 def my_subset := {g: G | ∃ a: G, g = a - (@ReverseTree.root (mk_x_vals (g_to_num a))).getData.a ∧ ∀ vals: XVals, ∀ t: @ReverseTree vals, t.getData.a ≠ a}
 noncomputable def submod := Submodule.span ℚ my_subset
 
-noncomputable def full_x_vals (n: ℕ): XValsFullData n := by
-  match n with
-  | 0 => exact {
-        vals := {mk_x_vals 0},
-        from_mk := by
-          simp
-        contains_n := by
-          use mk_x_vals 0
-          use ReverseTree.root
-          simp [g_enum_zero_eq_one]
-          simp [ReverseTree.getData, mk_x_vals, XVals.x_vals]
-      }
-  | n + 1 =>
-    let prev_x_vals := full_x_vals n
-    by_cases exists_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = (g_enumerate (n + 1))
-    . exact {
-        vals := prev_x_vals.vals,
-        from_mk := prev_x_vals.from_mk,
-        contains_n := exists_tree
-      }
-      -- TODO - build new tree
-    .
-      have candidate_val: ∃ new_vals: XVals, ∃ t :@ReverseTree new_vals, t.getData.a = (g_enumerate (n + 1)) := by
-        sorry
-      let x_vals_to_supp := (λ new_x_vals : XVals => (tree_to_supp '' Set.univ (α := @ReverseTree new_x_vals)).sUnion)
-      have all_prev_supps := (x_vals_to_supp '' prev_x_vals.vals).sUnion
-      have s_i_without: ∃ i, ((g_enumerate n).support.toSet ∪ all_prev_supps) ∩ ((λ s => s.2.support.toSet) '' (s_i i)).sUnion = ∅ := by
-        by_contra!
-        sorry
-      have i := Classical.choose s_i_without
-      let new_x_vals  := mk_x_vals i
-      exact  {
-        vals := prev_x_vals.vals ∪ {new_x_vals},
-        from_mk := by
-          simp
-          exact prev_x_vals.from_mk
-        contains_n := by
-          use mk_x_vals i
-          sorry
+structure XValsIso where
+  vals: XVals
+  other_space: Submodule ℚ (ℕ →₀ ℚ)
+  iso: other_space ≃ₗ[ℚ] ((Submodule.span ℚ (make_range vals)))
 
 
-      }
+structure XValsFullData (g: G) where
+  vals: Set (XValsIso)
+  target_val: XValsIso
+  target_val_in: target_val ∈ vals
+  contains_n: g ∈ target_val.other_space
+  tree: @ReverseTree target_val.vals
+  tree_iso_a: tree.getData.a = target_val.iso ⟨g, contains_n⟩
+  preserves_x_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = g) → target_val.vals = vals
+  preserves_tree: ∀ other_vals: XVals, ∀ other_t: @ReverseTree other_vals, (other_t.getData.a = g) → tree.getData.b = other_t.getData.b
+
+
+  --iso: ((Submodule.span ℚ (Set.range vals.x_vals: Set (ℕ →₀ ℚ) ))) ≃ₗ[ℚ] other_space
+
+noncomputable def full_x_vals (g: G): XValsFullData g := by
+  sorry
+
+structure FAndData (g: G) where
+  t: @ReverseTree (full_x_vals g).target_val.vals
+  preserves_tree: (∃ vals: XVals, ∃ other_t: @ReverseTree vals, other_t.getData.a = g) → t.getData.a = g
+
+noncomputable def f (g: G): G := (full_x_vals g).tree.getData.b
+
+-- TODO - what exactly is the interpretation of this lemma, and why can't lean figure it our for us?
+lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 = vals2) (hv: @ReverseTree vals1 = @ReverseTree vals2): t.getData = (cast hv t).getData := by
+  congr
+  rw [heq_comm]
+  simp
+
+
+lemma new_f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
+  simp [f]
+  have preserves_tree := (full_x_vals t.getData.a).preserves_tree vals t rfl
+  exact preserves_tree
+
+  -- have x_vals_eq := (full_x_vals t.getData.a)..preserves_x_val (vals) ⟨t, rfl⟩
+  -- have cast_trees := cast_data_eq (full_x_vals t.getData.a).tree x_vals_eq
+  -- have types_eq: @ReverseTree (full_x_vals t.getData.a).target_val.vals = @ReverseTree vals := by
+  --   simp [x_vals_eq]
+  -- have trees_eq := cast_data_eq t x_vals_eq.symm types_eq.symm
+  -- rw [trees_eq]
+  -- apply_fun (fun x => TreeData.a x) at trees_eq
+  -- have trees_eq := temp_partial_function trees_eq
+
+  -- have bar := (full_x_vals t.getData.a).preserves_tree ⟨cast types_eq.symm t, by
+  --   rw [← trees_eq]
+  -- ⟩
+
+  --have trees_eq := temp_partial_function ((full_x_vals (g_to_num t.getData.a)).target_val.vals)
+
+
+
+
+  -- match n with
+  -- | 0 => exact {
+  --       vals := {
+  --         {
+  --           vals := mk_x_vals 0,
+  --           contains_n := b7
+  --         }
+  --       },
+  --       contains_n := by
+  --         use mk_x_vals 0
+  --         use ReverseTree.root
+  --         simp [g_enum_zero_eq_one]
+  --         simp [ReverseTree.getData, mk_x_vals, XVals.x_vals]
+  --     }
+  -- | n + 1 =>
+  --   let prev_x_vals := full_x_vals n
+  --   by_cases exists_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = (g_enumerate (n + 1))
+  --   . exact {
+  --       vals := prev_x_vals.vals,
+  --       from_mk := prev_x_vals.from_mk,
+  --       contains_n := exists_tree
+  --     }
+  --     -- TODO - build new tree
+  --   .
+
+  --     have candidate_val: ∃ new_vals: XVals, ∃ t :@ReverseTree new_vals, t.getData.a = (g_enumerate (n + 1)) := by
+  --       sorry
+  --     let x_vals_to_supp := (λ new_x_vals : XVals => (tree_to_supp '' Set.univ (α := @ReverseTree new_x_vals)).sUnion)
+  --     have all_prev_supps := (x_vals_to_supp '' prev_x_vals.vals).sUnion
+  --     have s_i_without: ∃ i, ((g_enumerate n).support.toSet ∪ all_prev_supps) ∩ ((λ s => s.2.support.toSet) '' (s_i i)).sUnion = ∅ := by
+  --       by_contra!
+  --       sorry
+  --     have i := Classical.choose s_i_without
+  --     let new_x_vals  := mk_x_vals i
+  --     exact  {
+  --       vals := prev_x_vals.vals ∪ {new_x_vals},
+  --       from_mk := by
+  --         simp
+  --         exact prev_x_vals.from_mk
+  --       contains_n := by
+  --         use mk_x_vals i
+  --         sorry
+
+
+  --     }
 
 
 #check G ⧸ submod
@@ -2576,12 +2637,6 @@ lemma neq_implies_neq_i {vals1 vals2: XVals} (h_vals: vals1 ≠ vals2): vals1.i 
   rw [vals_eq] at vals_destructure
   rw [← choose_destructure] at vals_destructure
   contradiction
-
--- TODO - what exactly is the interpretation of this lemma, and why can't lean figure it our for us?
-lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 = vals2) (hv: @ReverseTree vals1 = @ReverseTree vals2): t.getData = (cast hv t).getData := by
-  congr
-  rw [heq_comm]
-  simp
 
 -- Maps the nth element of G by applying our construced function 'f'
 noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
@@ -2818,13 +2873,11 @@ noncomputable def full_fun_from_n (n: ℕ): GAndProof n := by
 
 abbrev G' := G ⧸ submod
 
-noncomputable def f (g: G'): G' := by
-  simp [G']
 
   -- The 'g_to_num' values of all elements in the quotient equivalene class of 't.getData.a'
-  have nums_related := {n: ℕ | ∃ a: G, g_to_num a = n ∧ (Submodule.Quotient.mk (p := submod) a) = g}
-  let min_num := sInf nums_related
-  exact Submodule.Quotient.mk (full_fun_from_n min_num).tree.getData.b
+  -- have nums_related := {n: ℕ | ∃ a: G, g_to_num a = n ∧ (Submodule.Quotient.mk (p := submod) a) = g}
+  -- let min_num := sInf nums_related
+  -- exact Submodule.Quotient.mk (full_fun_from_n min_num).tree.getData.b
 
   -- TODO - is there a better way to do this?
   --have eq_mk_repr := Submodule.Quotient.mk_surjective submod g
@@ -2884,7 +2937,7 @@ lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (Submodule.Quotient.mk t
     have sinf_lt: sInf my_set < (g_to_num) t.getData.a := by
       omega
     simp [my_set] at sinf_lt
-    
+
 
 
 

@@ -2527,7 +2527,9 @@ structure XValsFullData where
   tree: @ReverseTree target_val.vals
   tree_iso_a: tree.getData.a = target_val.iso ⟨g, contains_n⟩
   b_in_range: tree.getData.b ∈ ((Submodule.span ℚ (make_range target_val.vals)))
-  tree_iso_b: tree.getData.b = target_val.iso.symm ⟨tree.getData.b, b_in_range⟩
+  -- BAD - we *cannot* have the isomorphism fix 'b', since 'b' could be 'parent.a - parent.b', which would
+  -- mean that the isomorphism would fix 'a'
+  --tree_iso_b: tree.getData.b = target_val.iso.symm ⟨tree.getData.b, b_in_range⟩
   --preserves_x_val: ∀ vals: XVals, (∃ t: @ReverseTree vals, t.getData.a = g) → target_val.vals = vals
   preserves_tree: ∀ other_vals: XVals, ∀ other_t: @ReverseTree other_vals, (other_t.getData.a = g) → tree.getData.b = other_t.getData.b ∧ tree.getData.a = other_t.getData.a
 
@@ -2540,6 +2542,12 @@ structure WrapperXValsFullData (g: G) where
   g_eq: inner.g = g
 
 
+structure PrevData (g: G) (prev_isos: Set XValsIso) where
+  x_vals_iso: XValsIso
+  x_vals_in: x_vals_iso ∈ prev_isos
+  g_in_space: g ∈ x_vals_iso.other_space
+  tree: @ReverseTree x_vals_iso.vals
+  tree_in_range: tree.getData.a = x_vals_iso.iso ⟨g, g_in_space⟩
 
 noncomputable def full_x_vals_num (n: ℕ): WrapperXValsFullData (g_enumerate n) := by
   let g := g_enumerate n
@@ -2593,22 +2601,24 @@ noncomputable def full_x_vals_num (n: ℕ): WrapperXValsFullData (g_enumerate n)
     }
   -- Note - we set up 'g_to_num' so that the first element is '(mk_x_vals 0).x_vals 0'
   | a + 1 =>
-    by_cases have_tree: ∃ iso: XValsIso, iso ∈ (full_x_vals_num a).inner.vals ∧ ∃ t: @ReverseTree iso.vals, t.getData.a = g
-    . let iso := Classical.choose have_tree
+    by_cases have_tree: ∃ data: PrevData g (full_x_vals_num a).inner.vals, True
+    . let prev_data := Classical.choose have_tree
       exact {
         inner := {
           g := g
           vals := (full_x_vals_num a).inner.vals,
-          target_val := iso,
+          target_val := prev_data.x_vals_iso,
           target_val_in := by
-            dsimp [iso]
-            exact (Classical.choose_spec have_tree).1
+            exact prev_data.x_vals_in
           contains_n := by
-            sorry
-          tree := Classical.choose ((Classical.choose_spec have_tree).2)
+            exact prev_data.g_in_space
+          tree := by
+            exact prev_data.tree
           tree_iso_a := by
-            exact iso.tree_iso_a
+            exact prev_data.tree_in_range
           tree_iso_b := by
+
+            sorry
             simp
           preserves_tree := by
             intro other_vals other_t data_eq
@@ -2644,24 +2654,36 @@ lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 =
   simp
 
 
-lemma new_f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
+lemma f_b_preserved {vals: XVals} (t: @ReverseTree vals): t.getData.b = (full_x_vals t.getData.a).inner.tree.getData.b := by
+  have preserved_tree := (full_x_vals t.getData.a).inner.preserves_tree vals t
+  simp [ (full_x_vals t.getData.a).g_eq] at preserved_tree
+  rw [preserved_tree.1]
+
+lemma f_b_in {vals: XVals} (t: @ReverseTree vals): t.getData.b ∈ Submodule.span ℚ (make_range (full_x_vals t.getData.a).inner.target_val.vals) := by
+  have b_in := (full_x_vals t.getData.a).inner.b_in_range
+  rwa [← f_b_preserved t] at b_in
+
+lemma new_f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = (full_x_vals t.getData.a).inner.target_val.iso.symm ⟨t.getData.b, f_b_in t⟩ := by
   simp [f]
-  have preserves_tree := (full_x_vals t.getData.a).inner.preserves_tree vals t
-  simp [(full_x_vals t.getData.a).g_eq] at preserves_tree
-  obtain ⟨preserves_b, preserves_a⟩ := preserves_tree
-  conv =>
-    lhs
-    --simp [preserves_tree]
-
-  have iso_b := (full_x_vals t.getData.a).inner.tree_iso_b
-  simp [← iso_b]
+  rw [← f_b_preserved]
 
 
-  have a_iso := (full_x_vals t.getData.a).inner.tree_iso_a
+  -- have preserves_tree := (full_x_vals t.getData.a).inner.preserves_tree vals t
+  -- simp [(full_x_vals t.getData.a).g_eq] at preserves_tree
+  -- obtain ⟨preserves_b, preserves_a⟩ := preserves_tree
+  -- conv =>
+  --   lhs
+  --   --simp [preserves_tree]
 
-  conv =>
-    lhs
-    rw [preserves_b]
+  -- have iso_b := (full_x_vals t.getData.a).inner.tree_iso_b
+  -- simp [← iso_b]
+
+
+  -- have a_iso := (full_x_vals t.getData.a).inner.tree_iso_a
+
+  -- conv =>
+  --   lhs
+  --   rw [preserves_b]
 
 
 

@@ -3220,23 +3220,6 @@ lemma f_functional_eq (g: G): f (f (- f g)) = g - (f g) := by
   have left_right_x_vals_eq: ((full_x_vals t_parent.left.getData.a).inner) = ((full_x_vals t_parent.right.getData.a).inner) := by
     sorry
 
-  have left_right_a_eq: t_parent.left.getData.a = t_parent.right.getData.a := by
-    sorry
-
-  have simpler_target: (full_x_vals t_parent.left.getData.a).inner.g = 0 := by
-    sorry
-
-  have harder_target: f ↑((full_x_vals t_parent.left.getData.a).inner.target_val.iso.symm ⟨t_parent.right.getData.a, f_b_in t_parent.left⟩) = g - f g := by
-    sorry
-
-  have subtype_target: (⟨t_parent.right.getData.a, f_b_in t_parent.left⟩: Subtype ((Membership.mem (Submodule.span ℚ (make_range (full_x_vals t_parent.left.getData.a).inner.target_val.vals))))) = (0 : G) := by
-    sorry
-
-
-  rw [left_right_a_eq] at simpler_target
-  rw [← left_right_a_eq] at subtype_target
-  rw [left_right_a_eq] at harder_target
-  rw [left_right_a_eq]
 
   --have parent_right: t_parent.right.getData.a = t_parent.left.getData.b := by
   --  simp [ReverseTree.getData]

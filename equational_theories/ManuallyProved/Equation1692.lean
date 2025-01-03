@@ -2713,7 +2713,7 @@ structure LatestXVals (g: G) where
   cur_in_vals: cur ∈ vals
   tree: @ReverseTree cur
   a_val: tree.getData.a = g
-  --has_tree: ∀ other_vals: XVals, ∀ t: @ReverseTree other_vals, t.getData.a = g → cur = other_vals
+  tree_agree: ∀ other_vals: XVals, ∀ other_tree: @ReverseTree other_vals, other_tree.getData.a = g → tree.getData.b = other_tree.getData.b
 
 lemma single_x_vals: ∀ a b: XVals, (∃ t1: @ReverseTree a, ∃ t2: @ReverseTree b, t1.getData.a = t2.getData.a) → a = b := by
   intro a b
@@ -3271,7 +3271,11 @@ lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (Submodule.Quotient.mk t
 --   rfl
 
 lemma new_eval_left {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
-  sorry
+  simp [f]
+  have agree := (latest_x_vals (g_to_num t.getData.a)).tree_agree vals t
+  simp [g_enum_inverse] at agree
+  exact agree
+
 
 lemma f_functional_eq (g: G): f (f (- f g)) = g - (f g) := by
   let g_data := latest_x_vals (g_to_num g)

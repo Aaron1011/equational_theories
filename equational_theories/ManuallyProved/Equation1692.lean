@@ -349,6 +349,7 @@ structure XVals where
   root_elem: G
   supp_gt: ∀ n, root_elem.support.max < (basis_n (2^(i) + n*2^(i+1))).support.min
   root_neq: root_elem ∉ Set.range (fun n => basis_n (2^(i) + n*2^(i+1)))
+  root_nonzero: root_elem ≠ 0
   -- x_basis: Set.range x_vals ⊆ Set.range basis_n
 
 noncomputable def XVals.x_vals (vals: XVals) (n: ℕ): G := if n = 0 then vals.root_elem else basis_n (2^(vals.i) + (n-1)*2^(vals.i+1))
@@ -404,6 +405,10 @@ lemma XVals.x_supp_nonempty (vals: XVals): ∀ n: ℕ, (vals.x_vals n).support.N
   simp [XVals.x_vals, basis_n]
   refine Finsupp.support_nonempty_iff.mpr ?_
   simp
+  by_cases n_eq_zero: n = 0
+  . simp [n_eq_zero]
+    exact vals.root_nonzero
+  . simp [n_eq_zero]
 
 lemma XVals.x_increasing (vals: XVals): ∀ n: ℕ, ∀ m, m < n → (vals.x_vals m).support.max' (vals.x_supp_nonempty m) < (vals.x_vals n).support.min' (vals.x_supp_nonempty n) := by
   intro m n m_lt_n

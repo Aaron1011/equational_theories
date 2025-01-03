@@ -3452,7 +3452,7 @@ theorem not_equation_1832: 0 ≠ f (f (g_enumerate 0)) + f ((f (g_enumerate 0)) 
   have sub_not_first_tree: ∀ t: @ReverseTree (mk_x_vals 0 (g_enumerate 0)), t.getData.a ≠ ((fun₀ | 1 => 1) - f fun₀ | 1 => 1) := by
     sorry
 
-  have other_disjoint: Disjoint (f fun₀ | 1 => 1).support (f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1)).support := by
+  have other_disjoint: Disjoint (f fun₀ | 1 => 1).support.toSet (f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1)).support.toSet := by
     sorry
 
   have supp_elem: ∃ a, a ∈ (f fun₀ | 1 => 1).support := by
@@ -3464,7 +3464,7 @@ theorem not_equation_1832: 0 ≠ f (f (g_enumerate 0)) + f ((f (g_enumerate 0)) 
   obtain ⟨a, ha⟩ := supp_elem
 
   have a_not_other_supp: a ∉ (f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1)).support := by
-    sorry
+    exact Set.disjoint_left.mp other_disjoint ha
 
   by_contra!
   have app_eq := DFunLike.congr (x := a) this rfl

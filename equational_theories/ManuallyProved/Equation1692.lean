@@ -497,7 +497,8 @@ noncomputable def mk_x_vals (i: ℕ) (root: G): XVals := by
     --   use 2 ^ i + h * 2 ^ (i + 1)
   }
 
-def mk_vals_range_s_i (i: ℕ): Set.range (mk_x_vals i).x_vals ⊆ (λ b => b.2) '' (s_i i) := by
+-- MAJOR REFACTOR : This is no longer true, and needs to exclude the root element
+def mk_vals_range_s_i (i: ℕ) (root: G): Set.range (mk_x_vals i root).x_vals ⊆ (λ b => b.2) '' (s_i i) := by
   simp [mk_x_vals, s_i]
   intro x hx
   simp at hx
@@ -510,7 +511,7 @@ def mk_vals_range_s_i (i: ℕ): Set.range (mk_x_vals i).x_vals ⊆ (λ b => b.2)
 
 
 
-def mk_vals_disjoint (vals1 vals2: XVals) (h_vals: vals1.i ≠ vals2.i): Set.range vals1.x_vals ∩ Set.range vals2.x_vals = ∅ := by
+def mk_vals_disjoint (vals1 vals2: XVals) (h_vals: vals1.i ≠ vals2.i) (h_roots: vals1.root_elem ≠ vals2.root_elem): Set.range vals1.x_vals ∩ Set.range vals2.x_vals = ∅ := by
   have i_subset := mk_vals_range_s_i vals1.i
   have j_subset := mk_vals_range_s_i vals2.i
   have disjoint: s_i vals1.i ∩ s_i vals2.i = ∅ := by
@@ -563,7 +564,7 @@ def newNum {vals: XVals}: @ReverseTree vals → ℕ
   | ReverseTree.right prev => 2 * (newNum prev)
 
 noncomputable def ReverseTree.getData {vals: XVals}: @ReverseTree vals → TreeData
-| ReverseTree.root => {a := vals.x_vals 0, b := vals.x_vals 1}
+| ReverseTree.root => {a := vals.root_elem, b := vals.x_vals 1}
 | ReverseTree.left base => {a := -base.getData.b, b := vals.x_vals (newNum base)}
 | ReverseTree.right base => {a := vals.x_vals (newNum base), b := base.getData.a - base.getData.b}
 
@@ -718,7 +719,8 @@ lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
       simp [f]
       rw [Finsupp.support_single_ne_zero]
       simp
-      linarith
+      simp [XVals.x_vals]
+      simp
 
 
     let f := Finsupp.single 1 (1 : ℚ)

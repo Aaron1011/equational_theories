@@ -3455,10 +3455,16 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
     by_contra!
     match t with
     | .root =>
-       simp only [ReverseTree.getData] at this
-       rw [g_enum_zero_eq_zero] at this
-       simp only [mk_x_vals, XVals.x_vals] at this
-
+      simp only [ReverseTree.getData] at this
+      rw [g_enum_zero_eq_zero] at this
+      simp only [mk_x_vals, XVals.x_vals] at this
+      rw [eq_comm] at this
+      rw [← Finsupp.support_eq_empty] at this
+      have one_in_supp: 1 ∈ (fun₀ | 1 => (1 : ℚ)).support := by
+        simp
+      have supp_nonempty: (fun₀ | 1 => (1 : ℚ)).support ≠ ∅ := by
+        exact Finset.ne_empty_of_mem one_in_supp
+      contradiction
     | .left t1_parent => sorry
     | .right t1_parent => sorry
 

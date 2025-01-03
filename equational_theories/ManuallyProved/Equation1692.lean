@@ -3443,8 +3443,17 @@ lemma f_zero_eq: f (g_enumerate 0) = (fun₀ | 1 => 1) := by
 
 theorem not_equation_1832: 0 ≠ f (f (g_enumerate 0)) + f ((f (g_enumerate 0)) - f (f (g_enumerate 0))) := by
   simp [f_zero_eq]
+
   have no_root_left: ∀ t: @ReverseTree (mk_x_vals 0 (g_enumerate 0)), t.getData.a ≠ fun₀ | 1 => 1 := by
-    sorry
+    intro t
+    by_contra!
+    match t with
+    | .root =>
+       simp only [ReverseTree.getData] at this
+       rw [g_enum_zero_eq_one] at this
+       simp only [mk_x_vals, XVals.x_vals] at this
+    | .left t1_parent => sorry
+    | .right t1_parent => sorry
 
   have f_supp_disjoint: Disjoint (f fun₀ | 1 => 1).support.toSet ((fun v => v.support.toSet) '' (Set.range (mk_x_vals 0 (g_enumerate 0)).x_vals)).sUnion := by
     sorry

@@ -3270,30 +3270,23 @@ lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (Submodule.Quotient.mk t
 -- lemma subtype_neg_eq {S: Submodule ℚ (ℕ →₀ ℚ)} {x: S}: -x = ⟨-x.val, by simp⟩ := by
 --   rfl
 
+lemma new_eval_left {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
+  sorry
 
 lemma f_functional_eq (g: G): f (f (- f g)) = g - (f g) := by
   let g_data := latest_x_vals (g_to_num g)
-  have tree_vals_eq: ∃ t1: @ReverseTree (latest_x_vals (g_to_num (- f g))).cur, ∃ t2: @ReverseTree g_data.cur, t1.getData.a = t2.getData.a := by
-    use (latest_x_vals (g_to_num (- f g))).tree
-    use g_data.tree.left
-    simp [ReverseTree.getData]
-    simp [f]
+  have neg_eq_left: - f g = (latest_x_vals (g_to_num g)).tree.left.getData.a := by
     sorry
-  have tree_eq := single_x_vals (latest_x_vals (g_to_num (- f g))).cur g_data.cur tree_vals_eq
-  conv =>
-    lhs
-    arg 1
-    rw [f]
+  have eval_neg := new_eval_left (latest_x_vals (g_to_num g)).tree.left
+  rw [neg_eq_left]
+  rw [eval_neg]
 
-  have b_val_eq: (latest_x_vals (g_to_num (-f g))).tree.getData.b = (latest_x_vals (g_to_num g)).tree.left.getData.b := by
-    sorry
-  rw [b_val_eq]
-  rw [f]
-
-  have other_b_eq: (latest_x_vals (g_to_num (latest_x_vals (g_to_num g)).tree.left.getData.b)).tree.getData.b = (latest_x_vals (g_to_num g)).tree.right.getData.b := by
+  have left_eq_right_a: (latest_x_vals (g_to_num g)).tree.left.getData.b = (latest_x_vals (g_to_num g)).tree.right.getData.a := by
     sorry
 
-  rw [other_b_eq]
+  have eval_right := new_eval_left (latest_x_vals (g_to_num g)).tree.right
+  rw [left_eq_right_a]
+  rw [eval_right]
   simp [ReverseTree.getData, f]
   have g_eq := g_data.a_val
   simp only [g_data] at g_eq

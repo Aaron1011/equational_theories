@@ -2572,7 +2572,7 @@ noncomputable abbrev g_enumerate: ℕ → G := by
   have bar := Classical.choice nonempty_denum
   exact Denumerable.ofNat G
 
-lemma g_enum_zero_eq_one: g_enumerate 0 = basis_n 1 := by
+lemma g_enum_zero_eq_zero: g_enumerate 0 = 0 := by
   sorry
 
 
@@ -2585,6 +2585,9 @@ def g_num_inverse (n: ℕ): g_to_num (g_enumerate n) = n := by
   sorry
 
 def g_enum_inverse (g: G): g_enumerate (g_to_num g) = g := by
+  sorry
+
+lemma g_num_zero_eq_zero: g_to_num 0 = 0 := by
   sorry
 
 
@@ -2648,7 +2651,7 @@ noncomputable def full_x_vals_num (n: ℕ): WrapperXValsFullData (g_enumerate n)
     have g_vals_zero: g = (mk_x_vals 0).x_vals 0 := by
       dsimp [g]
       rw [hn]
-      rw [g_enum_zero_eq_one]
+      rw [g_enum_zero_eq_zero]
       simp [mk_x_vals, XVals.x_vals]
     let initial_vals: XValsIso := {
       vals := mk_x_vals 0,
@@ -2736,7 +2739,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
       tree := ReverseTree.root,
       a_val := by
         simp only [ReverseTree.getData, x_vals, XVals.root_elem, hn]
-        rw [g_enum_zero_eq_one]
+        rw [g_enum_zero_eq_zero]
         simp only [mk_x_vals]
       tree_agree := by
         intro other_vals other_tree a_eq
@@ -3389,12 +3392,16 @@ noncomputable abbrev f_0 := f (g_enumerate 0)
 --     sorry
 
 
-lemma neg_f_zero: - f (g_enumerate 0) = (latest_x_vals 0).tree.left.getData.a := by
+lemma neg_f_zero: - f (0) = (latest_x_vals 0).tree.left.getData.a := by
   simp [f]
   simp [ReverseTree.getData]
-  rw [g_num_inverse]
   simp only [latest_x_vals]
-  simp only [ReverseTree.getData]
+  rw [g_num_zero_eq_zero]
+  simp only [mk_x_vals, XVals.x_vals]
+  simp
+  simp [latest_x_vals]
+  simp only [ReverseTree.getData, mk_x_vals, XVals.x_vals]
+  simp
 
 lemma f_neg_b {vals: XVals} (t: @ReverseTree vals): f (-t.getData.b) = t.left.getData.b := by
   have eq_tree: -t.getData.b = t.left.getData.a := by
@@ -3404,13 +3411,12 @@ lemma f_neg_b {vals: XVals} (t: @ReverseTree vals): f (-t.getData.b) = t.left.ge
 
 
 
-theorem not_equation_23: (f (g_enumerate 0)) + (f (- (f (g_enumerate 0)))) ≠ 0 := by
+theorem not_equation_23: (f (0)) + (f (- (f (0)))) ≠ 0 := by
   let g_data := latest_x_vals 0
 
   have eval_neg := new_eval_left (latest_x_vals 0).tree.left
   rw [neg_f_zero, eval_neg]
   simp [f]
-  rw [g_num_inverse]
   simp [latest_x_vals]
   simp only [ReverseTree.getData, mk_x_vals, XVals.x_vals]
   simp
@@ -3431,17 +3437,17 @@ theorem not_equation_47: 0 ≠ f (f (f 0)) := by
   exact vals_nonzero.symm
 
 
-lemma f_zero_eq: f (g_enumerate 0) = (fun₀ | 1 => 1) := by
-  have tree_eq: g_enumerate 0 = (@ReverseTree.root (mk_x_vals 0 (g_enumerate 0))).getData.a := by
+lemma f_zero_eq: f (0) = (fun₀ | 1 => 1) := by
+  have tree_eq: 0 = (@ReverseTree.root (mk_x_vals 0 (g_enumerate 0))).getData.a := by
     simp only [ReverseTree.getData]
-    rw [g_enum_zero_eq_one]
+    rw [g_enum_zero_eq_zero]
     simp [mk_x_vals]
   rw [tree_eq, new_eval_left]
   simp only [ReverseTree.getData]
-  rw [g_enum_zero_eq_one]
+  rw [g_enum_zero_eq_zero]
   simp [mk_x_vals, XVals.x_vals]
 
-theorem not_equation_1832: 0 ≠ f (f (g_enumerate 0)) + f ((f (g_enumerate 0)) - f (f (g_enumerate 0))) := by
+theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
   simp [f_zero_eq]
 
   have no_root_left: ∀ t: @ReverseTree (mk_x_vals 0 (g_enumerate 0)), t.getData.a ≠ fun₀ | 1 => 1 := by
@@ -3450,8 +3456,9 @@ theorem not_equation_1832: 0 ≠ f (f (g_enumerate 0)) + f ((f (g_enumerate 0)) 
     match t with
     | .root =>
        simp only [ReverseTree.getData] at this
-       rw [g_enum_zero_eq_one] at this
+       rw [g_enum_zero_eq_zero] at this
        simp only [mk_x_vals, XVals.x_vals] at this
+
     | .left t1_parent => sorry
     | .right t1_parent => sorry
 
@@ -3498,11 +3505,11 @@ lemma sum_1_3_eq_tree: (fun₀ | 1 => (1: ℚ)) + (fun₀ | 3 => 1) = (@ReverseT
   rw [add_comm]
 
 
-theorem not_equation_2441: 0 ≠ (f ((f_0) + f (-(f_0)))) + (f ( -(f ((f_0) + f (- (f_0))))) ) := by
+theorem not_equation_2441: 0 ≠ (f ((f 0) + (f (- f 0)))) + (f ( -(f ((f 0) + f (- f (0))))) ) := by
   simp [neg_f_zero]
   simp [new_eval_left]
   simp only [latest_x_vals, ReverseTree.getData]
-  rw [g_enum_zero_eq_one]
+  rw [g_enum_zero_eq_zero]
   simp [mk_x_vals, XVals.x_vals]
   simp [newnum_neq_zero]
   simp [f_zero_eq]
@@ -3510,9 +3517,10 @@ theorem not_equation_2441: 0 ≠ (f ((f_0) + f (-(f_0)))) + (f ( -(f ((f_0) + f 
 
   rw [sum_1_3_eq_tree]
   simp [new_eval_left]
+
   simp [f_neg_b]
   simp only [ReverseTree.getData]
-  rw [g_enum_zero_eq_one]
+  rw [g_enum_zero_eq_zero]
   simp [mk_x_vals, XVals.x_vals, newnum_neq_zero, newNum]
   by_contra!
   have app_eq := DFunLike.congr (x := 11) this rfl
@@ -3527,20 +3535,19 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
 
 
 
-theorem not_equation_3456: f_0 ≠ f ((f_0) + f (- (f_0))) := by
-  simp only [f_0]
+theorem not_equation_3456: f 0 ≠ f ((f 0) + f (- (f 0))) := by
   simp only [neg_f_zero]
   simp only [new_eval_left]
   simp [f_zero_eq]
   simp [ReverseTree.getData, newNum]
   simp only [latest_x_vals]
-  rw [g_enum_zero_eq_one]
+  rw [g_enum_zero_eq_zero]
   simp [mk_x_vals, XVals.x_vals]
 
   rw [sum_1_3_eq_tree]
   simp [new_eval_left]
   simp only [ReverseTree.getData]
-  rw [g_enum_zero_eq_one]
+  rw [g_enum_zero_eq_zero]
   simp [mk_x_vals, XVals.x_vals, newnum_neq_zero, newNum]
   by_contra!
   rw [Finsupp.single_left_inj] at this

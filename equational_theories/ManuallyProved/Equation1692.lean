@@ -3455,6 +3455,7 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
     by_contra!
     induction t with
     | root =>
+      -- TODO - make a single lemma that does all of this
       simp only [ReverseTree.getData] at this
       rw [g_enum_zero_eq_zero] at this
       simp only [mk_x_vals, XVals.x_vals] at this
@@ -3467,7 +3468,28 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
       contradiction
     | left t1_parent h_parent =>
       simp only [ReverseTree.getData] at this
-      sorry
+      match t1_parent with
+      | .root =>
+        simp only [ReverseTree.getData] at this
+        rw [g_enum_zero_eq_zero] at this
+        simp only [mk_x_vals, XVals.x_vals] at this
+        simp at this
+        rw [Finsupp.eq_single_iff] at this
+        simp at this
+        have bad := this.2
+        contradiction
+      | .left t1_grand =>
+        simp only [ReverseTree.getData] at this
+        simp only [mk_x_vals, XVals.x_vals] at this
+        simp [newnum_neq_zero] at this
+        rw [Finsupp.eq_single_iff] at this
+        simp at this
+        rw [Finsupp.support_single_ne_zero _ (by simp)] at this
+        simp at this
+        have bad_newnum := this.1
+        have val_gt_one := newnem_gt_one t1_grand
+        omega
+      | .right t1_grand => sorry
 
     | right t1_parent h_parent =>
       simp only [ReverseTree.getData] at this

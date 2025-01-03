@@ -3420,9 +3420,8 @@ lemma not_equation_23: (f (g_enumerate 0)) + (f (- (f (g_enumerate 0)))) ≠ 0 :
 
 lemma not_equation_47: 0 ≠ f (f (f 0)) := by
   rw [f]
-  sorry
-  -- exact (tree_vals_nonzero (full_fun_from_n (g_to_num (f (f 0)))).tree).2.symm
-
+  have vals_nonzero := (tree_vals_nonzero (latest_x_vals (g_to_num (f (f 0)))).tree).2
+  exact vals_nonzero.symm
 
 
 lemma not_equation_1832: 0 ≠ f (f 0) + f ((f 0) - f (f 0)) := by

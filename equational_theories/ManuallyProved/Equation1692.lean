@@ -3276,13 +3276,14 @@ lemma new_eval_left {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.ge
 lemma f_functional_eq (g: G): f (f (- f g)) = g - (f g) := by
   let g_data := latest_x_vals (g_to_num g)
   have neg_eq_left: - f g = (latest_x_vals (g_to_num g)).tree.left.getData.a := by
-    sorry
+    simp [f]
+    simp [ReverseTree.getData]
   have eval_neg := new_eval_left (latest_x_vals (g_to_num g)).tree.left
   rw [neg_eq_left]
   rw [eval_neg]
 
   have left_eq_right_a: (latest_x_vals (g_to_num g)).tree.left.getData.b = (latest_x_vals (g_to_num g)).tree.right.getData.a := by
-    sorry
+    simp [ReverseTree.getData]
 
   have eval_right := new_eval_left (latest_x_vals (g_to_num g)).tree.right
   rw [left_eq_right_a]

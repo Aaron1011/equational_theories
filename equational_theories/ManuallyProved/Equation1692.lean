@@ -408,23 +408,39 @@ lemma XVals.x_supp_nonempty (vals: XVals): ∀ n: ℕ, (vals.x_vals n).support.N
 lemma XVals.x_increasing (vals: XVals): ∀ n: ℕ, ∀ m, m < n → (vals.x_vals m).support.max' (vals.x_supp_nonempty m) < (vals.x_vals n).support.min' (vals.x_supp_nonempty n) := by
   intro m n m_lt_n
   simp only [XVals.x_vals, basis_n, n_q_basis, Finsupp.coe_basisSingleOne]
-  have n_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ (vals.i) + n * 2 ^ (vals.i + 1)) (by simp)
-  have m_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ (vals.i) + m * 2 ^ (vals.i + 1)) (by simp)
+  have n_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ (vals.i) + (n - 1) * 2 ^ (vals.i + 1)) (by simp)
+  have m_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ (vals.i) + (m - 1) * 2 ^ (vals.i + 1)) (by simp)
+  have m_supp_nonempty: (Finsupp.single (2 ^ vals.i + (m - 1) * 2 ^ (vals.i + 1)) (1: ℚ)).support.Nonempty := by
+    simp [m_supp]
   --simp only [n_supp, m_supp]
   by_cases n_eq_zero: n = 0
   . simp only [n_eq_zero, reduceIte]
-    intro root_not_zero
-    intro y
     have m_neq_zero: ¬(m = 0) := by
       linarith
-    intro basis_not_zero
-  . simp [n_eq_zero]
+    simp only [m_neq_zero, reduceIte]
+    have supp_lt := vals.supp_gt (m - 1)
+    simp at supp_lt
+    have max_coe := Finset.coe_max' (vals.x_supp_nonempty 0)
+    have m_coe := Finset.coe_min' m_supp_nonempty
+    simp [XVals.x_vals] at max_coe
+    rw [← max_coe, ← m_coe] at supp_lt
+    apply WithBot.coe_lt_coe.mp at supp_lt
+    exact supp_lt
+  . simp only [n_eq_zero, reduceIte]
     have m_neq_zero: ¬(m = 0) := by
       linarith
-    simp [m_neq_zero]
-    intro y
-    exact m_lt_n
+    simp only [m_neq_zero, reduceIte]
+    conv =>
+      lhs
+      arg 1
+      rw [n_supp]
+    conv =>
+      rhs
+      arg 1
+      rw [m_supp]
 
+    simp
+    omega
 lemma XVals.x_basis (vals: XVals): Set.range vals.x_vals ⊆ Set.range basis_n := by
   intro x hx
   simp at hx

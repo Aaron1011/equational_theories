@@ -346,28 +346,58 @@ deriving DecidableEq
 
 structure XVals where
   i: ℕ
+  root_elem: G
+  supp_gt: ∀ n, root_elem.support.max < (basis_n (2^(i) + n*2^(i+1))).support.min
+  root_neq: root_elem ∉ Set.range (fun n => basis_n (2^(i) + n*2^(i+1)))
   -- x_basis: Set.range x_vals ⊆ Set.range basis_n
 
-noncomputable def XVals.x_vals (vals: XVals) (n: ℕ): G := basis_n (2^(vals.i) + n*2^(vals.i+1))
+noncomputable def XVals.x_vals (vals: XVals) (n: ℕ): G := if n = 0 then vals.root_elem else basis_n (2^(vals.i) + (n-1)*2^(vals.i+1))
 noncomputable def XVals.x_to_index (vals: XVals) (n: ℕ): ℕ := (2^(vals.i) + n*2^(vals.i+1))
 lemma XVals.x_to_index_increasing (vals: XVals): StrictMono (XVals.x_to_index vals) :=
   by simp [XVals.x_to_index, StrictMono]
 lemma XVals.x_to_index_inj (vals: XVals): Function.Injective (XVals.x_to_index vals) :=
   by simp [XVals.x_to_index, Function.Injective]
-lemma XVals.x_to_index_eq (vals: XVals): ∀ n, vals.x_vals n = basis_n (vals.x_to_index n) := by
+lemma XVals.x_to_index_eq (vals: XVals): ∀ n, vals.x_vals (n + 1) = basis_n (vals.x_to_index (n)) := by
   simp [XVals.x_vals, XVals.x_to_index]
+
 
 lemma XVals.x_inj (vals: XVals): Function.Injective vals.x_vals := by
     simp [Function.Injective]
     intro a1 a2 funs_eq
     simp [XVals.x_vals] at funs_eq
-    have apply_eq: ((fun₀ | 2 ^ (vals.i) + a1 * 2 ^ (vals.i + 1) => (1: ℚ))) ( 2 ^ (vals.i) + a1 * 2 ^ (vals.i + 1)) = ((fun₀ | 2 ^ (vals.i) + a2 * 2 ^ (vals.i + 1) => 1)) (2 ^ (vals.i) + a1 * 2 ^ ((vals.i) + 1)) := by
-      rw [funs_eq]
-    simp at apply_eq
-    simp [Finsupp.single_apply] at apply_eq
-    rw [eq_comm] at apply_eq
-    simp at apply_eq
-    exact apply_eq.symm
+    match ha1: a1 with
+    | 0 =>
+      simp at funs_eq
+      match ha2: a2 with
+      | 0 =>
+        rfl
+      | new_a2 + 1 =>
+        simp at funs_eq
+        have not_eq := vals.root_neq
+        simp at not_eq
+        specialize not_eq new_a2
+        rw [eq_comm] at not_eq
+        contradiction
+    | new_a1 + 1 =>
+      match ha2: a2 with
+      | 0 =>
+        simp at funs_eq
+        have not_eq := vals.root_neq
+        simp at not_eq
+        specialize not_eq new_a1
+        contradiction
+      | new_a2 + 1 =>
+        simp at funs_eq
+        have apply_eq: (fun₀ | 2 ^ vals.i + new_a1 * 2 ^ (vals.i + 1) => (1 : ℚ)) (2 ^ (vals.i) + new_a1 * 2 ^ ((vals.i) + 1)) = (fun₀ | 2 ^ vals.i + new_a2 * 2 ^ (vals.i + 1) => 1) ((2 ^ (vals.i) + new_a1 * 2 ^ ((vals.i) + 1))) := by
+          rw [funs_eq]
+        simp at apply_eq
+        simp [Finsupp.single_apply] at apply_eq
+        rw [eq_comm] at apply_eq
+        simp
+        have new_a1_neq: new_a1 ≠ a1 := by
+          linarith
+        simp [new_a1_neq] at apply_eq
+        exact apply_eq.symm
 
 lemma XVals.x_supp_nonempty (vals: XVals): ∀ n: ℕ, (vals.x_vals n).support.Nonempty := by
   intro n
@@ -380,8 +410,20 @@ lemma XVals.x_increasing (vals: XVals): ∀ n: ℕ, ∀ m, m < n → (vals.x_val
   simp only [XVals.x_vals, basis_n, n_q_basis, Finsupp.coe_basisSingleOne]
   have n_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ (vals.i) + n * 2 ^ (vals.i + 1)) (by simp)
   have m_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ (vals.i) + m * 2 ^ (vals.i + 1)) (by simp)
-  simp [n_supp, m_supp]
-  exact m_lt_n
+  --simp only [n_supp, m_supp]
+  by_cases n_eq_zero: n = 0
+  . simp only [n_eq_zero, reduceIte]
+    intro root_not_zero
+    intro y
+    have m_neq_zero: ¬(m = 0) := by
+      linarith
+    intro basis_not_zero
+  . simp [n_eq_zero]
+    have m_neq_zero: ¬(m = 0) := by
+      linarith
+    simp [m_neq_zero]
+    intro y
+    exact m_lt_n
 
 lemma XVals.x_basis (vals: XVals): Set.range vals.x_vals ⊆ Set.range basis_n := by
   intro x hx
@@ -3245,9 +3287,14 @@ lemma f_functional_eq (g: G): f (f (- f g)) = g - (f g) := by
     rw [a_iso]
     sorry
 
+
+
   conv =>
     lhs
     dsimp [f]
+
+
+
 
 
 

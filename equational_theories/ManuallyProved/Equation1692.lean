@@ -938,16 +938,23 @@ lemma eval_larger_a_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: n
 
   have n_not_supp: ∀ i, i < m → vals.x_to_index n ∉ (vals.x_vals i).support := by
     intro i hi
-    rw [vals.x_to_index_eq]
-    simp [basis_n]
-    have vals_x_lt: vals.x_to_index i < vals.x_to_index m := by
-      exact vals.x_to_index_increasing hi
-    have vals_m_le: vals.x_to_index m ≤ vals.x_to_index (newNum t) := by
-      simp [StrictMono.le_iff_le vals.x_to_index_increasing]
-      exact m_le
-    have n_neq_i: vals.x_to_index n ≠ vals.x_to_index i := by
-      linarith
-    exact Finsupp.single_eq_of_ne (id (Ne.symm n_neq_i))
+    by_cases i_eq_zero: i = 0
+    . simp [XVals.x_vals, i_eq_zero]
+      have root_supp := vals.supp_gt (n)
+      have index_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (vals.x_to_index n) (by simp)
+      simp [XVals.x_to_index] at index_supp
+      simp [basis_n] at root_supp
+      simp [index_supp] at root_supp
+      have val_not_supp: 2 ^ vals.i + ↑n * 2 ^ (vals.i + 1) ∉ vals.root_elem.support := by
+        exact Finset.not_mem_of_max_lt_coe root_supp
+      exact Finsupp.not_mem_support_iff.mp val_not_supp
+    . simp [i_eq_zero]
+      have index_eq := vals.x_to_index_eq (i - 1)
+      simp [XVals.x_vals, XVals.x_to_index]
+      simp [i_eq_zero]
+      rw [Finsupp.single_apply]
+      simp
+      omega
 
   have sum_eval_eq_zero: ∑ i ∈ Finset.range m, (g i • vals.x_vals i) (vals.x_to_index n) = ∑ i ∈ Finset.range m, 0 := by
     apply Finset.sum_congr rfl

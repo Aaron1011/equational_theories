@@ -446,18 +446,23 @@ lemma XVals.x_increasing (vals: XVals): ∀ n: ℕ, ∀ m, m < n → (vals.x_val
 
     simp
     omega
-lemma XVals.x_basis (vals: XVals): Set.range vals.x_vals ⊆ Set.range basis_n := by
-  intro x hx
-  simp at hx
-  simp
-  obtain ⟨h, hy⟩ := hx
-  use 2 ^ vals.i + h * 2 ^ (vals.i + 1)
-  simp [XVals.x_vals] at hy
-  exact hy
 
-noncomputable def mk_x_vals (i: ℕ): XVals := by
+-- lemma XVals.x_basis (vals: XVals): Set.range vals.x_vals ⊆ Set.range basis_n := by
+--   intro x hx
+--   simp at hx
+--   simp
+--   obtain ⟨h, hy⟩ := hx
+--   use 2 ^ vals.i + h * 2 ^ (vals.i + 1)
+--   simp [XVals.x_vals] at hy
+--   exact hy
+
+noncomputable def mk_x_vals (i: ℕ) (root: G): XVals := by
   exact {
     i := i,
+    root_elem := root
+    supp_gt := sorry
+    root_neq := sorry
+    root_nonzero := sorry
     -- x_to_index_inj := by simp [Function.Injective],
     -- x_to_index_increasing := by simp [StrictMono],
     -- x_to_index_eq := by simp,

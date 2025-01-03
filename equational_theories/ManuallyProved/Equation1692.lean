@@ -3441,9 +3441,47 @@ lemma f_zero_eq: f (g_enumerate 0) = (fun₀ | 1 => 1) := by
   rw [g_enum_zero_eq_one]
   simp [mk_x_vals, XVals.x_vals]
 
-lemma not_equation_1832: 0 ≠ f (f (g_enumerate 0)) + f ((f (g_enumerate 0)) - f (f (g_enumerate 0))) := by
+theorem not_equation_1832: 0 ≠ f (f (g_enumerate 0)) + f ((f (g_enumerate 0)) - f (f (g_enumerate 0))) := by
   simp [f_zero_eq]
-  sorry
+  have no_root_left: ∀ t: @ReverseTree (mk_x_vals 0 (g_enumerate 0)), t.getData.a ≠ fun₀ | 1 => 1 := by
+    sorry
+
+  have f_supp_disjoint: Disjoint (f fun₀ | 1 => 1).support.toSet ((fun v => v.support.toSet) '' (Set.range (mk_x_vals 0 (g_enumerate 0)).x_vals)).sUnion := by
+    sorry
+
+  have sub_not_first_tree: ∀ t: @ReverseTree (mk_x_vals 0 (g_enumerate 0)), t.getData.a ≠ ((fun₀ | 1 => 1) - f fun₀ | 1 => 1) := by
+    sorry
+
+  have other_disjoint: Disjoint (f fun₀ | 1 => 1).support (f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1)).support := by
+    sorry
+
+  have supp_elem: ∃ a, a ∈ (f fun₀ | 1 => 1).support := by
+    simp only [f]
+    have b_nonzero := (tree_vals_nonzero ((latest_x_vals (g_to_num fun₀ | 1 => (1 : ℚ))).tree)).2
+    rw [← Finsupp.support_nonempty_iff] at b_nonzero
+    exact b_nonzero
+
+  obtain ⟨a, ha⟩ := supp_elem
+
+  have a_not_other_supp: a ∉ (f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1)).support := by
+    sorry
+
+  by_contra!
+  have app_eq := DFunLike.congr (x := a) this rfl
+  have eq_zero := ((f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1)).mem_support_toFun a).not.mp
+  -- TODO - lean hangs if I try to do this on one line
+  specialize eq_zero a_not_other_supp
+  simp at app_eq
+  simp at eq_zero
+  have eval_eq_zero: ((f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1))) a = 0 := by
+    exact eq_zero
+  rw [eval_eq_zero] at app_eq
+
+  have eval_nonzero := (((f fun₀ | 1 => 1)).mem_support_toFun a).mp ha
+  simp at app_eq
+  have normal_eval: (f fun₀ | 1 => 1) a ≠ 0 := eval_nonzero
+  rw [eq_comm] at app_eq
+  contradiction
 
 
 lemma sum_1_3_eq_tree: (fun₀ | 1 => (1: ℚ)) + (fun₀ | 3 => 1) = (@ReverseTree.root (mk_x_vals 0 (g_enumerate 0))).left.right.left.getData.a := by

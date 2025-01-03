@@ -2734,6 +2734,9 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         simp only [ReverseTree.getData, x_vals, XVals.root_elem, hn]
         rw [g_enum_zero_eq_one]
         simp only [mk_x_vals]
+      tree_agree := by
+        intro other_vals other_tree a_eq
+        sorry
   }
   | a + 1 =>
     let prev_x_vals := latest_x_vals a
@@ -2749,6 +2752,9 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           simp [hn]
         rw [← n_eq]
         exact tree_eq
+      tree_agree := by
+        intro other_vals other_tree a_eq
+        sorry
     }
     .
       let new_x_vals := mk_x_vals (n) (g_enumerate n)
@@ -2760,6 +2766,9 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         a_val := by
           simp only [ReverseTree.getData, new_x_vals, XVals.root_elem, hn]
           simp [mk_x_vals]
+        tree_agree := by
+          intro other_vals other_tree a_eq
+          sorry
       }
 
 

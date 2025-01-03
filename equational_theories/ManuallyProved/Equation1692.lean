@@ -3489,8 +3489,14 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
         have bad_newnum := this.1
         have val_gt_one := newnem_gt_one t1_grand
         omega
-      | .right t1_grand => sorry
-
+      | .right t1_grand =>
+        simp only [ReverseTree.getData] at this
+        have not_comb := basis_neq_elem_diff t1_grand 1 1 (-1) 1 (by simp) (by simp) (by simp)
+        simp at this
+        simp at not_comb
+        rw [← sub_eq_add_neg] at not_comb
+        rw [eq_comm] at this
+        contradiction
     | right t1_parent h_parent =>
       simp only [ReverseTree.getData] at this
       simp only [mk_x_vals, XVals.x_vals, newnum_neq_zero] at this

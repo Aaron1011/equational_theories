@@ -3404,7 +3404,7 @@ lemma f_neg_b {vals: XVals} (t: @ReverseTree vals): f (-t.getData.b) = t.left.ge
 
 
 
-lemma not_equation_23: (f (g_enumerate 0)) + (f (- (f (g_enumerate 0)))) ≠ 0 := by
+theorem not_equation_23: (f (g_enumerate 0)) + (f (- (f (g_enumerate 0)))) ≠ 0 := by
   let g_data := latest_x_vals 0
 
   have eval_neg := new_eval_left (latest_x_vals 0).tree.left
@@ -3425,7 +3425,7 @@ lemma not_equation_23: (f (g_enumerate 0)) + (f (- (f (g_enumerate 0)))) ≠ 0 :
     omega
   simp [val_neq_1] at app_eq
 
-lemma not_equation_47: 0 ≠ f (f (f 0)) := by
+theorem not_equation_47: 0 ≠ f (f (f 0)) := by
   rw [f]
   have vals_nonzero := (tree_vals_nonzero (latest_x_vals (g_to_num (f (f 0)))).tree).2
   exact vals_nonzero.symm
@@ -3451,7 +3451,7 @@ lemma sum_1_3_eq_tree: (fun₀ | 1 => (1: ℚ)) + (fun₀ | 3 => 1) = (@ReverseT
   rw [add_comm]
 
 
-lemma not_equation_2441: 0 ≠ (f ((f_0) + f (-(f_0)))) + (f ( -(f ((f_0) + f (- (f_0))))) ) := by
+theorem not_equation_2441: 0 ≠ (f ((f_0) + f (-(f_0)))) + (f ( -(f ((f_0) + f (- (f_0))))) ) := by
   simp [neg_f_zero]
   simp [new_eval_left]
   simp only [latest_x_vals, ReverseTree.getData]
@@ -3473,14 +3473,14 @@ lemma not_equation_2441: 0 ≠ (f ((f_0) + f (-(f_0)))) + (f ( -(f ((f_0) + f (-
 
 
 
-lemma not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0)))) := by
+theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0)))) := by
   have f_neq_one_eq: f (- (mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 2 := by
     sorry
   sorry
 
 
 
-lemma not_equation_3456: f_0 ≠ f ((f_0) + f (- (f_0))) := by
+theorem not_equation_3456: f_0 ≠ f ((f_0) + f (- (f_0))) := by
   simp only [f_0]
   simp only [neg_f_zero]
   simp only [new_eval_left]
@@ -3495,11 +3495,12 @@ lemma not_equation_3456: f_0 ≠ f ((f_0) + f (- (f_0))) := by
   simp only [ReverseTree.getData]
   rw [g_enum_zero_eq_one]
   simp [mk_x_vals, XVals.x_vals, newnum_neq_zero, newNum]
-  have one_neq_eleven: 1 ≠ 11 := by
-    linarith
-  simp [one_neq_eleven]
+  by_contra!
+  rw [Finsupp.single_left_inj] at this
+  linarith
+  simp
 
-lemma not_equation_4065: f 0 ≠ (f 0) + f (- f 0) + f ((- f 0) + f (- (f 0) - f (-f 0))) := by
+theorem not_equation_4065: f 0 ≠ (f 0) + f (- f 0) + f ((- f 0) + f (- (f 0) - f (-f 0))) := by
   sorry
 
 -- noncomputable def total_function (x: G): G := by

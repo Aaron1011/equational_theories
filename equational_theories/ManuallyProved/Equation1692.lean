@@ -3424,7 +3424,20 @@ lemma not_equation_47: 0 ≠ f (f (f 0)) := by
   exact vals_nonzero.symm
 
 
-lemma not_equation_1832: 0 ≠ f (f 0) + f ((f 0) - f (f 0)) := by
+lemma not_equation_1832: 0 ≠ f (f (g_enumerate 0)) + f ((f (g_enumerate 0)) - f (f (g_enumerate 0))) := by
+  have f_zero_eq: f (g_enumerate 0) = (fun₀ | 1 => 1) := by
+    have tree_eq: g_enumerate 0 = (@ReverseTree.root (mk_x_vals 0 (g_enumerate 0))).getData.a := by
+      simp only [ReverseTree.getData]
+      rw [g_enum_zero_eq_one]
+      simp [mk_x_vals]
+    rw [tree_eq, new_eval_left]
+    simp only [ReverseTree.getData]
+    rw [g_enum_zero_eq_one]
+    simp [mk_x_vals, XVals.x_vals]
+  simp [f_zero_eq]
+  sorry
+
+
   have neg_4_not_in: ∀ t: @ReverseTree (mk_x_vals 0), t.getData.b ≠ - (mk_x_vals 0).x_vals 4 := by
     sorry
   have neg_4_not_all: ∀ {vals: XVals}, ∀ t: @ReverseTree vals, t.getData.b ≠ - (mk_x_vals 0).x_vals 4 := by

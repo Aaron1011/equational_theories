@@ -464,6 +464,7 @@ noncomputable def mk_x_vals (i: ℕ) (root: G): XVals := by
     supp_gt := sorry
     root_neq := sorry
     root_nonzero := sorry
+    root_indep := sorry
     -- x_to_index_inj := by simp [Function.Injective],
     -- x_to_index_increasing := by simp [StrictMono],
     -- x_to_index_eq := by simp,
@@ -1109,7 +1110,7 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
     simp only [← smul_assoc] at hs_t
     simp only [← add_smul] at hs_t
     --simp only [vals.x_to_index_eq] at hs_t
-    simp only [basis_n] at hs_t
+    --simp only [basis_n] at hs_t
 
     apply (basis_x_val_indep _) at hs_t
     obtain ⟨b_nonzero, h_b_lt, h_b_zeronzero⟩ := nonzero_b_coord
@@ -2705,6 +2706,55 @@ noncomputable def full_x_vals (g: G): WrapperXValsFullData g := by
   let bar := full_x_vals_num (g_to_num g)
   rw [g_enum_inverse] at bar
   exact bar
+
+structure LatestXVals (g: G) where
+  vals: Set XVals
+  cur: XVals
+  cur_in_vals: cur ∈ vals
+  tree: @ReverseTree cur
+  a_val: tree.getData.a = g
+
+noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
+  match hn: n with
+  | 0 =>
+    let x_vals := mk_x_vals 0 (g_enumerate n)
+    exact {
+      vals := {x_vals},
+      cur := x_vals,
+      cur_in_vals := by simp,
+      tree := ReverseTree.root,
+      a_val := by
+        simp only [ReverseTree.getData, x_vals, XVals.root_elem, hn]
+        rw [g_enum_zero_eq_one]
+        simp only [mk_x_vals]
+  }
+  | a + 1 =>
+    let prev_x_vals := latest_x_vals a
+    by_cases has_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n
+    . exact {
+      vals := prev_x_vals.vals,
+      cur := Classical.choose has_tree,
+      cur_in_vals := (Classical.choose_spec (Classical.choose_spec has_tree)).1,
+      tree := Classical.choose (Classical.choose_spec has_tree)
+      a_val := by
+        have tree_eq := (Classical.choose_spec (Classical.choose_spec has_tree)).2
+        have n_eq: n = a  +1 := by
+          simp [hn]
+        rw [← n_eq]
+        exact tree_eq
+    }
+    .
+      let new_x_vals := mk_x_vals (n) (g_enumerate n)
+      exact {
+        vals := prev_x_vals.vals ∪ {new_x_vals},
+        cur := new_x_vals,
+        cur_in_vals := by simp,
+        tree := ReverseTree.root,
+        a_val := by
+          simp only [ReverseTree.getData, new_x_vals, XVals.root_elem, hn]
+          simp [mk_x_vals]
+      }
+
 
 -- structure FAndData (g: G) where
 --   t: @ReverseTree (full_x_vals g).target_val.vals

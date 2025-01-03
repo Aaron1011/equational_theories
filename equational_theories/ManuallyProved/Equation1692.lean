@@ -594,6 +594,10 @@ lemma newnem_gt_one {vals: XVals} (t: @ReverseTree vals): 1 < newNum t := by
     simp [newNum]
     linarith
 
+lemma newnum_neq_zero {vals: XVals} (t: @ReverseTree vals): newNum t ≠ 0 := by
+  have foo := newnem_gt_one t
+  linarith
+
 lemma newnum_increasing {vals: XVals} (t: @ReverseTree vals): newNum t < newNum (ReverseTree.left t) ∧ newNum t < newNum (ReverseTree.right t) := by
   induction t with
   | root =>
@@ -3343,11 +3347,6 @@ lemma diamond_real_f (x y: G): x = (diamond f (x + (y - x) + (f (-(y - x)))) (di
 
 noncomputable abbrev f_0 := f (g_enumerate 0)
 
-lemma f_zero_tree: f_0 = f (ReverseTree.root (vals := (mk_x_vals 0))).getData.a := by
-  simp [f_0, ReverseTree.getData, g_enum_zero_eq_one]
-  simp [mk_x_vals, XVals.x_vals]
-
-
 -- lemma f_zero_eq: f (g_enumerate 0) = (mk_x_vals 0).x_vals 1 := by
 --   simp [f]
 --   have proof := (full_fun_from_n 0).proof
@@ -3390,18 +3389,26 @@ lemma f_zero_tree: f_0 = f (ReverseTree.root (vals := (mk_x_vals 0))).getData.a 
 --     sorry
 
 
+lemma neg_f_zero: - f (g_enumerate 0) = (latest_x_vals 0).tree.left.getData.a := by
+  simp [f]
+  simp [ReverseTree.getData]
+  rw [g_num_inverse]
+  simp only [latest_x_vals]
+  simp only [ReverseTree.getData]
+
+lemma f_neg_b {vals: XVals} (t: @ReverseTree vals): f (-t.getData.b) = t.left.getData.b := by
+  have eq_tree: -t.getData.b = t.left.getData.a := by
+    simp [ReverseTree.getData]
+  rw [eq_tree]
+  simp [new_eval_left]
+
+
 
 lemma not_equation_23: (f (g_enumerate 0)) + (f (- (f (g_enumerate 0)))) ≠ 0 := by
   let g_data := latest_x_vals 0
-  have neg_eq_left: - f (g_enumerate 0) = (latest_x_vals 0).tree.left.getData.a := by
-    simp [f]
-    simp [ReverseTree.getData]
-    rw [g_num_inverse]
-    simp only [latest_x_vals]
-    simp only [ReverseTree.getData]
 
   have eval_neg := new_eval_left (latest_x_vals 0).tree.left
-  rw [neg_eq_left, eval_neg]
+  rw [neg_f_zero, eval_neg]
   simp [f]
   rw [g_num_inverse]
   simp [latest_x_vals]
@@ -3424,66 +3431,44 @@ lemma not_equation_47: 0 ≠ f (f (f 0)) := by
   exact vals_nonzero.symm
 
 
-lemma not_equation_1832: 0 ≠ f (f (g_enumerate 0)) + f ((f (g_enumerate 0)) - f (f (g_enumerate 0))) := by
-  have f_zero_eq: f (g_enumerate 0) = (fun₀ | 1 => 1) := by
-    have tree_eq: g_enumerate 0 = (@ReverseTree.root (mk_x_vals 0 (g_enumerate 0))).getData.a := by
-      simp only [ReverseTree.getData]
-      rw [g_enum_zero_eq_one]
-      simp [mk_x_vals]
-    rw [tree_eq, new_eval_left]
+lemma f_zero_eq: f (g_enumerate 0) = (fun₀ | 1 => 1) := by
+  have tree_eq: g_enumerate 0 = (@ReverseTree.root (mk_x_vals 0 (g_enumerate 0))).getData.a := by
     simp only [ReverseTree.getData]
     rw [g_enum_zero_eq_one]
-    simp [mk_x_vals, XVals.x_vals]
+    simp [mk_x_vals]
+  rw [tree_eq, new_eval_left]
+  simp only [ReverseTree.getData]
+  rw [g_enum_zero_eq_one]
+  simp [mk_x_vals, XVals.x_vals]
+
+lemma not_equation_1832: 0 ≠ f (f (g_enumerate 0)) + f ((f (g_enumerate 0)) - f (f (g_enumerate 0))) := by
   simp [f_zero_eq]
   sorry
 
-
-  have neg_4_not_in: ∀ t: @ReverseTree (mk_x_vals 0), t.getData.b ≠ - (mk_x_vals 0).x_vals 4 := by
-    sorry
-  have neg_4_not_all: ∀ {vals: XVals}, ∀ t: @ReverseTree vals, t.getData.b ≠ - (mk_x_vals 0).x_vals 4 := by
-    sorry
-  have f_1_eq: f ((mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 4 := by
-    sorry
-
-  conv =>
-    rhs
-    pattern f 0
-    --rw [f_zero_tree]
-
-  sorry
-  -- rw [f_eval_at]
-  -- simp [ReverseTree.getData]
-  -- rw [f_1_eq]
-  -- rw [f]
-  -- specialize neg_4_not_all ((full_fun_from_n (g_to_num (f 0 - f (f 0)))).tree)
-  -- rw [eq_comm, add_eq_zero_iff_eq_neg]
-  -- rw [Ne, eq_comm, neg_eq_iff_eq_neg] at neg_4_not_all
-  -- exact neg_4_not_all
-
-
-lemma f_neg_f: f (- (f_0)) = ((mk_x_vals 0).x_vals 2) := by
-  simp  [f_zero_tree, f_eval_at, f_eval_at_b]
-  simp [ReverseTree.getData, newNum]
-
 lemma not_equation_2441: 0 ≠ (f ((f_0) + f (-(f_0)))) + (f ( -(f ((f_0) + f (- (f_0))))) ) := by
-  have f_neq_one_eq: f (- (mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 2 := by
-    sorry
-  have f_x_plus: f (((mk_x_vals 0).x_vals 1) + ((mk_x_vals 0).x_vals 2)) = (mk_x_vals 0).x_vals 6 := by
-    sorry
-  have f_x_minus_7: f (- (mk_x_vals 0).x_vals 6) = (mk_x_vals 0).x_vals 11 := by
-    sorry
-
-  rw [f_zero_tree, f_eval_at]
-  simp [ReverseTree.getData]
-  simp [f_neq_one_eq]
-
-  simp [f_neq_one_eq, f_x_plus, f_x_minus_7]
+  simp [neg_f_zero]
+  simp [new_eval_left]
+  simp only [latest_x_vals, ReverseTree.getData]
+  rw [g_enum_zero_eq_one]
   simp [mk_x_vals, XVals.x_vals]
-  rw [eq_comm, add_eq_zero_iff_eq_neg, ← Finsupp.single_neg]
+  simp [newnum_neq_zero]
+  simp [f_zero_eq]
+  simp [newNum]
+
+  have sum_eq_tree: (fun₀ | 1 => (1: ℚ)) + (fun₀ | 3 => 1) = (@ReverseTree.root (mk_x_vals 0 (g_enumerate 0))).left.right.left.getData.a := by
+    simp [ReverseTree.getData, mk_x_vals, XVals.x_vals, newnum_neq_zero, newNum]
+    rw [add_comm]
+
+  rw [sum_eq_tree]
+  simp [new_eval_left]
+  simp [f_neg_b]
+  simp only [ReverseTree.getData]
+  rw [g_enum_zero_eq_one]
+  simp [mk_x_vals, XVals.x_vals, newnum_neq_zero, newNum]
   by_contra!
-  have app_eq := DFunLike.congr (x := 13) this rfl
-  repeat rw [Finsupp.single_apply] at app_eq
-  norm_cast at app_eq
+  have app_eq := DFunLike.congr (x := 11) this rfl
+  simp at app_eq
+
 
 
 lemma not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0)))) := by

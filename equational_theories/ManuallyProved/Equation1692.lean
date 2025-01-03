@@ -2713,6 +2713,13 @@ structure LatestXVals (g: G) where
   cur_in_vals: cur ∈ vals
   tree: @ReverseTree cur
   a_val: tree.getData.a = g
+  --has_tree: ∀ other_vals: XVals, ∀ t: @ReverseTree other_vals, t.getData.a = g → cur = other_vals
+
+lemma single_x_vals: ∀ a b: XVals, (∃ t1: @ReverseTree a, ∃ t2: @ReverseTree b, t1.getData.a = t2.getData.a) → a = b := by
+  intro a b
+  intro exists_data
+  obtain ⟨t1, t2, h_t1_t2⟩ := exists_data
+  sorry
 
 noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
   match hn: n with
@@ -2760,7 +2767,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
 --   t: @ReverseTree (full_x_vals g).target_val.vals
 --   preserves_tree: (∃ vals: XVals, ∃ other_t: @ReverseTree vals, other_t.getData.a = g) → t.getData.a = g
 
-noncomputable def f (g: G): G := (full_x_vals g).inner.target_val.iso.symm (full_x_vals g).inner.tree.getData.b
+noncomputable def f (g: G): G := (latest_x_vals (g_to_num g)).tree.getData.b
 
 -- TODO - what exactly is the interpretation of this lemma, and why can't lean figure it our for us?
 lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 = vals2) (hv: @ReverseTree vals1 = @ReverseTree vals2): t.getData = (cast hv t).getData := by
@@ -2777,10 +2784,6 @@ lemma f_b_preserved {vals: XVals} (t: @ReverseTree vals): t.getData.b = (full_x_
 --lemma f_b_in {vals: XVals} (t: @ReverseTree vals): t.getData.b ∈ Submodule.span ℚ (make_range (full_x_vals t.getData.a).inner.target_val.vals) := by
 --  have b_in := (full_x_vals t.getData.a).inner.b_in_range
 --  rwa [← f_b_preserved t] at b_in
-
-lemma new_f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = (full_x_vals t.getData.a).inner.target_val.iso.symm t.getData.b := by
-  dsimp [f]
-  rw [← f_b_preserved t]
 
 
 
@@ -3291,6 +3294,34 @@ example proof_rewrite (vals: XVals) (t_parent: @ReverseTree vals) := by
   rw [← left_right_a_eq] at subtype_target
 
 lemma f_functional_eq (g: G): f (f (- f g)) = g - (f g) := by
+  let g_data := latest_x_vals (g_to_num g)
+  have tree_vals_eq: ∃ t1: @ReverseTree (latest_x_vals (g_to_num (- f g))).cur, ∃ t2: @ReverseTree g_data.cur, t1.getData.a = t2.getData.a := by
+    use (latest_x_vals (g_to_num (- f g))).tree
+    use g_data.tree.left
+    simp [ReverseTree.getData]
+    simp [f]
+    sorry
+  have tree_eq := single_x_vals (latest_x_vals (g_to_num (- f g))).cur g_data.cur tree_vals_eq
+  conv =>
+    lhs
+    arg 1
+    rw [f]
+
+  have b_val_eq: (latest_x_vals (g_to_num (-f g))).tree.getData.b = (latest_x_vals (g_to_num g)).tree.left.getData.b := by
+    sorry
+  rw [b_val_eq]
+  rw [f]
+
+  have other_b_eq: (latest_x_vals (g_to_num (latest_x_vals (g_to_num g)).tree.left.getData.b)).tree.getData.b = (latest_x_vals (g_to_num g)).tree.right.getData.b := by
+    sorry
+
+  rw [other_b_eq]
+  simp [ReverseTree.getData, f]
+
+
+
+
+
   have neg_f: -(f g) = -(full_x_vals g).inner.target_val.iso.symm (full_x_vals g).inner.tree.getData.b := by
     simp [f]
 

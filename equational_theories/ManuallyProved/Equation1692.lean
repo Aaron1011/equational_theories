@@ -1067,8 +1067,8 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
 
     let f := λ x => t • (vals.x_vals x)
 
-    have x_val_basis: vals.x_vals (newNum prev) ∈ Set.range basis_n := Set.mem_of_mem_of_subset (by simp) vals.x_basis
-    obtain ⟨newnum_val, h_newnum_val⟩ := x_val_basis
+    --have x_val_basis: vals.x_vals (newNum prev) ∈ Set.range basis_n := Set.mem_of_mem_of_subset (by simp) vals.x_basis
+    --obtain ⟨newnum_val, h_newnum_val⟩ := x_val_basis
 
     have ite_eq: (if (newNum prev) ∈ Finset.range (newNum prev + 1) then f (newNum prev) else 0) = t • (vals.x_vals (newNum prev)) := by
       simp [f]
@@ -1108,7 +1108,7 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
     simp only [← ite_zero_smul] at hs_t
     simp only [← smul_assoc] at hs_t
     simp only [← add_smul] at hs_t
-    simp only [vals.x_to_index_eq] at hs_t
+    --simp only [vals.x_to_index_eq] at hs_t
     simp only [basis_n] at hs_t
 
     apply (basis_x_val_indep _) at hs_t

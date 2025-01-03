@@ -2514,8 +2514,10 @@ def make_range (vals: XVals): Set (ℕ →₀ ℚ) := Set.range vals.x_vals
 
 structure XValsIso where
   vals: XVals
-  other_space: Submodule ℚ (ℕ →₀ ℚ)
-  iso: other_space ≃ₗ[ℚ] ((Submodule.span ℚ (make_range vals)))
+  -- This maps arguments to 'f' to elements that have a left tree
+  -- We apply this in the forward direction to find a tree for our 'f' argument,
+  -- and in the backward direction to convert the 'tree.b' value back
+  iso: G ≃ₗ[ℚ] G
 
 
 structure XValsFullData where
@@ -2523,10 +2525,8 @@ structure XValsFullData where
   vals: Set (XValsIso)
   target_val: XValsIso
   target_val_in: target_val ∈ vals
-  contains_n: g ∈ target_val.other_space
   tree: @ReverseTree target_val.vals
-  tree_iso_a: tree.getData.a = target_val.iso ⟨g, contains_n⟩
-  b_in_range: tree.getData.b ∈ ((Submodule.span ℚ (make_range target_val.vals)))
+  tree_iso_a: tree.getData.a = target_val.iso g
   fixes_if_tree: (∃ other_vals: XVals, ∃ other_t: @ReverseTree other_vals, other_t.getData.a = g) → tree.getData.a = g
   -- BAD - we *cannot* have the isomorphism fix 'b', since 'b' could be 'parent.a - parent.b', which would
   -- mean that the isomorphism would fix 'a'
@@ -2546,9 +2546,8 @@ structure WrapperXValsFullData (g: G) where
 structure PrevData (g: G) (prev_isos: Set XValsIso) where
   x_vals_iso: XValsIso
   x_vals_in: x_vals_iso ∈ prev_isos
-  g_in_space: g ∈ x_vals_iso.other_space
   tree: @ReverseTree x_vals_iso.vals
-  tree_in_range: tree.getData.a = x_vals_iso.iso ⟨g, g_in_space⟩
+  tree_in_range: tree.getData.a = x_vals_iso.iso g
 
 noncomputable def full_x_vals_num (n: ℕ): WrapperXValsFullData (g_enumerate n) := by
   let g := g_enumerate n
@@ -2561,7 +2560,6 @@ noncomputable def full_x_vals_num (n: ℕ): WrapperXValsFullData (g_enumerate n)
       simp [mk_x_vals, XVals.x_vals]
     let initial_vals: XValsIso := {
       vals := mk_x_vals 0,
-      other_space := Submodule.span ℚ (make_range (mk_x_vals 0)),
       iso := LinearEquiv.refl _ _
     }
     exact {
@@ -2570,31 +2568,18 @@ noncomputable def full_x_vals_num (n: ℕ): WrapperXValsFullData (g_enumerate n)
           vals := {initial_vals},
           target_val := initial_vals,
           target_val_in := by simp,
-          contains_n := by
-            simp [make_range]
-            have g_in_range: g ∈ make_range (mk_x_vals 0) := by
-              simp [make_range]
-              simp [g_vals_zero]
-            exact Submodule.subset_span g_in_range,
           tree := ReverseTree.root,
           tree_iso_a := by
             simp [initial_vals]
             simp [ReverseTree.getData]
             exact g_vals_zero.symm
-          tree_iso_b := by
-            simp [initial_vals]
           preserves_tree := by
             intro other_vals other_t data_eq
             simp [ReverseTree.getData]
             refine ⟨?_, ?_⟩
             sorry
             sorry
-          b_in_range := by
-            simp [make_range]
-            simp [ReverseTree.getData]
-            have vals_one_in: (mk_x_vals 0).x_vals 1 ∈ make_range (mk_x_vals 0) := by
-              simp [make_range]
-            exact Submodule.subset_span vals_one_in
+          fixes_if_tree := sorry
         }
         g_eq := by
           dsimp [g]
@@ -2611,25 +2596,17 @@ noncomputable def full_x_vals_num (n: ℕ): WrapperXValsFullData (g_enumerate n)
           target_val := prev_data.x_vals_iso,
           target_val_in := by
             exact prev_data.x_vals_in
-          contains_n := by
-            exact prev_data.g_in_space
           tree := by
             exact prev_data.tree
           tree_iso_a := by
             exact prev_data.tree_in_range
-          tree_iso_b := by
-
-            sorry
-            simp
           preserves_tree := by
             intro other_vals other_t data_eq
             simp
             refine ⟨?_, ?_⟩
             sorry
             sorry
-          b_in_range := by
-            simp
-            exact have_tree
+          fixes_if_tree := sorry
         }
         g_eq := by
           dsimp [g]
@@ -2646,7 +2623,7 @@ noncomputable def full_x_vals (g: G): WrapperXValsFullData g := by
 --   t: @ReverseTree (full_x_vals g).target_val.vals
 --   preserves_tree: (∃ vals: XVals, ∃ other_t: @ReverseTree vals, other_t.getData.a = g) → t.getData.a = g
 
-noncomputable def f (g: G): G := (full_x_vals g).inner.target_val.iso.symm ⟨(full_x_vals g).inner.tree.getData.b, (full_x_vals g).inner.b_in_range⟩
+noncomputable def f (g: G): G := (full_x_vals g).inner.target_val.iso.symm (full_x_vals g).inner.tree.getData.b
 
 -- TODO - what exactly is the interpretation of this lemma, and why can't lean figure it our for us?
 lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 = vals2) (hv: @ReverseTree vals1 = @ReverseTree vals2): t.getData = (cast hv t).getData := by
@@ -2660,13 +2637,14 @@ lemma f_b_preserved {vals: XVals} (t: @ReverseTree vals): t.getData.b = (full_x_
   simp [ (full_x_vals t.getData.a).g_eq] at preserved_tree
   rw [preserved_tree.1]
 
-lemma f_b_in {vals: XVals} (t: @ReverseTree vals): t.getData.b ∈ Submodule.span ℚ (make_range (full_x_vals t.getData.a).inner.target_val.vals) := by
-  have b_in := (full_x_vals t.getData.a).inner.b_in_range
-  rwa [← f_b_preserved t] at b_in
+--lemma f_b_in {vals: XVals} (t: @ReverseTree vals): t.getData.b ∈ Submodule.span ℚ (make_range (full_x_vals t.getData.a).inner.target_val.vals) := by
+--  have b_in := (full_x_vals t.getData.a).inner.b_in_range
+--  rwa [← f_b_preserved t] at b_in
 
-lemma new_f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = (full_x_vals t.getData.a).inner.target_val.iso.symm ⟨t.getData.b, f_b_in t⟩ := by
-  simp [f]
-  rw [← f_b_preserved]
+lemma new_f_eval_at {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = (full_x_vals t.getData.a).inner.target_val.iso.symm t.getData.b := by
+  dsimp [f]
+  rw [← f_b_preserved t]
+
 
 
   -- have preserves_tree := (full_x_vals t.getData.a).inner.preserves_tree vals t
@@ -3176,12 +3154,8 @@ example proof_rewrite (vals: XVals) (t_parent: @ReverseTree vals) := by
   rw [← left_right_a_eq] at subtype_target
 
 lemma f_functional_eq (g: G): f (f (- f g)) = g - (f g) := by
-  have neg_f: -(f g) = -(full_x_vals g).inner.target_val.iso.symm ⟨(full_x_vals g).inner.tree.getData.b, (full_x_vals g).inner.b_in_range⟩ := by
+  have neg_f: -(f g) = -(full_x_vals g).inner.target_val.iso.symm (full_x_vals g).inner.tree.getData.b := by
     simp [f]
-
-  have f_g_range: (f g) ∈ (full_x_vals g).inner.target_val.other_space := by
-    have val_in := (full_x_vals g).inner.contains_n
-    sorry
 
   have neg_left_tree: ∃ vals: XVals, ∃ t: @ReverseTree vals, t.left.getData.a = -(f g) := by
     simp [f]
@@ -3221,6 +3195,7 @@ lemma f_functional_eq (g: G): f (f (- f g)) = g - (f g) := by
     sorry
 
 
+
   --have parent_right: t_parent.right.getData.a = t_parent.left.getData.b := by
   --  simp [ReverseTree.getData]
   --simp [← parent_right]
@@ -3255,34 +3230,10 @@ lemma f_functional_eq (g: G): f (f (- f g)) = g - (f g) := by
 
   rw [fixes_a] at a_iso
   rw [fixes_right_a] at a_iso_right
-  have coe_mk := Subtype.coe_eq_of_eq_mk a_iso_right.symm
-  rw [eq_comm] at coe_mk
-  rw [← LinearEquiv.symm_apply_eq] at coe_mk
+  --have coe_mk := Subtype.coe_eq_of_eq_mk a_iso_right.symm
+  --rw [eq_comm] at coe_mk
+  --rw [← LinearEquiv.symm_apply_eq] at coe_mk
 
-
-
-  conv =>
-    lhs
-
-    arg 1
-    arg 1
-    arg 1
-    arg 1
-    rw [left_right_a_eq]
-
-
-
-  conv =>
-    lhs
-    pattern Subtype.mk _ _
-    equals ⟨t_parent.right.getData.a, sorry⟩ =>
-      sorry
-
-  conv at coe_mk =>
-    rhs
-    pattern Subtype.mk _ _
-    equals ⟨t_parent.right.getData.a, sorry⟩ =>
-      sorry
 
 
 
@@ -3294,10 +3245,16 @@ lemma f_functional_eq (g: G): f (f (- f g)) = g - (f g) := by
     rw [a_iso]
     sorry
 
+  conv =>
+    lhs
+    dsimp [f]
 
 
 
-  have eval_right := new_f_eval_at t_parent.right
+
+  have eval_left := new_f_eval_at t_parent.left
+
+
 
 
 

@@ -3453,8 +3453,8 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
   have no_root_left: ∀ t: @ReverseTree (mk_x_vals 0 (g_enumerate 0)), t.getData.a ≠ fun₀ | 1 => 1 := by
     intro t
     by_contra!
-    match t with
-    | .root =>
+    induction t with
+    | root =>
       simp only [ReverseTree.getData] at this
       rw [g_enum_zero_eq_zero] at this
       simp only [mk_x_vals, XVals.x_vals] at this
@@ -3465,8 +3465,23 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
       have supp_nonempty: (fun₀ | 1 => (1 : ℚ)).support ≠ ∅ := by
         exact Finset.ne_empty_of_mem one_in_supp
       contradiction
-    | .left t1_parent => sorry
-    | .right t1_parent => sorry
+    | left t1_parent h_parent =>
+      simp only [ReverseTree.getData] at this
+      sorry
+
+    | right t1_parent h_parent =>
+      simp only [ReverseTree.getData] at this
+      simp only [mk_x_vals, XVals.x_vals, newnum_neq_zero] at this
+      simp at this
+      have val_neq_one: 1 + (newNum t1_parent - 1) * 2 ≠ 1 := by
+        have t1_ne_one: newNum t1_parent > 1 := by
+          apply newnem_gt_one
+        omega
+      rw [Finsupp.eq_single_iff] at this
+      simp at this
+      rw [Finsupp.support_single_ne_zero _ (by simp)] at this
+      simp at this
+      omega
 
   have f_supp_disjoint: Disjoint (f fun₀ | 1 => 1).support.toSet ((fun v => v.support.toSet) '' (Set.range (mk_x_vals 0 (g_enumerate 0)).x_vals)).sUnion := by
     sorry

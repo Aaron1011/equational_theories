@@ -3517,9 +3517,13 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
       rw [g_enum_zero_eq_zero]
     have tree_a := (latest_x_vals (g_to_num fun₀ | 1 => 1)).a_val
     simp only [g_enum_inverse] at tree_a
+    have types_eq: @ReverseTree (latest_x_vals (g_to_num fun₀ | 1 => 1)).cur = @ReverseTree (mk_x_vals 0 0) := by
+      rw [this]
 
-
-    specialize no_root_left (latest_x_vals (g_to_num fun₀ | 1 => 1)).tree
+    have my_cast := cast_data_eq (latest_x_vals (g_to_num fun₀ | 1 => 1)).tree this types_eq
+    specialize no_root_left (cast types_eq (latest_x_vals (g_to_num fun₀ | 1 => 1)).tree)
+    rw [my_cast] at tree_a
+    contradiction
 
 
   have f_supp_disjoint: Disjoint (f fun₀ | 1 => 1).support.toSet ((fun v => v.support.toSet) '' (Set.range (mk_x_vals 0 (g_enumerate 0)).x_vals)).sUnion := by

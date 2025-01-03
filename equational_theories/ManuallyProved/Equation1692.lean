@@ -350,6 +350,7 @@ structure XVals where
   supp_gt: ∀ n, root_elem.support.max < (basis_n (2^(i) + n*2^(i+1))).support.min
   root_neq: root_elem ∉ Set.range (fun n => basis_n (2^(i) + n*2^(i+1)))
   root_nonzero: root_elem ≠ 0
+  root_indep: ∀ n, LinearIndependent ℚ ![root_elem, (basis_n (2^(i) + n*2^(i+1)))]
   -- x_basis: Set.range x_vals ⊆ Set.range basis_n
 
 noncomputable def XVals.x_vals (vals: XVals) (n: ℕ): G := if n = 0 then vals.root_elem else basis_n (2^(vals.i) + (n-1)*2^(vals.i+1))
@@ -1033,7 +1034,9 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
     rw [Finset.sum_pair (by simp)] at basis_indep
     simp at basis_indep
     simp [basis_n, XVals.x_vals] at eq_zero
-    exact basis_indep eq_zero
+    have root_indep := vals.root_indep 0
+    simp [LinearIndependent.pair_iff] at root_indep
+    exact root_indep p q eq_zero
   | left prev h_prev =>
     simp [ReverseTree.getData]
     simp [ReverseTree.getData] at h_prev

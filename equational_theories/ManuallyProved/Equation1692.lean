@@ -2527,6 +2527,7 @@ structure XValsFullData where
   tree: @ReverseTree target_val.vals
   tree_iso_a: tree.getData.a = target_val.iso ⟨g, contains_n⟩
   b_in_range: tree.getData.b ∈ ((Submodule.span ℚ (make_range target_val.vals)))
+  fixes_if_tree: (∃ other_vals: XVals, ∃ other_t: @ReverseTree other_vals, other_t.getData.a = g) → tree.getData.a = g
   -- BAD - we *cannot* have the isomorphism fix 'b', since 'b' could be 'parent.a - parent.b', which would
   -- mean that the isomorphism would fix 'a'
   --tree_iso_b: tree.getData.b = target_val.iso.symm ⟨tree.getData.b, b_in_range⟩
@@ -3134,31 +3135,201 @@ lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (Submodule.Quotient.mk t
 
   rw [← my_cast_data]
 
-lemma f_eval_at_b {vals: XVals} (t: @ReverseTree vals): f (-t.getData.b) = t.left.getData.b := by
-  have t_left_a_eq: -t.getData.b = t.left.getData.a := by
-    simp [ReverseTree.getData]
-  rw [t_left_a_eq]
-  rw [new_f_eval_at t.left]
+-- lemma f_eval_at_b {vals: XVals} (t: @ReverseTree vals): f (-t.getData.b) = (full_x_vals (-t.getData.b)).inner.target_val.iso.symm ⟨t.left.getData.b, f_b_in t⟩  := by
+--   have t_left_a_eq: -t.getData.b = t.left.getData.a := by
+--     simp [ReverseTree.getData]
+--   rw [t_left_a_eq]
+--   rw [new_f_eval_at t.left]
 
   -- suppose f(g) = g + g
   -- -f(g)= -g - g
   -- f(-f(g))= (-g - g) + (-g - g) = -4g
   -- f(f(-f(g))) = -4g + -4g = -8g
 
+-- noncomputable instance subtypeNeg (S: Submodule ℚ (ℕ →₀ ℚ)) : Neg (Subtype fun p => p ∈ S) where
+--   neg x := ⟨-x.val, by simp⟩
 
-lemma f_function_eq (g: G): f (f (- f g)) = g - (f g) := by
+-- lemma subtype_neg_eq {S: Submodule ℚ (ℕ →₀ ℚ)} {x: S}: -x = ⟨-x.val, by simp⟩ := by
+--   rfl
+
+set_option synthInstance.maxHeartbeats 2000000
+set_option maxHeartbeats 2000000
+
+def can_i_rewrite (a b: G) (hab: a = b): LinearEquiv (RingHom.id ℚ) ℝ ℝ := by
+  sorry
+
+def can_i_rewrite_other (a b: G) (hab: a = b) (htarget: (full_x_vals a).inner = (full_x_vals b).inner): (full_x_vals a).inner.target_val.iso ⟨(full_x_vals a).inner.g, (full_x_vals a).inner.contains_n⟩ = 0 := by
+  rw [htarget]
+
+example proof_rewrite (vals: XVals) (t_parent: @ReverseTree vals) := by
+
+  have left_right_a_eq: t_parent.left.getData.a = t_parent.right.getData.a := by
+    sorry
+
+  have good_subtype_target: (⟨t_parent.right.getData.a, sorry⟩: Subtype ((Membership.mem (Submodule.span ℚ (make_range (full_x_vals t_parent.left.getData.a).inner.target_val.vals))))) = (0 : G) := by
+    sorry
+
+  have subtype_target: (⟨t_parent.right.getData.a, f_b_in t_parent.left⟩: Subtype ((Membership.mem (Submodule.span ℚ (make_range (full_x_vals t_parent.left.getData.a).inner.target_val.vals))))) = (0 : G) := by
+    sorry
+
+  rw [← left_right_a_eq] at good_subtype_target
+  rw [← left_right_a_eq] at subtype_target
+
+lemma f_functional_eq (g: G): f (f (- f g)) = g - (f g) := by
   have neg_f: -(f g) = -(full_x_vals g).inner.target_val.iso.symm ⟨(full_x_vals g).inner.tree.getData.b, (full_x_vals g).inner.b_in_range⟩ := by
     simp [f]
-  have neg_left_tree: ∃ vals: XVals, ∃ t: @ReverseTree vals, t.left.getData.a = - f g := by
+
+  have f_g_range: (f g) ∈ (full_x_vals g).inner.target_val.other_space := by
+    have val_in := (full_x_vals g).inner.contains_n
     sorry
+
+  have neg_left_tree: ∃ vals: XVals, ∃ t: @ReverseTree vals, t.left.getData.a = -(f g) := by
+    simp [f]
+    use (full_x_vals g).inner.target_val.vals
+    use (full_x_vals g).inner.tree
+    simp [ReverseTree.getData]
+    sorry
+
+    -- rw [LinearEquiv.eq_toLinearMap_symm_comp]
+
+    -- --rw[← Submodule.coe_neg]
+    -- --rw [LinearMap.map_neg]
+    -- --conv =>
+    -- --  right
+    -- --  pattern - _
+    -- --  rw [← neg_one_zsmul]
+
+    -- simp at foo
+
+    -- conv =>
+    --   right
+    --   pattern Subtype.mk _ _
+    --   rw [← @Neg.neg (Subtype _)]
+    --   rw [← MulMemClass.mk_smul_mk]
+
+    -- conv =>
+    --   right
+    --   arg 1
+
   obtain ⟨vals, t_parent, ht_parent⟩ := neg_left_tree
   have eval_at_neg := new_f_eval_at t_parent.left
-  rw [ht_parent] at eval_at_neg
+  simp [ht_parent] at eval_at_neg
   rw [eval_at_neg]
-  have parent_right: t_parent.right.getData.a = t_parent.left.getData.b := by
-    simp [ReverseTree.getData]
-  rw [← parent_right]
+
+
+  have left_right_x_vals_eq: ((full_x_vals t_parent.left.getData.a).inner) = ((full_x_vals t_parent.right.getData.a).inner) := by
+    sorry
+
+  have left_right_a_eq: t_parent.left.getData.a = t_parent.right.getData.a := by
+    sorry
+
+  have simpler_target: (full_x_vals t_parent.left.getData.a).inner.g = 0 := by
+    sorry
+
+  have harder_target: f ↑((full_x_vals t_parent.left.getData.a).inner.target_val.iso.symm ⟨t_parent.right.getData.a, f_b_in t_parent.left⟩) = g - f g := by
+    sorry
+
+  have subtype_target: (⟨t_parent.right.getData.a, f_b_in t_parent.left⟩: Subtype ((Membership.mem (Submodule.span ℚ (make_range (full_x_vals t_parent.left.getData.a).inner.target_val.vals))))) = (0 : G) := by
+    sorry
+
+
+  rw [left_right_a_eq] at simpler_target
+  rw [← left_right_a_eq] at subtype_target
+  rw [left_right_a_eq] at harder_target
+  rw [left_right_a_eq]
+
+  --have parent_right: t_parent.right.getData.a = t_parent.left.getData.b := by
+  --  simp [ReverseTree.getData]
+  --simp [← parent_right]
+  conv =>
+    lhs
+    arg 1
+    arg 1
+    arg 1
+
+
+  have fixes_a := (full_x_vals t_parent.left.getData.a).inner.fixes_if_tree
+  have exists_stuff: (∃ other_vals: XVals, ∃ other_t: @ReverseTree other_vals, other_t.getData.a = (full_x_vals t_parent.left.getData.a).inner.g) := by
+    use vals
+    use t_parent.left
+    rw [(full_x_vals t_parent.left.getData.a).g_eq]
+  specialize fixes_a exists_stuff
+
+  have fixes_right_a := (full_x_vals t_parent.right.getData.a).inner.fixes_if_tree
+  have exists_stuff_right: (∃ other_vals: XVals, ∃ other_t: @ReverseTree other_vals, other_t.getData.a = (full_x_vals t_parent.right.getData.a).inner.g) := by
+    use vals
+    use t_parent.right
+    rw [(full_x_vals t_parent.right.getData.a).g_eq]
+  specialize fixes_right_a exists_stuff_right
+
+
+  rw [(full_x_vals t_parent.left.getData.a).g_eq] at fixes_a
+  rw [(full_x_vals t_parent.right.getData.a).g_eq] at fixes_right_a
+
+
+  have a_iso := (full_x_vals t_parent.left.getData.a).inner.tree_iso_a
+  have a_iso_right := (full_x_vals t_parent.right.getData.a).inner.tree_iso_a
+
+  rw [fixes_a] at a_iso
+  rw [fixes_right_a] at a_iso_right
+  have coe_mk := Subtype.coe_eq_of_eq_mk a_iso_right.symm
+  rw [eq_comm] at coe_mk
+  rw [← LinearEquiv.symm_apply_eq] at coe_mk
+
+
+
+  conv =>
+    lhs
+
+    arg 1
+    arg 1
+    arg 1
+    arg 1
+    rw [left_right_a_eq]
+
+
+
+  conv =>
+    lhs
+    pattern Subtype.mk _ _
+    equals ⟨t_parent.right.getData.a, sorry⟩ =>
+      sorry
+
+  conv at coe_mk =>
+    rhs
+    pattern Subtype.mk _ _
+    equals ⟨t_parent.right.getData.a, sorry⟩ =>
+      sorry
+
+
+
+  have other_g_eq := (full_x_vals t_parent.left.getData.a).g_eq
+  simp [other_g_eq] at a_iso
+
+
+  have parent_a_in: t_parent.left.getData.a ∈ (Submodule.span ℚ (make_range (full_x_vals t_parent.left.getData.a).inner.target_val.vals)) := by
+    rw [a_iso]
+    sorry
+
+
+
+
+  have eval_right := new_f_eval_at t_parent.right
+
+
+
+
+  conv =>
+    lhs
+    dsimp [f]
+
+
+
+
+
   rw [new_f_eval_at t_parent.right]
+
+
   simp [ReverseTree.getData]
   conv =>
     rhs
@@ -3258,7 +3429,7 @@ lemma second_equiv (f: G → G) (hf: ∀ g: G, f (f (- f g)) = g - (f g)): ∀ x
 -- Our constructed function 'f' satisfies the diamond law
 lemma diamond_real_f (x y: G): x = (diamond f (x + (y - x) + (f (-(y - x)))) (diamond f (x + (y - x) + (f (-(y - x)))) (x + y - x))) := by
   rw [first_equiv]
-  have other_equiv := second_equiv f f_function_eq x y
+  have other_equiv := second_equiv f f_functional_eq x y
   rw [← other_equiv]
 
 

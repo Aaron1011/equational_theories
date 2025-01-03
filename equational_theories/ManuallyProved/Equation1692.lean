@@ -3445,6 +3445,12 @@ lemma not_equation_1832: 0 ≠ f (f (g_enumerate 0)) + f ((f (g_enumerate 0)) - 
   simp [f_zero_eq]
   sorry
 
+
+lemma sum_1_3_eq_tree: (fun₀ | 1 => (1: ℚ)) + (fun₀ | 3 => 1) = (@ReverseTree.root (mk_x_vals 0 (g_enumerate 0))).left.right.left.getData.a := by
+  simp [ReverseTree.getData, mk_x_vals, XVals.x_vals, newnum_neq_zero, newNum]
+  rw [add_comm]
+
+
 lemma not_equation_2441: 0 ≠ (f ((f_0) + f (-(f_0)))) + (f ( -(f ((f_0) + f (- (f_0))))) ) := by
   simp [neg_f_zero]
   simp [new_eval_left]
@@ -3455,11 +3461,7 @@ lemma not_equation_2441: 0 ≠ (f ((f_0) + f (-(f_0)))) + (f ( -(f ((f_0) + f (-
   simp [f_zero_eq]
   simp [newNum]
 
-  have sum_eq_tree: (fun₀ | 1 => (1: ℚ)) + (fun₀ | 3 => 1) = (@ReverseTree.root (mk_x_vals 0 (g_enumerate 0))).left.right.left.getData.a := by
-    simp [ReverseTree.getData, mk_x_vals, XVals.x_vals, newnum_neq_zero, newNum]
-    rw [add_comm]
-
-  rw [sum_eq_tree]
+  rw [sum_1_3_eq_tree]
   simp [new_eval_left]
   simp [f_neg_b]
   simp only [ReverseTree.getData]
@@ -3479,22 +3481,23 @@ lemma not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)))
 
 
 lemma not_equation_3456: f_0 ≠ f ((f_0) + f (- (f_0))) := by
-  have tree_eq: ReverseTree.root (vals := (mk_x_vals 0)).left.right.getData.b = -((mk_x_vals 0).x_vals 1 + (mk_x_vals 0).x_vals 2) := by
-    simp [ReverseTree.getData, mk_x_vals, newNum, XVals.x_vals]
-    simp [← Finsupp.single_neg]
-    rw [sub_eq_add_neg, add_comm]
-    rw [← Finsupp.single_neg]
-
-  have f_double_neg: f ((mk_x_vals 0).x_vals 1 + (mk_x_vals 0).x_vals 2) = f (-(-((mk_x_vals 0).x_vals 1 + (mk_x_vals 0).x_vals 2))) := by
-    simp
-
-  simp  [f_zero_tree, f_eval_at, f_eval_at_b]
+  simp only [f_0]
+  simp only [neg_f_zero]
+  simp only [new_eval_left]
+  simp [f_zero_eq]
   simp [ReverseTree.getData, newNum]
-  rw [f_double_neg, ← tree_eq, f_eval_at_b]
-  simp [mk_x_vals, ReverseTree.getData, newNum]
-  refine Finsupp.ne_iff.mpr ?_
-  use 3
-  simp [XVals.x_vals]
+  simp only [latest_x_vals]
+  rw [g_enum_zero_eq_one]
+  simp [mk_x_vals, XVals.x_vals]
+
+  rw [sum_1_3_eq_tree]
+  simp [new_eval_left]
+  simp only [ReverseTree.getData]
+  rw [g_enum_zero_eq_one]
+  simp [mk_x_vals, XVals.x_vals, newnum_neq_zero, newNum]
+  have one_neq_eleven: 1 ≠ 11 := by
+    linarith
+  simp [one_neq_eleven]
 
 lemma not_equation_4065: f 0 ≠ (f 0) + f (- f 0) + f ((- f 0) + f (- (f 0) - f (-f 0))) := by
   sorry

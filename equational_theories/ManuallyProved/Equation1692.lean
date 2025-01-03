@@ -3450,14 +3450,13 @@ lemma f_zero_eq: f (0) = (fun₀ | 1 => 1) := by
 theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
   simp [f_zero_eq]
 
-  have no_root_left: ∀ t: @ReverseTree (mk_x_vals 0 (g_enumerate 0)), t.getData.a ≠ fun₀ | 1 => 1 := by
+  have no_root_left: ∀ t: @ReverseTree (mk_x_vals 0 0), t.getData.a ≠ fun₀ | 1 => 1 := by
     intro t
     by_contra!
     induction t with
     | root =>
       -- TODO - make a single lemma that does all of this
       simp only [ReverseTree.getData] at this
-      rw [g_enum_zero_eq_zero] at this
       simp only [mk_x_vals, XVals.x_vals] at this
       rw [eq_comm] at this
       rw [← Finsupp.support_eq_empty] at this
@@ -3471,7 +3470,6 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
       match t1_parent with
       | .root =>
         simp only [ReverseTree.getData] at this
-        rw [g_enum_zero_eq_zero] at this
         simp only [mk_x_vals, XVals.x_vals] at this
         simp at this
         rw [Finsupp.eq_single_iff] at this
@@ -3510,6 +3508,19 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
       rw [Finsupp.support_single_ne_zero _ (by simp)] at this
       simp at this
       omega
+
+  have not_initial_data: (latest_x_vals (g_to_num fun₀ | 1 => 1)).cur ≠ (latest_x_vals 0).cur := by
+    by_contra!
+    conv at this =>
+      rhs
+      simp only [latest_x_vals]
+      rw [g_enum_zero_eq_zero]
+    have tree_a := (latest_x_vals (g_to_num fun₀ | 1 => 1)).a_val
+    simp only [g_enum_inverse] at tree_a
+
+
+    specialize no_root_left (latest_x_vals (g_to_num fun₀ | 1 => 1)).tree
+
 
   have f_supp_disjoint: Disjoint (f fun₀ | 1 => 1).support.toSet ((fun v => v.support.toSet) '' (Set.range (mk_x_vals 0 (g_enumerate 0)).x_vals)).sUnion := by
     sorry

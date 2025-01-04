@@ -3438,6 +3438,13 @@ theorem not_equation_23: (f (0)) + (f (- (f (0)))) ≠ 0 := by
   have val_neq_1: 1 + (newNum (@ReverseTree.root (mk_x_vals 0 (g_enumerate 0))) - 1) * 2 ≠ 1 := by
     omega
   simp [val_neq_1] at app_eq
+  rw [g_num_zero_eq_zero] at app_eq
+  simp [latest_x_vals] at app_eq
+  simp only [ReverseTree.getData] at app_eq
+  rw [g_enum_zero_eq_zero] at app_eq
+  simp only [mk_x_vals, XVals.x_vals] at app_eq
+  simp at app_eq
+
 
 theorem not_equation_47: 0 ≠ f (f (f 0)) := by
   rw [f]

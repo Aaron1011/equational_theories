@@ -3585,37 +3585,8 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
 
   by_contra!
 
-  have nothing_maps_one: ∀ {vals: XVals}, ∀ t: @ReverseTree vals, t.getData.b ≠ - fun₀ | 1 => 1 := by
-    intro vals t
-    match t with
-    | .root =>
-      simp only [ReverseTree.getData]
-      simp only [mk_x_vals, XVals.x_vals]
-      simp
-      by_contra!
-      rw [← Finsupp.single_neg] at this
-      rw [Finsupp.single_eq_single_iff] at this
-      simp at this
-      have bad := this.2
-      contradiction
-    | .left t1_parent =>
-      simp [ReverseTree.getData]
-      by_contra!
-      simp [XVals.x_vals, newnum_neq_zero] at this
-      rw [← Finsupp.single_neg] at this
-      rw [Finsupp.single_eq_single_iff] at this
-      simp at this
-      have bad := this.2
-      contradiction
-    | .right t1_parent =>
-      simp [ReverseTree.getData]
-      by_contra!
-      have not_eq := basis_neq_elem_diff t1_parent 1 (-1) 1 (-1) (by simp) (by simp) (by simp)
-      simp at not_eq
-      rw [neg_add_eq_sub, eq_comm] at not_eq
-      contradiction
 
-
+  -- MAJOR REFACTOR - generialize this to any power of 2, and make it a lemma
   have nothing_maps_other_val: ∀ {vals: XVals}, ∀ t: @ReverseTree vals, t.getData.b ≠ -fun₀ | 2 ^ (latest_x_vals (g_to_num fun₀ | 1 => 1)).cur.i => 1 := by
     intro vals t
     match t with
@@ -3652,27 +3623,8 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
     rw [f, one_is_root]
   simp only [ReverseTree.getData, XVals.x_vals] at this
   simp at this
-  specialize nothing_maps_one (latest_x_vals (g_to_num ((fun₀ | 1 => 1) - f fun₀ | 1 => 1))).tree
-
-
-
-  -- OLD ATTEMPT
-  have app_eq := DFunLike.congr (x := a) this rfl
-  have eq_zero := ((f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1)).mem_support_toFun a).not.mp
-  -- TODO - lean hangs if I try to do this on one line
-  specialize eq_zero a_not_other_supp
-  simp at app_eq
-  simp at eq_zero
-  have eval_eq_zero: ((f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1))) a = 0 := by
-    exact eq_zero
-  rw [eval_eq_zero] at app_eq
-
-  have eval_nonzero := (((f fun₀ | 1 => 1)).mem_support_toFun a).mp ha
-  simp at app_eq
-  have normal_eval: (f fun₀ | 1 => 1) a ≠ 0 := eval_nonzero
-  rw [eq_comm] at app_eq
-  contradiction
-
+  specialize nothing_maps_other_val (latest_x_vals (g_to_num ((fun₀ | 1 => 1) - f fun₀ | 1 => 1))).tree
+  exact nothing_maps_other_val this
 
 lemma sum_1_3_eq_tree: (fun₀ | 1 => (1: ℚ)) + (fun₀ | 3 => 1) = (@ReverseTree.root (mk_x_vals 0 (g_enumerate 0))).left.right.left.getData.a := by
   simp [ReverseTree.getData, mk_x_vals, XVals.x_vals, newnum_neq_zero, newNum]

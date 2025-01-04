@@ -3694,7 +3694,40 @@ theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0)
   simp at this
 
 
-  sorry
+  have nothing_maps_neg_3: ∀ {vals: XVals}, ∀ t: @ReverseTree vals, t.getData.b ≠ -fun₀ | 3 => 1 := by
+    intro vals t
+    match t with
+    | .root =>
+      simp only [ReverseTree.getData]
+      simp only [mk_x_vals, XVals.x_vals]
+      simp
+      by_contra!
+      rw [← Finsupp.single_neg] at this
+      rw [Finsupp.single_eq_single_iff] at this
+      simp at this
+      have bad := this.2
+      contradiction
+    | .left t1_parent =>
+      simp [ReverseTree.getData]
+      by_contra!
+      simp [XVals.x_vals, newnum_neq_zero] at this
+      rw [← Finsupp.single_neg] at this
+      rw [Finsupp.single_eq_single_iff] at this
+      simp at this
+      have bad := this.2
+      contradiction
+    | .right t1_parent =>
+      simp [ReverseTree.getData]
+      by_contra!
+      have not_eq := basis_neq_elem_diff t1_parent (3) (-1) 1 (-1) (by simp) (by simp) (by simp)
+      simp at not_eq
+      rw [neg_add_eq_sub, eq_comm] at not_eq
+      contradiction
+
+  nth_rw 1 [f] at this
+  specialize nothing_maps_neg_3 (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)))).tree
+  rw [eq_comm] at this
+  exact nothing_maps_neg_3 this
 
 -- noncomputable def total_function (x: G): G := by
 --   by_cases x_in_tree: ∃ t: ReverseTree, x = t.getData.a

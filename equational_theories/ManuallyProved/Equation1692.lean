@@ -3616,7 +3616,11 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
       contradiction
 
   rw [eq_comm, add_comm, add_eq_zero_iff_eq_neg] at this
-  nth_rw 1 [f] at this
+  conv at this =>
+    rhs
+    rw [f, one_is_root]
+  simp only [ReverseTree.getData, XVals.x_vals] at this
+  simp at this
   specialize nothing_maps_one (latest_x_vals (g_to_num ((fun₀ | 1 => 1) - f fun₀ | 1 => 1))).tree
 
 

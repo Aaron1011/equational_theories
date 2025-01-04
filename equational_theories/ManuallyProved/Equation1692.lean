@@ -3561,6 +3561,7 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
       rw [neg_add_eq_sub, eq_comm] at not_eq
       contradiction
 
+  by_contra!
   rw [eq_comm, add_comm, add_eq_zero_iff_eq_neg] at this
   conv at this =>
     rhs

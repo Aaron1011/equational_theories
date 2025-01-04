@@ -3607,9 +3607,37 @@ theorem not_equation_2441: 0 ≠ (f ((f 0) + (f (- f 0)))) + (f ( -(f ((f 0) + f
 
 
 theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0)))) := by
-  have f_neq_one_eq: f (- (mk_x_vals 0).x_vals 1) = (mk_x_vals 0).x_vals 2 := by
+  rw [neg_f_zero, new_eval_left]
+
+
+lemma cancellation_for_3050 (x: G): (x = x + f 0 + f (-f 0) + f (x - (x + f 0 + f (-f 0))) + f (x - (x + f 0 + f (-f 0) + f (x - (x + f 0 + f (-f 0))))))
+  ↔ (0 = (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0))))) := by
+    refine ⟨?_, ?_⟩
+    intro x_imp
     sorry
-  sorry
+    sorry
+
+
+lemma diamond_not_equation_3050 (x : G): x ≠ diamond f (diamond f (diamond f (diamond f x x) x) x) x := by
+  simp [diamond]
+  by_contra!
+
+  -- OTDO - make this cancellation less horrendous
+  apply_fun (λ y => y - x) at this
+  simp at this
+  --rw [add_assoc] at this
+  rw [sub_eq_neg_add] at this
+  rw [add_assoc] at this
+  nth_rw 1 [← add_assoc] at this
+  nth_rw 1 [← add_assoc] at this
+  nth_rw 1 [← add_assoc] at this
+  nth_rw 1 [← add_assoc] at this
+  simp at this
+  have foo := not_equation_3050
+  simp at foo
+  linarith
+
+  contradiction
 
 
 

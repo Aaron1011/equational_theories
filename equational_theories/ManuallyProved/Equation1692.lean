@@ -1116,6 +1116,8 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
     --simp only [vals.x_to_index_eq] at hs_t
     --simp only [basis_n] at hs_t
 
+
+    simp [n_q_basis] at basis_x_val_indep
     apply (basis_x_val_indep _) at hs_t
     obtain ⟨b_nonzero, h_b_lt, h_b_zeronzero⟩ := nonzero_b_coord
     have s_eq_zero := hs_t b_nonzero
@@ -2575,6 +2577,9 @@ noncomputable abbrev g_enumerate: ℕ → G := by
 lemma g_enum_zero_eq_zero: g_enumerate 0 = 0 := by
   sorry
 
+lemma g_enum_one_eq_one: g_enumerate 1 = fun₀ | 1 => 1 := by
+  sorry
+
 
 noncomputable def g_to_num (g: G): ℕ := by
   have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
@@ -2588,6 +2593,9 @@ def g_enum_inverse (g: G): g_enumerate (g_to_num g) = g := by
   sorry
 
 lemma g_num_zero_eq_zero: g_to_num 0 = 0 := by
+  sorry
+
+lemma g_num_one_eq_one: g_to_num (fun₀ | 1 => 1) = 1 := by
   sorry
 
 
@@ -3509,11 +3517,17 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
       simp at this
       omega
 
+  have tree_one_not_in_x_vals_0: (∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ ({mk_x_vals 0 (g_enumerate 0)} : Set XVals) ∧ t.getData.a = g_enumerate 1) = False := by
+    rw [g_enum_zero_eq_zero]
+    rw [g_enum_one_eq_one]
+    simp [no_root_left]
 
   have one_is_root: (latest_x_vals (g_to_num fun₀ | 1 => 1)).tree = ReverseTree.root := by
-    sorry
-
-  by_contra!
+    rw [g_num_one_eq_one]
+    simp [latest_x_vals]
+    conv =>
+      lhs
+    rw [dite_cond_eq_false tree_one_not_in_x_vals_0]
 
 
   -- MAJOR REFACTOR - generialize this to any power of 2, and make it a lemma

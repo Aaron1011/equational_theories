@@ -3604,10 +3604,28 @@ theorem not_equation_2441: 0 ≠ (f ((f 0) + (f (- f 0)))) + (f ( -(f ((f 0) + f
   have app_eq := DFunLike.congr (x := 11) this rfl
   simp at app_eq
 
+lemma x_vals_zero_left_a: (latest_x_vals 0).tree.left.getData.a = (-fun₀ | 1 => 1) := by
+  simp [ReverseTree.getData]
+  simp [XVals.x_vals, newnum_neq_zero, newNum]
+  simp only [latest_x_vals]
+  rw [g_enum_zero_eq_zero]
+  simp [mk_x_vals]
+
+lemma x_vals_zero_left_b: (latest_x_vals 0).tree.left.getData.b = fun₀ | 3 => 1 := by
+  simp [ReverseTree.getData]
+  simp [XVals.x_vals, newnum_neq_zero, newNum]
+  simp only [latest_x_vals]
+  rw [g_enum_zero_eq_zero]
+  simp [mk_x_vals]
 
 
 theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0)))) := by
   rw [neg_f_zero, new_eval_left]
+  nth_rw 1 [f_zero_eq]
+  simp [x_vals_zero_left_a, x_vals_zero_left_b]
+  by_contra!
+
+
 
 
 lemma cancellation_for_3050 (x: G): (x = x + f 0 + f (-f 0) + f (x - (x + f 0 + f (-f 0))) + f (x - (x + f 0 + f (-f 0) + f (x - (x + f 0 + f (-f 0))))))

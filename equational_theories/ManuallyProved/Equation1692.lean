@@ -3615,6 +3615,37 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
       rw [neg_add_eq_sub, eq_comm] at not_eq
       contradiction
 
+
+  have nothing_maps_other_val: ∀ {vals: XVals}, ∀ t: @ReverseTree vals, t.getData.b ≠ -fun₀ | 2 ^ (latest_x_vals (g_to_num fun₀ | 1 => 1)).cur.i => 1 := by
+    intro vals t
+    match t with
+    | .root =>
+      simp only [ReverseTree.getData]
+      simp only [mk_x_vals, XVals.x_vals]
+      simp
+      by_contra!
+      rw [← Finsupp.single_neg] at this
+      rw [Finsupp.single_eq_single_iff] at this
+      simp at this
+      have bad := this.2
+      contradiction
+    | .left t1_parent =>
+      simp [ReverseTree.getData]
+      by_contra!
+      simp [XVals.x_vals, newnum_neq_zero] at this
+      rw [← Finsupp.single_neg] at this
+      rw [Finsupp.single_eq_single_iff] at this
+      simp at this
+      have bad := this.2
+      contradiction
+    | .right t1_parent =>
+      simp [ReverseTree.getData]
+      by_contra!
+      have not_eq := basis_neq_elem_diff t1_parent (2 ^ (latest_x_vals (g_to_num fun₀ | 1 => 1)).cur.i) (-1) 1 (-1) (by simp) (by simp) (by simp)
+      simp at not_eq
+      rw [neg_add_eq_sub, eq_comm] at not_eq
+      contradiction
+
   rw [eq_comm, add_comm, add_eq_zero_iff_eq_neg] at this
   conv at this =>
     rhs

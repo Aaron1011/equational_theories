@@ -3678,7 +3678,22 @@ theorem not_equation_3456: f 0 ≠ f ((f 0) + f (- (f 0))) := by
   linarith
   simp
 
-theorem not_equation_4065: f 0 ≠ (f 0) + f (- f 0) + f ((- f 0) + f (- (f 0) - f (-f 0))) := by
+theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0) - f (-f 0))) := by
+  rw [neg_f_zero, new_eval_left]
+  nth_rw 1 [f_zero_eq]
+  simp [x_vals_zero_left_a, x_vals_zero_left_b]
+  rw [f_zero_eq]
+  by_contra!
+  apply_fun (λ y => -(fun₀ | 1 => 1) + y) at this
+  simp at this
+  rw [← add_assoc] at this
+  rw [← add_assoc] at this
+  simp at this
+  apply_fun (λ y => -(fun₀ | 3 => 1) + y) at this
+  rw [← add_assoc] at this
+  simp at this
+
+
   sorry
 
 -- noncomputable def total_function (x: G): G := by

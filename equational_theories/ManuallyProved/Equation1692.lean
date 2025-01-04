@@ -3599,7 +3599,14 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
       have bad := this.2
       contradiction
     | .left t1_parent =>
-      sorry
+      simp [ReverseTree.getData]
+      by_contra!
+      simp [XVals.x_vals, newnum_neq_zero] at this
+      rw [← Finsupp.single_neg] at this
+      rw [Finsupp.single_eq_single_iff] at this
+      simp at this
+      have bad := this.2
+      contradiction
     | .right t1_parent =>
       sorry
 

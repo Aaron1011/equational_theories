@@ -3585,7 +3585,7 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
 
   by_contra!
 
-  have nothing_maps_one: ∀ vals: XVals, ∀ t: @ReverseTree vals, t.getData.b ≠ - fun₀ | 1 => 1 := by
+  have nothing_maps_one: ∀ {vals: XVals}, ∀ t: @ReverseTree vals, t.getData.b ≠ - fun₀ | 1 => 1 := by
     intro vals t
     match t with
     | .root =>
@@ -3614,6 +3614,12 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
       simp at not_eq
       rw [neg_add_eq_sub, eq_comm] at not_eq
       contradiction
+
+  rw [eq_comm, add_comm, add_eq_zero_iff_eq_neg] at this
+  nth_rw 1 [f] at this
+  specialize nothing_maps_one (latest_x_vals (g_to_num ((fun₀ | 1 => 1) - f fun₀ | 1 => 1))).tree
+
+
 
   -- OLD ATTEMPT
   have app_eq := DFunLike.congr (x := a) this rfl

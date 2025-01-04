@@ -3550,6 +3550,11 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
   have one_is_root: (latest_x_vals (g_to_num fun₀ | 1 => 1)).tree = ReverseTree.root := by
     sorry
 
+  have second_f_supp: (f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1)).support.toSet ⊆ ((fun₀ | 1 => 1) - f fun₀ | 1 => 1).support.toSet ∪ ( (fun v => v.support.toSet) '' (Set.range (latest_x_vals (g_to_num ((fun₀ | 1 => 1) - f fun₀ | 1 => 1))).cur.x_vals)).sUnion := by
+    sorry
+
+
+
   have other_disjoint: Disjoint (f fun₀ | 1 => 1).support.toSet (f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1)).support.toSet := by
     conv =>
       lhs
@@ -3559,6 +3564,10 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
     simp [XVals.x_vals]
     rw [Finsupp.support_single_ne_zero _ (by simp)]
     simp
+
+    nth_rw 1 [f]
+    --obtain ⟨_, ⟨first_g, first_m, first_m_lt, first_m_supp, first_data_eq⟩⟩ := tree_linear_comb (latest_x_vals (g_to_num ((fun₀ | 1 => 1) - f fun₀ | 1 => 1))).tree
+
     sorry
 
   have supp_elem: ∃ a, a ∈ (f fun₀ | 1 => 1).support := by
@@ -3574,8 +3583,27 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
 
 
 
-
   by_contra!
+
+  have nothing_maps_one: ∀ vals: XVals, ∀ t: @ReverseTree vals, t.getData.b ≠ - fun₀ | 1 => 1 := by
+    intro vals t
+    match t with
+    | .root =>
+      simp only [ReverseTree.getData]
+      simp only [mk_x_vals, XVals.x_vals]
+      simp
+      by_contra!
+      rw [← Finsupp.single_neg] at this
+      rw [Finsupp.single_eq_single_iff] at this
+      simp at this
+      have bad := this.2
+      contradiction
+    | .left t1_parent =>
+      sorry
+    | .right t1_parent =>
+      sorry
+
+  -- OLD ATTEMPT
   have app_eq := DFunLike.congr (x := a) this rfl
   have eq_zero := ((f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1)).mem_support_toFun a).not.mp
   -- TODO - lean hangs if I try to do this on one line

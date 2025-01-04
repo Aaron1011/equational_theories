@@ -3526,13 +3526,39 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
     contradiction
 
 
+
+
+  -- NEXT STEP - use the x_vals disjoint (plus tree_linear_comb) to show that the TreeData.b value in the new tree has disjoint
+  -- support from a value in the old tree
+
+
   have f_supp_disjoint: Disjoint (f fun₀ | 1 => 1).support.toSet ((fun v => v.support.toSet) '' (Set.range (mk_x_vals 0 (g_enumerate 0)).x_vals)).sUnion := by
     sorry
 
   have sub_not_first_tree: ∀ t: @ReverseTree (mk_x_vals 0 (g_enumerate 0)), t.getData.a ≠ ((fun₀ | 1 => 1) - f fun₀ | 1 => 1) := by
     sorry
 
+  have no_root_sum: ∀ b: ℕ, ∀ t: @ReverseTree (mk_x_vals b (fun₀ | 1 => 1)), t.getData.a ≠ (f (0)) - f (f (0)) := by
+    intro b t
+    obtain ⟨⟨first_g, first_m, first_m_lt, first_m_supp, first_data_eq⟩, _⟩ := tree_linear_comb t
+    by_contra!
+    simp [f_zero_eq] at this
+    have app_one := DFunLike.congr (x := 1) this rfl
+    simp at app_one
+    sorry
+
+  have one_is_root: (latest_x_vals (g_to_num fun₀ | 1 => 1)).tree = ReverseTree.root := by
+    sorry
+
   have other_disjoint: Disjoint (f fun₀ | 1 => 1).support.toSet (f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1)).support.toSet := by
+    conv =>
+      lhs
+      simp [f]
+    rw [one_is_root]
+    simp only [ReverseTree.getData]
+    simp [XVals.x_vals]
+    rw [Finsupp.support_single_ne_zero _ (by simp)]
+    simp
     sorry
 
   have supp_elem: ∃ a, a ∈ (f fun₀ | 1 => 1).support := by
@@ -3545,6 +3571,9 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
 
   have a_not_other_supp: a ∉ (f ((fun₀ | 1 => 1) - f fun₀ | 1 => 1)).support := by
     exact Set.disjoint_left.mp other_disjoint ha
+
+
+
 
   by_contra!
   have app_eq := DFunLike.congr (x := a) this rfl

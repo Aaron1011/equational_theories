@@ -3678,6 +3678,35 @@ theorem not_equation_3456: f 0 ≠ f ((f 0) + f (- (f 0))) := by
   linarith
   simp
 
+lemma nothing_maps_some_val {vals: XVals} (t: @ReverseTree vals) (i: ℕ): t.getData.b ≠ -fun₀ | i => 1 := by
+  match t with
+  | .root =>
+    simp only [ReverseTree.getData]
+    simp only [mk_x_vals, XVals.x_vals]
+    simp
+    by_contra!
+    rw [← Finsupp.single_neg] at this
+    rw [Finsupp.single_eq_single_iff] at this
+    simp at this
+    have bad := this.2
+    contradiction
+  | .left t1_parent =>
+    simp [ReverseTree.getData]
+    by_contra!
+    simp [XVals.x_vals, newnum_neq_zero] at this
+    rw [← Finsupp.single_neg] at this
+    rw [Finsupp.single_eq_single_iff] at this
+    simp at this
+    have bad := this.2
+    contradiction
+  | .right t1_parent =>
+    simp [ReverseTree.getData]
+    by_contra!
+    have not_eq := basis_neq_elem_diff t1_parent (i) (-1) 1 (-1) (by simp) (by simp) (by simp)
+    simp at not_eq
+    rw [neg_add_eq_sub, eq_comm] at not_eq
+    contradiction
+
 theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0) - f (-f 0))) := by
   rw [neg_f_zero, new_eval_left]
   nth_rw 1 [f_zero_eq]

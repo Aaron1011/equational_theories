@@ -3608,7 +3608,12 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
       have bad := this.2
       contradiction
     | .right t1_parent =>
-      sorry
+      simp [ReverseTree.getData]
+      by_contra!
+      have not_eq := basis_neq_elem_diff t1_parent 1 (-1) 1 (-1) (by simp) (by simp) (by simp)
+      simp at not_eq
+      rw [neg_add_eq_sub, eq_comm] at not_eq
+      contradiction
 
   -- OLD ATTEMPT
   have app_eq := DFunLike.congr (x := a) this rfl

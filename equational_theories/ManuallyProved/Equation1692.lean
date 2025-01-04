@@ -2798,6 +2798,8 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           sorry
       }
 
+lemma new_tree_agree {other_vals: XVals} {g: G} {other_tree: @ReverseTree other_vals} (ht: other_tree.getData.a = g) (hvals: other_vals = (latest_x_vals (g_to_num g)).cur): (latest_x_vals (g_to_num g)).tree.getData.b = other_tree.getData.b := by
+  sorry
 
 -- structure FAndData (g: G) where
 --   t: @ReverseTree (full_x_vals g).target_val.vals
@@ -3306,11 +3308,10 @@ lemma f_eval_at {vals: XVals} (t: @ReverseTree vals): f (Submodule.Quotient.mk t
 -- lemma subtype_neg_eq {S: Submodule ℚ (ℕ →₀ ℚ)} {x: S}: -x = ⟨-x.val, by simp⟩ := by
 --   rfl
 
-lemma new_eval_left {vals: XVals} (t: @ReverseTree vals): f (t.getData.a) = t.getData.b := by
+lemma new_eval_left {vals: XVals} (t: @ReverseTree vals) (vals_eq: vals = (latest_x_vals (g_to_num t.getData.a)).cur): f (t.getData.a) = t.getData.b := by
   simp [f]
-  have agree := (latest_x_vals (g_to_num t.getData.a)).tree_agree vals t
-  simp [g_enum_inverse] at agree
-  exact agree
+  have new_agree := new_tree_agree (g := t.getData.a) (other_tree := t) rfl vals_eq
+  exact new_agree
 
 
 lemma f_functional_eq (g: G): f (f (- f g)) = g - (f g) := by
@@ -3645,19 +3646,7 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
 
 lemma cancellation_for_3050 (x: G): ((x + f 0) + f (-f 0) + f (x - (x + f 0 + f (-f 0))) + f (x - (x + f 0 + f (-f 0) + f (x - (x + f 0 + f (-f 0)))))) - x
   = ((f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0))))) := by
-    -- TODO - make this less horrible
-    repeat conv =>
-      lhs
-      pattern x - _
-      rw [← sub_sub]
-      rw [← sub_sub]
-      simp
-    rw [add_comm x]
-    simp only [add_assoc]
-    rw [add_comm x]
-    rw [← add_assoc]
-    simp
-
+    abel
 
 lemma diamond_not_equation_3050 (x : G): x ≠ diamond f (diamond f (diamond f (diamond f x x) x) x) x := by
   simp [diamond]

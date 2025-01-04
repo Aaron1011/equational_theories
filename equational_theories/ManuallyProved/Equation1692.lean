@@ -345,6 +345,8 @@ structure TreeData where
 deriving DecidableEq
 
 structure XVals where
+  -- NEXT STEP - tie 'i' and 'root_elem' together in some way
+  -- We need to block constructing multiple XVals with different 'i' values but the same 'root_elem'
   i: ℕ
   root_elem: G
   supp_gt: ∀ n, root_elem.support.max < (basis_n (2^(i) + n*2^(i+1))).support.min
@@ -2751,7 +2753,17 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         simp only [mk_x_vals]
       tree_agree := by
         intro other_vals other_tree a_eq
-        sorry
+        rw [g_enum_zero_eq_zero] at a_eq
+        simp [ReverseTree.getData]
+        match other_tree with
+        | .root =>
+          simp [ReverseTree.getData, XVals.x_vals]
+          simp [ReverseTree.getData] at a_eq
+          sorry
+        | .left other_tree_parent =>
+          sorry
+        | .right other_tree_parent =>
+          sorry
   }
   | a + 1 =>
     let prev_x_vals := latest_x_vals a
@@ -3624,38 +3636,37 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
   nth_rw 1 [f_zero_eq]
   simp [x_vals_zero_left_a, x_vals_zero_left_b]
   by_contra!
+  sorry
 
 
 
 
-lemma cancellation_for_3050 (x: G): (x = x + f 0 + f (-f 0) + f (x - (x + f 0 + f (-f 0))) + f (x - (x + f 0 + f (-f 0) + f (x - (x + f 0 + f (-f 0))))))
-  ↔ (0 = (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0))))) := by
-    refine ⟨?_, ?_⟩
-    intro x_imp
-    sorry
-    sorry
+
+
+lemma cancellation_for_3050 (x: G): ((x + f 0) + f (-f 0) + f (x - (x + f 0 + f (-f 0))) + f (x - (x + f 0 + f (-f 0) + f (x - (x + f 0 + f (-f 0)))))) - x
+  = ((f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0))))) := by
+    -- TODO - make this less horrible
+    repeat conv =>
+      lhs
+      pattern x - _
+      rw [← sub_sub]
+      rw [← sub_sub]
+      simp
+    rw [add_comm x]
+    simp only [add_assoc]
+    rw [add_comm x]
+    rw [← add_assoc]
+    simp
 
 
 lemma diamond_not_equation_3050 (x : G): x ≠ diamond f (diamond f (diamond f (diamond f x x) x) x) x := by
   simp [diamond]
   by_contra!
-
-  -- OTDO - make this cancellation less horrendous
   apply_fun (λ y => y - x) at this
   simp at this
-  --rw [add_assoc] at this
-  rw [sub_eq_neg_add] at this
-  rw [add_assoc] at this
-  nth_rw 1 [← add_assoc] at this
-  nth_rw 1 [← add_assoc] at this
-  nth_rw 1 [← add_assoc] at this
-  nth_rw 1 [← add_assoc] at this
-  simp at this
-  have foo := not_equation_3050
-  simp at foo
-  linarith
+  rw [cancellation_for_3050 x] at this
+  exact not_equation_3050 this
 
-  contradiction
 
 
 

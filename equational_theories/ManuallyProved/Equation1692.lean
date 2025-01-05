@@ -3497,11 +3497,11 @@ lemma neg_f_zero: - f (0) = (latest_x_vals 0).tree.left.getData.a := by
   simp only [ReverseTree.getData, mk_x_vals, XVals.x_vals]
   simp
 
-lemma f_neg_b {vals: XVals} (t: @ReverseTree vals): f (-t.getData.b) = t.left.getData.b := by
+lemma f_neg_b {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (hvals: (latest_x_vals n).cur = other_vals): f (-t.getData.b) = t.left.getData.b := by
   have eq_tree: -t.getData.b = t.left.getData.a := by
     simp [ReverseTree.getData]
   rw [eq_tree]
-  simp [new_eval_left]
+  rw [new_eval_left (n := n) _ hvals]
 
 
 
@@ -3681,16 +3681,15 @@ theorem not_equation_2441: 0 ≠ (f ((f 0) + (f (- f 0)))) + (f ( -(f ((f 0) + f
   simp [newNum]
 
   rw [sum_1_3_eq_tree]
-  rw [new_eval_left (n := 0)]
+  rw [new_eval_left (n := 0) _ rfl]
 
-  simp [f_neg_b]
+  rw [f_neg_b (n := 0) _ rfl]
   simp only [ReverseTree.getData]
-  rw [g_enum_zero_eq_zero]
   simp [mk_x_vals, XVals.x_vals, newnum_neq_zero, newNum]
   by_contra!
+  simp [latest_x_vals, mk_x_vals] at this
   have app_eq := DFunLike.congr (x := 11) this rfl
   simp at app_eq
-  simp [latest_x_vals]
 
 lemma x_vals_zero_left_a: (latest_x_vals 0).tree.left.getData.a = (-fun₀ | 1 => 1) := by
   simp [ReverseTree.getData]

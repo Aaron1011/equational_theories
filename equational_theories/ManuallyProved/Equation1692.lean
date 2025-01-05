@@ -2903,22 +2903,36 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
   have a_eq := (latest_x_vals (g_to_num t.getData.a)).a_val
   have out_num_eq:  (latest_x_vals (g_to_num t.getData.a)).cur.i = other_vals.i := by
 
-    -- NAD - n is the element number - we care about the tree number
-    by_cases output_lt_or_gt: (latest_x_vals (g_to_num t.getData.a)).cur.i < n
-    .
 
-    . sorry
-
-    -- OLD ATTEMPT
     by_cases output_lt_or_gt: (latest_x_vals (g_to_num t.getData.a)).cur.i < other_vals.i
     .
-      rw [latest_x_vals.eq_def] at hvals
-      match hn: n with
+      have orig_lt := output_lt_or_gt
+      have orig_h_vals := hvals
+      rw [latest_x_vals.eq_def]
+      match h_g_num: g_to_num t.getData.a with
       | 0 =>
-        simp [g_enum_zero_eq_zero] at hvals
-        have other_vals_i_eq: other_vals.i = 0 := by
-          simp [← hvals, mk_x_vals]
-        omega
+        simp [g_enum_zero_eq_zero]
+        simp [mk_x_vals]
+        rw [h_g_num] at output_lt_or_gt
+        simp only [latest_x_vals] at output_lt_or_gt
+        rw [g_enum_zero_eq_zero] at output_lt_or_gt
+        simp [mk_x_vals] at output_lt_or_gt
+        rw [← hvals] at output_lt_or_gt
+        rw [latest_x_vals.eq_def] at hvals
+        match hn: n with
+        | 0 =>
+          simp only [hn] at hvals
+          rw [g_enum_zero_eq_zero] at hvals
+          simp [mk_x_vals] at hvals
+          rw [orig_h_vals] at output_lt_or_gt
+          rw [← hvals] at output_lt_or_gt
+          contradiction
+        | .succ num =>
+          simp only [hn] at hvals
+          rw [g_enum_one_eq_one] at hvals
+          simp [mk_x_vals] at hvals
+          simp [← hvals]
+
       | .succ num =>
         simp at hvals
         have has_tree : (∃ inner_x_vals: XVals, ∃ inner_t: @ReverseTree inner_x_vals, inner_x_vals.i < num + 1 ∧ inner_t.getData.a = g_enumerate (num + 1)) = True := by

@@ -2832,6 +2832,69 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
 --   t: @ReverseTree (full_x_vals g).target_val.vals
 --   preserves_tree: (∃ vals: XVals, ∃ other_t: @ReverseTree vals, other_t.getData.a = g) → t.getData.a = g
 
+lemma latest_x_vals_succ (n: ℕ): (latest_x_vals n).vals ⊆ (latest_x_vals (n + 1)).vals := by
+  induction n with
+  | zero =>
+    rw [latest_x_vals]
+    simp [g_enum_zero_eq_zero]
+    rw [latest_x_vals]
+    simp
+    by_cases has_tree: ∃ x_vals: XVals, ∃ new_t: @ReverseTree x_vals, x_vals.i < 1 ∧ new_t.getData.a = g_enumerate 1
+    .
+      simp only [latest_x_vals]
+      simp [g_enum_zero_eq_zero]
+      rw [dite_cond_eq_true]
+      simp
+      simp only [eq_iff_iff, iff_true]
+      exact has_tree
+    .
+      simp only [latest_x_vals]
+      simp [g_enum_zero_eq_zero]
+      rw [dite_cond_eq_false]
+      simp
+      simp only [eq_iff_iff, iff_false]
+      exact has_tree
+  | succ new_n h_prev =>
+    nth_rw 2 [latest_x_vals]
+    by_cases has_tree: ∃ x_vals: XVals, ∃ new_t: @ReverseTree x_vals, x_vals.i < new_n + 1 + 1 ∧ new_t.getData.a = g_enumerate (new_n + 1 + 1)
+    .
+      rw [dite_cond_eq_true]
+      simp only [Nat.succ_eq_add_one, Option.some.injEq,
+        eq_iff_iff, iff_true]
+      exact has_tree
+    . rw [dite_cond_eq_false]
+      simp only [Nat.succ_eq_add_one, Option.some.injEq,
+        eq_iff_iff, iff_true, iff_false]
+      simp
+      simp only [Nat.succ_eq_add_one, Option.some.injEq,
+        eq_iff_iff, iff_false]
+      exact has_tree
+
+
+lemma latest_x_vals_set (a b: ℕ) (hab: a ≤ b): (latest_x_vals a).vals ⊆ (latest_x_vals b).vals := by
+  induction b with
+  | zero =>
+    rw [latest_x_vals]
+    have a_eq_zero: a = 0 := by
+      omega
+    rw [a_eq_zero, latest_x_vals]
+  | succ new_b h_prev =>
+    by_cases a_le_new_b: a ≤ new_b
+    . specialize h_prev a_le_new_b
+
+    . sorry
+    by_cases has_tree: ∃ x_vals: XVals, ∃ new_t: @ReverseTree x_vals, x_vals ∈ (latest_x_vals a).vals ∧ new_t.getData.a = g_enumerate (a + 1)
+    .
+      simp [latest_x_vals]
+      rw [dite_cond_eq_true]
+      .
+        simp
+
+        sorry
+      . simp only [eq_iff_iff, iff_true]
+        exact has_tree
+    . sorry
+
 noncomputable def f (g: G): G := (latest_x_vals (g_to_num g)).tree.getData.b
 
 
@@ -2841,10 +2904,47 @@ lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 =
   rw [heq_comm]
   simp
 
+-- NEXT STEP - do we need some kind of minimality assumption on 'n'?
+-- The output of 'latest_x_vals' could have a smaller 'i'
 lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (hvals: (latest_x_vals n).cur = other_vals): f t.getData.a = t.getData.b := by
   simp [f]
   have a_eq := (latest_x_vals (g_to_num t.getData.a)).a_val
   have out_num_eq:  (latest_x_vals (g_to_num t.getData.a)).cur.i = other_vals.i := by
+
+    -- NAD - n is the element number - we care about the tree number
+    by_cases output_lt_or_gt: (latest_x_vals (g_to_num t.getData.a)).cur.i < n
+    .
+
+    . sorry
+
+    -- OLD ATTEMPT
+    by_cases output_lt_or_gt: (latest_x_vals (g_to_num t.getData.a)).cur.i < other_vals.i
+    .
+      rw [latest_x_vals.eq_def] at hvals
+      match hn: n with
+      | 0 =>
+        simp [g_enum_zero_eq_zero] at hvals
+        have other_vals_i_eq: other_vals.i = 0 := by
+          simp [← hvals, mk_x_vals]
+        omega
+      | .succ num =>
+        simp at hvals
+        have has_tree : (∃ inner_x_vals: XVals, ∃ inner_t: @ReverseTree inner_x_vals, inner_x_vals.i < num + 1 ∧ inner_t.getData.a = g_enumerate (num + 1)) = True := by
+          simp only [eq_iff_iff, iff_true]
+          use other_vals
+          use t
+          sorry
+        rw [dite_cond_eq_true] at hvals
+
+          --rw [← h_g_num, g_enum_inverse]
+          --simp
+          --omega
+        --rw [dite_cond_eq_true] at hvals
+        --simp [LatestXVals.cur] at hvals
+
+      sorry
+    . sorry
+
     by_contra!
     match hn: n with
     | 0 =>
@@ -2891,6 +2991,7 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
         have output_gt: other_vals.i < (latest_x_vals (g_to_num t.getData.a)).cur.i := by
           sorry
 
+
         sorry
 
 
@@ -2899,13 +3000,6 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
       sorry
     | .succ num =>
       sorry
-    by_cases output_lt_or_gt: (latest_x_vals (g_to_num t.getData.a)).cur.i < other_vals.i
-    .
-      rw [latest_x_vals.eq_def] at hvals
-
-
-      sorry
-    . sorry
   have root_elem_eq: (latest_x_vals (g_to_num t.getData.a)).cur.root_elem = other_vals.root_elem := by
     by_contra!
 

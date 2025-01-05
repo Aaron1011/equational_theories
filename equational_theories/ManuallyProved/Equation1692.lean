@@ -2855,15 +2855,13 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
       simp [← hvals] at this
       simp [mk_x_vals] at this
 
-      simp only [g_enum_inverse] at a_eq
-      rw [latest_x_vals.eq_def] at a_eq
-      simp at a_eq
+      --simp only [g_enum_inverse] at a_eq
+      rw [latest_x_vals.eq_def] at this
       match h_g_num: (g_to_num t.getData.a) with
       | 0 =>
-        rw [h_g_num] at a_eq
-        simp at a_eq
-        simp [ReverseTree.getData] at a_eq
-        sorry
+        rw [h_g_num] at this
+        simp only [g_enum_zero_eq_zero] at this
+        simp [mk_x_vals] at this
       | .succ t_data_num =>
         sorry
 

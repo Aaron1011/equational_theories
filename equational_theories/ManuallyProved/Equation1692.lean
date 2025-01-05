@@ -2887,11 +2887,13 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
         simp at this
         simp only [eq_iff_iff, iff_true] at has_tree
         have my_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).1
+
+        have output_gt: other_vals.i < (latest_x_vals (g_to_num t.getData.a)).cur.i := by
+          sorry
+
         sorry
 
 
-      have output_gt: other_vals.i < (latest_x_vals (g_to_num t.getData.a)).cur.i := by
-        omega
 
 
       sorry
@@ -2905,6 +2907,8 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
       sorry
     . sorry
   have root_elem_eq: (latest_x_vals (g_to_num t.getData.a)).cur.root_elem = other_vals.root_elem := by
+    by_contra!
+
     sorry
 
   have x_vals_eq: (latest_x_vals (g_to_num t.getData.a)).cur = other_vals := by

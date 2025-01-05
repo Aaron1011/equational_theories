@@ -2834,15 +2834,45 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
 
 noncomputable def f (g: G): G := (latest_x_vals (g_to_num g)).tree.getData.b
 
-lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (hvals: (latest_x_vals n).cur = other_vals): f t.getData.a = t.getData.b := by
-  sorry
-
 
 -- TODO - what exactly is the interpretation of this lemma, and why can't lean figure it our for us?
 lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 = vals2) (hv: @ReverseTree vals1 = @ReverseTree vals2): t.getData = (cast hv t).getData := by
   congr
   rw [heq_comm]
   simp
+
+lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (hvals: (latest_x_vals n).cur = other_vals): f t.getData.a = t.getData.b := by
+  simp [f]
+  have out_num_eq:  (latest_x_vals (g_to_num t.getData.a)).cur.i = other_vals.i := by
+    by_contra!
+    by_cases output_lt_or_gt: (latest_x_vals (g_to_num t.getData.a)).cur.i < other_vals.i
+    . sorry
+    . sorry
+  have root_elem_eq: (latest_x_vals (g_to_num t.getData.a)).cur.root_elem = other_vals.root_elem := by
+    sorry
+
+  have x_vals_eq: (latest_x_vals (g_to_num t.getData.a)).cur = other_vals := by
+    sorry
+
+  have a_eq := (latest_x_vals (g_to_num t.getData.a)).a_val
+  simp [g_enum_inverse] at a_eq
+
+  -- TODO - this all seems ridiculous. Can we somehow eliminate all of this nonsense (except for 'temp_partial_function')
+  have cast_trees := cast_data_eq (latest_x_vals (g_to_num t.getData.a)).tree x_vals_eq
+  have types_eq: @ReverseTree (latest_x_vals (g_to_num t.getData.a)).cur = @ReverseTree other_vals := by
+    simp [x_vals_eq]
+  have trees_eq := cast_data_eq t x_vals_eq.symm types_eq.symm
+  have orig_trees_eq := trees_eq
+  apply_fun (fun x => TreeData.a x) at trees_eq
+  simp [← a_eq] at trees_eq
+  have partial_fun_trees := temp_partial_function trees_eq
+  rw [partial_fun_trees]
+  rw [← orig_trees_eq]
+
+
+
+
+
 
 
 lemma f_b_preserved {vals: XVals} (t: @ReverseTree vals): t.getData.b = (full_x_vals t.getData.a).inner.tree.getData.b := by

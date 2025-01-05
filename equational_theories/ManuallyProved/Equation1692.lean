@@ -2874,26 +2874,18 @@ lemma latest_x_vals_succ (n: ℕ): (latest_x_vals n).vals ⊆ (latest_x_vals (n 
 lemma latest_x_vals_set (a b: ℕ) (hab: a ≤ b): (latest_x_vals a).vals ⊆ (latest_x_vals b).vals := by
   induction b with
   | zero =>
-    rw [latest_x_vals]
     have a_eq_zero: a = 0 := by
       omega
-    rw [a_eq_zero, latest_x_vals]
+    rw [a_eq_zero]
   | succ new_b h_prev =>
     by_cases a_le_new_b: a ≤ new_b
-    . specialize h_prev a_le_new_b
-
-    . sorry
-    by_cases has_tree: ∃ x_vals: XVals, ∃ new_t: @ReverseTree x_vals, x_vals ∈ (latest_x_vals a).vals ∧ new_t.getData.a = g_enumerate (a + 1)
     .
-      simp [latest_x_vals]
-      rw [dite_cond_eq_true]
-      .
-        simp
-
-        sorry
-      . simp only [eq_iff_iff, iff_true]
-        exact has_tree
-    . sorry
+      specialize h_prev a_le_new_b
+      have new_b_subset := latest_x_vals_succ new_b
+      exact fun ⦃a_1⦄ a ↦ new_b_subset (h_prev a)
+    . have a_eq_b_plus: a = new_b + 1 := by
+        omega
+      rw [a_eq_b_plus]
 
 noncomputable def f (g: G): G := (latest_x_vals (g_to_num g)).tree.getData.b
 

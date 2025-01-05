@@ -2843,10 +2843,43 @@ lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 =
 
 lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (hvals: (latest_x_vals n).cur = other_vals): f t.getData.a = t.getData.b := by
   simp [f]
+  have a_eq := (latest_x_vals (g_to_num t.getData.a)).a_val
   have out_num_eq:  (latest_x_vals (g_to_num t.getData.a)).cur.i = other_vals.i := by
     by_contra!
+    match hn: n with
+    | 0 =>
+      rw [latest_x_vals] at hvals
+      simp [g_enum_zero_eq_zero] at hvals
+      have other_vals_i_eq: other_vals.i = 0 := by
+        simp [← hvals, mk_x_vals]
+      simp [← hvals] at this
+      simp [mk_x_vals] at this
+
+      simp only [g_enum_inverse] at a_eq
+      rw [latest_x_vals.eq_def] at a_eq
+      simp at a_eq
+      match h_g_num: (g_to_num t.getData.a) with
+      | 0 =>
+        rw [h_g_num] at a_eq
+        simp at a_eq
+        simp [ReverseTree.getData] at a_eq
+        sorry
+      | .succ t_data_num =>
+        sorry
+
+      have output_gt: other_vals.i < (latest_x_vals (g_to_num t.getData.a)).cur.i := by
+        omega
+
+
+      sorry
+    | .succ num =>
+      sorry
     by_cases output_lt_or_gt: (latest_x_vals (g_to_num t.getData.a)).cur.i < other_vals.i
-    . sorry
+    .
+      rw [latest_x_vals.eq_def] at hvals
+
+
+      sorry
     . sorry
   have root_elem_eq: (latest_x_vals (g_to_num t.getData.a)).cur.root_elem = other_vals.root_elem := by
     sorry
@@ -2873,7 +2906,6 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
       _ = other_vals := rfl
 
 
-  have a_eq := (latest_x_vals (g_to_num t.getData.a)).a_val
   simp [g_enum_inverse] at a_eq
 
   -- TODO - this all seems ridiculous. Can we somehow eliminate all of this nonsense (except for 'temp_partial_function')

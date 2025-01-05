@@ -2852,7 +2852,26 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
     sorry
 
   have x_vals_eq: (latest_x_vals (g_to_num t.getData.a)).cur = other_vals := by
-    sorry
+    calc
+      (latest_x_vals (g_to_num t.getData.a)).cur = {
+        i := (latest_x_vals (g_to_num t.getData.a)).cur.i
+        root_elem := (latest_x_vals (g_to_num t.getData.a)).cur.root_elem
+        supp_gt := (latest_x_vals (g_to_num t.getData.a)).cur.supp_gt
+        root_neq := (latest_x_vals (g_to_num t.getData.a)).cur.root_neq
+        root_nonzero := (latest_x_vals (g_to_num t.getData.a)).cur.root_nonzero
+        root_indep := (latest_x_vals (g_to_num t.getData.a)).cur.root_indep
+      } := rfl
+      _ = {
+        i := other_vals.i
+        root_elem := other_vals.root_elem
+        supp_gt := other_vals.supp_gt
+        root_neq := other_vals.root_neq
+        root_nonzero := other_vals.root_nonzero
+        root_indep := other_vals.root_indep
+      } := by
+        simp only [out_num_eq, root_elem_eq]
+      _ = other_vals := rfl
+
 
   have a_eq := (latest_x_vals (g_to_num t.getData.a)).a_val
   simp [g_enum_inverse] at a_eq

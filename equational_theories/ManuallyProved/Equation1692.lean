@@ -2727,8 +2727,8 @@ noncomputable def full_x_vals (g: G): WrapperXValsFullData g := by
 structure LatestXVals (g: G) where
   vals: Set XVals
   cur: XVals
-  cur_in_vals: cur ∈ vals
-  minimal_vals: ∀ n: ℕ, n < g_to_num g → True
+  --cur_in_vals: cur ∈ vals
+  minimal_vals: ∀ other_vals: vals, other_vals.val.i ≤ cur.i
   tree: @ReverseTree cur
   a_val: tree.getData.a = g
   tree_agree: ∀ other_vals: XVals, ∀ other_tree: @ReverseTree other_vals, other_tree.getData.a = g → tree.getData.b = other_tree.getData.b
@@ -2746,7 +2746,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
     exact {
       vals := {x_vals},
       cur := x_vals,
-      cur_in_vals := by simp,
+      --cur_in_vals := by simp,
       tree := ReverseTree.root,
       a_val := by
         simp only [ReverseTree.getData, x_vals, XVals.root_elem, hn]
@@ -2769,11 +2769,11 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
   }
   | a + 1 =>
     let prev_x_vals := latest_x_vals a
-    by_cases has_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n
+    by_cases has_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals.i < n ∧ t.getData.a = g_enumerate n
     . exact {
       vals := prev_x_vals.vals,
       cur := Classical.choose has_tree,
-      cur_in_vals := (Classical.choose_spec (Classical.choose_spec has_tree)).1,
+      --cur_in_vals := (Classical.choose_spec (Classical.choose_spec has_tree)).1,
       tree := Classical.choose (Classical.choose_spec has_tree)
       a_val := by
         have tree_eq := (Classical.choose_spec (Classical.choose_spec has_tree)).2
@@ -2791,7 +2791,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
       exact {
         vals := prev_x_vals.vals ∪ {new_x_vals},
         cur := new_x_vals,
-        cur_in_vals := by simp,
+        --cur_in_vals := by simp,
         tree := ReverseTree.root,
         a_val := by
           simp only [ReverseTree.getData, new_x_vals, XVals.root_elem, hn]
@@ -2863,7 +2863,32 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
         simp only [g_enum_zero_eq_zero] at this
         simp [mk_x_vals] at this
       | .succ t_data_num =>
+        rw [h_g_num] at this
+        simp at this
+        simp at h_g_num
+
+        have has_tree : (∃ inner_x_vals: XVals, ∃ inner_t: @ReverseTree inner_x_vals, inner_x_vals.i < t_data_num + 1 ∧ inner_t.getData.a = g_enumerate (t_data_num + 1)) = True := by
+          simp only [eq_iff_iff, iff_true]
+          use other_vals
+          use t
+          rw [← h_g_num, g_enum_inverse]
+          simp
+          omega
+
+
+        conv at this =>
+          arg 1
+          lhs
+          arg 1
+          arg 1
+          rw [dite_cond_eq_true _]
+          rfl
+          exact has_tree
+        simp at this
+        simp only [eq_iff_iff, iff_true] at has_tree
+        have my_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).1
         sorry
+
 
       have output_gt: other_vals.i < (latest_x_vals (g_to_num t.getData.a)).cur.i := by
         omega

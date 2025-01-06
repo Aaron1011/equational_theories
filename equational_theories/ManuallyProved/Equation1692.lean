@@ -2935,6 +2935,8 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
 --   t: @ReverseTree (full_x_vals g).target_val.vals
 --   preserves_tree: (∃ vals: XVals, ∃ other_t: @ReverseTree vals, other_t.getData.a = g) → t.getData.a = g
 
+set_option maxHeartbeats 500000
+
 lemma latest_x_vals_succ (n: ℕ): (latest_x_vals n).vals ⊆ (latest_x_vals (n + 1)).vals := by
   induction n with
   | zero =>
@@ -3035,6 +3037,35 @@ lemma latest_x_vals_i_eq {other_vals: XVals} (t: @ReverseTree other_vals) {n: �
     clear t_i_lt
     simp [← hvals] at other_i_lt
     have args_lt := Monotone.reflect_lt latest_x_vals_i_monotone other_i_lt
+
+    have min_val := (latest_x_vals (g_to_num t.getData.a)).choose_min_i
+
+    have other_vals_in := latest_x_vals_set _ _ (le_of_lt args_lt)
+    have other_vals_self := (latest_x_vals n).cur_in_vals
+    specialize other_vals_in other_vals_self
+    --have m_cur_in := (latest_x_vals m).cur_in_vals
+    --specialize other_vals_in m_cur_in
+    --rw [m_in.2] at other_vals_in
+
+    have cast_trees := cast_data_eq (latest_x_vals n).tree hvals
+    have types_eq: @ReverseTree (latest_x_vals n).cur = @ReverseTree other_vals := by
+      simp [hvals]
+    have trees_eq := cast_data_eq t hvals.symm types_eq.symm
+
+    have t_data_num_le: ((latest_x_vals (g_to_num t.getData.a)).cur.i : WithTop ℕ) ≤ ((latest_x_vals (n)).cur.i : WithTop ℕ) := by
+      rw [min_val]
+      apply Finset.min_le
+      simp only [Finset.mem_image, Finset.mem_filter]
+      use (latest_x_vals n).cur
+      refine ⟨⟨other_vals_in, ?_⟩, ?_⟩
+      use (cast types_eq.symm t)
+      rw [← trees_eq]
+      rw [g_enum_inverse]
+      simp
+
+    simp at t_data_num_le
+    omega
+
     let all_n := {m: ℕ | m < g_to_num t.getData.a ∧ (latest_x_vals m).cur = other_vals}
     have finite_all_n: all_n.Finite := by
       simp [all_n]

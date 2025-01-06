@@ -2738,14 +2738,24 @@ structure LatestXVals (g: G) where
   --   simp [Finset.Nonempty]
   --   use cur
   -- )
-  cur_maximal: ∀ x_vals: XVals, ∀ t: @ReverseTree x_vals, x_vals ∈ vals → t.getData.a = g → x_vals.i ≤ cur.i
-  tree_agree: ∀ other_vals: XVals, ∀ other_tree: @ReverseTree other_vals, other_tree.getData.a = g → tree.getData.b = other_tree.getData.b
+  --cur_maximal: ∀ x_vals: XVals, ∀ t: @ReverseTree x_vals, x_vals ∈ vals → t.getData.a = g → x_vals.i ≤ cur.i
+  --tree_agree: ∀ other_vals: XVals, ∀ other_tree: @ReverseTree other_vals, other_tree.getData.a = g → tree.getData.b = other_tree.getData.b
 
 lemma single_x_vals: ∀ a b: XVals, (∃ t1: @ReverseTree a, ∃ t2: @ReverseTree b, t1.getData.a = t2.getData.a) → a = b := by
   intro a b
   intro exists_data
   obtain ⟨t1, t2, h_t1_t2⟩ := exists_data
   sorry
+
+variable {F α β γ ι κ : Type*}
+variable [SemilatticeSup α] [OrderBot α]
+variable {s₁ s₂ : Finset β} {f g : β → α} {a : α}
+variable {s : Finset β} (H : s.Nonempty) (f : β → α)
+
+-- Copy-pasted from Mathlib Finset.sup'_eq_of_forall
+lemma sup'_eq_of_forall {a : α} (h : ∀ b ∈ s, f b = a) : s.sup' H f = a :=
+  le_antisymm (Finset.sup'_le _ _ (fun _ hb ↦ (h _ hb).le))
+    (Finset.le_sup'_of_le _ H.choose_spec (h _ H.choose_spec).ge)
 
 noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
   match hn: n with
@@ -2760,41 +2770,100 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         simp only [ReverseTree.getData, x_vals, XVals.root_elem, hn]
         rw [g_enum_zero_eq_zero]
         simp only [mk_x_vals]
-      minimal_vals := sorry
-      cur_maximal := sorry
-      tree_agree := by
-        intro other_vals other_tree a_eq
-        rw [g_enum_zero_eq_zero] at a_eq
-        simp [ReverseTree.getData]
-        match other_tree with
-        | .root =>
-          simp [ReverseTree.getData, XVals.x_vals]
-          simp [ReverseTree.getData] at a_eq
-          sorry
-        | .left other_tree_parent =>
-          sorry
-        | .right other_tree_parent =>
-          sorry
+      minimal_vals := by simp
+      distinct_i := by simp
+      preserves_i := by simp
+      --cur_maximal := sorry
+      -- tree_agree := by
+      --   intro other_vals other_tree a_eq
+      --   rw [g_enum_zero_eq_zero] at a_eq
+      --   simp [ReverseTree.getData]
+      --   match other_tree with
+      --   | .root =>
+      --     simp [ReverseTree.getData, XVals.x_vals]
+      --     simp [ReverseTree.getData] at a_eq
+      --     sorry
+      --   | .left other_tree_parent =>
+      --     sorry
+      --   | .right other_tree_parent =>
+      --     sorry
   }
   | a + 1 =>
     let prev_x_vals := latest_x_vals a
-    by_cases has_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n
+    by_cases has_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n ∧ ∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ x_vals.i
     . exact {
       vals := prev_x_vals.vals,
       cur := Classical.choose has_tree,
       cur_in_vals := (Classical.choose_spec (Classical.choose_spec has_tree)).1,
       tree := Classical.choose (Classical.choose_spec has_tree)
       a_val := by
-        have tree_eq := (Classical.choose_spec (Classical.choose_spec has_tree)).2
+        have tree_eq := (Classical.choose_spec (Classical.choose_spec has_tree)).2.1
         have n_eq: n = a  +1 := by
           simp [hn]
         rw [← n_eq]
         exact tree_eq
-      minimal_vals := sorry
-      cur_maximal := sorry
-      tree_agree := by
-        intro other_vals other_tree a_eq
-        sorry
+      minimal_vals := by
+        intro other_vals
+        exact (Classical.choose_spec (Classical.choose_spec has_tree)).2.2 other_vals other_vals.property
+      distinct_i := prev_x_vals.distinct_i
+      preserves_i := by
+        intro val h_val_prev exists_t
+        have additional_val: ∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ val.i := by
+          sorry
+
+        have im_nonempty: (prev_x_vals.vals.image XVals.i).Nonempty := by
+          simp
+          simp [Finset.Nonempty]
+          use val
+
+        have val_i_max: val.i = (prev_x_vals.vals.image XVals.i).max' im_nonempty := by
+          sorry
+
+        have chose_i_in: (Classical.choose has_tree).i ∈ (prev_x_vals.vals.image XVals.i) := by sorry
+        have choose_i_gt: ∀ x ∈ (prev_x_vals.vals.image XVals.i), x ≤ (Classical.choose has_tree).i := by sorry
+
+        have choose_i_greatest: IsGreatest (↑(Finset.image XVals.i prev_x_vals.vals)) (Classical.choose has_tree).i := by
+          simp [IsGreatest]
+          refine ⟨?_, ?_⟩
+          simp at chose_i_in
+          apply chose_i_in
+          simp [upperBounds]
+          intro a ha
+          have my_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).2.2
+          specialize my_spec a ha
+          simp at my_spec
+          exact my_spec
+
+
+        have choose_max: (prev_x_vals.vals.image XVals.i).max' im_nonempty = (Classical.choose has_tree).i := by
+          --simp [Finset.max', Finset.sup', Finset.sup]
+          --simp
+
+
+          have foo := Finset.isGreatest_max' _ im_nonempty
+          exact IsGreatest.unique foo choose_i_greatest
+
+        rw [choose_max] at val_i_max
+        exact val_i_max
+
+
+
+        -- have my_spec := prev_x_vals.preserves_i val h_val_prev
+
+
+        -- have exists_t: ∃ other_t: @ReverseTree val, other_t.getData.a = g_enumerate a := by
+        --   sorry
+        -- have other_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).2.1
+        -- specialize my_spec exists_t
+        -- rw [my_spec]
+
+        -- sorry
+
+
+      --cur_maximal := sorry
+      -- tree_agree := by
+      --   intro other_vals other_tree a_eq
+      --   sorry
     }
     .
       let new_x_vals := mk_x_vals (n + 1) (g_enumerate n)
@@ -2807,10 +2876,10 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           simp only [ReverseTree.getData, new_x_vals, XVals.root_elem, hn]
           simp [mk_x_vals]
         minimal_vals := sorry
-        cur_maximal := sorry
-        tree_agree := by
-          intro other_vals other_tree a_eq
-          sorry
+        --cur_maximal := sorry
+        -- tree_agree := by
+        --   intro other_vals other_tree a_eq
+        --   sorry
       }
 
 -- lemma latest_vals_minimal (a b: ℕ) (ha: a < b) (t: @ReverseTree (latest_x_vals a).cur) : t.getData.a ≠ (latest_x_vals b).tree.getData.a := by
@@ -2940,6 +3009,7 @@ lemma latest_x_vals_i_eq {other_vals: XVals} (t: @ReverseTree other_vals) {n: �
     simp at t_i_lt
     have other_i_lt: other_vals.i < (latest_x_vals (g_to_num t.getData.a)).cur.i := by omega
     have orig_other_i_lt := other_i_lt
+    clear t_i_lt
     simp [← hvals] at other_i_lt
     have args_lt := Monotone.reflect_lt latest_x_vals_i_monotone other_i_lt
     let all_n := {m: ℕ | m < g_to_num t.getData.a ∧ (latest_x_vals m).cur = other_vals}
@@ -2951,12 +3021,15 @@ lemma latest_x_vals_i_eq {other_vals: XVals} (t: @ReverseTree other_vals) {n: �
       simp
       intro a ha _
       linarith
-    have finset_nonempty: (Set.Finite.toFinset finite_all_n).Nonempty := by
+
+    have n_in_all_n: n ∈ all_n := by
       simp [finite_all_n, all_n]
-      use n
-      simp
       refine ⟨by linarith, ?_⟩
       rw [hvals]
+
+    have finset_nonempty: (Set.Finite.toFinset finite_all_n).Nonempty := by
+      simp [finite_all_n, all_n]
+      exact ⟨n, n_in_all_n⟩
     let m := Finset.max' (Set.Finite.toFinset finite_all_n) finset_nonempty
     have m_max := Finset.le_max' (Set.Finite.toFinset finite_all_n)
     have m_in := Finset.max'_mem (Set.Finite.toFinset finite_all_n) finset_nonempty
@@ -2966,9 +3039,55 @@ lemma latest_x_vals_i_eq {other_vals: XVals} (t: @ReverseTree other_vals) {n: �
     have m_cur_in := (latest_x_vals m).cur_in_vals
     specialize other_vals_in m_cur_in
     rw [m_in.2] at other_vals_in
+
+
+    have m_succ_neq: (latest_x_vals (m + 1)).cur.i ≠ other_vals.i := by
+      sorry
+
+    -- by_cases m_succ_lt_t: (m + 1) < g_to_num t.getData.a
+    -- . have t_vals_le: (latest_x_vals (m + 1)).cur.i ≤ (latest_x_vals (g_to_num t.getData.a)).cur.i := by
+    --     apply latest_x_vals_i_monotone
+    --     omega
+
+    --   contradiction
+    -- . sorry
+
+    have n_le_m: n ≤ m := by
+      dsimp [m]
+      apply Finset.le_max'
+      simp
+      exact n_in_all_n
+
+    have n_i_le_m: (latest_x_vals n).cur.i ≤ (latest_x_vals m).cur.i := by
+      apply latest_x_vals_i_monotone n_le_m
+
+    have m_lt_succ: (latest_x_vals m).cur.i ≤ (latest_x_vals (m + 1)).cur.i := by
+      apply latest_x_vals_i_monotone
+      simp
+
+
+
+
+    have m_suc_le: (latest_x_vals (m + 1)).cur.i ≤ (latest_x_vals (g_to_num t.getData.a)).cur.i := by
+      apply latest_x_vals_i_monotone
+      omega
+
+    rw [← hvals] at m_succ_neq
+
+    have m_suc_lt: (latest_x_vals (m + 1)).cur.i < (latest_x_vals (g_to_num t.getData.a)).cur.i := by
+      sorry
+
+
+
+
     have exists_t: ∃ t_other: @ReverseTree other_vals, t_other.getData.a = g_enumerate (g_to_num t.getData.a) := by
       use t
       rw [g_enum_inverse]
+
+
+    -- 'preserve_i' is too strong - we could have multiple trees with different 'i' values that still
+    -- have a correct 'a' node. We should also require that 'other_vals' has a maximal 'i' value
+
 
     have preserves_i := (latest_x_vals (g_to_num t.getData.a)).preserves_i other_vals other_vals_in exists_t
 

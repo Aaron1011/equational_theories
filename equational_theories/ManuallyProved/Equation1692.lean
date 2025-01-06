@@ -2895,6 +2895,9 @@ lemma latest_x_vals_succ_i (n: ℕ): (latest_x_vals n).cur.i ≤ (latest_x_vals 
   simp at foo
   exact foo
 
+lemma latest_x_vals_i_monotone: Monotone (fun n => (latest_x_vals n).cur.i) := by
+  apply monotone_nat_of_le_succ latest_x_vals_succ_i
+
 noncomputable def f (g: G): G := (latest_x_vals (g_to_num g)).tree.getData.b
 
 
@@ -2903,6 +2906,34 @@ lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 =
   congr
   rw [heq_comm]
   simp
+
+lemma latest_x_vals_i_eq {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (hvals: (latest_x_vals n).cur = other_vals): (latest_x_vals (g_to_num t.getData.a)).cur.i = other_vals.i := by
+  by_contra!
+  by_cases t_i_lt: (latest_x_vals (g_to_num t.getData.a)).cur.i < other_vals.i
+  . sorry
+  .
+    simp at t_i_lt
+    have other_i_lt: other_vals.i < (latest_x_vals (g_to_num t.getData.a)).cur.i := by omega
+    simp [← hvals] at other_i_lt
+    have args_lt := Monotone.reflect_lt latest_x_vals_i_monotone other_i_lt
+    let all_n := {m: ℕ | m < g_to_num t.getData.a ∧ (latest_x_vals m).cur.i = other_vals.i}
+    have finite_all_n: all_n.Finite := by
+      simp [all_n]
+      rw [Set.finite_iff_bddAbove]
+      rw [BddAbove, upperBounds]
+      use g_to_num t.getData.a
+      simp
+      intro a ha _
+      linarith
+    have finset_nonempty: (Set.Finite.toFinset finite_all_n).Nonempty := by
+      simp [finite_all_n, all_n]
+      use n
+      simp
+      refine ⟨by linarith, ?_⟩
+      rw [hvals]
+    let m := Finset.max' (Set.Finite.toFinset finite_all_n) finset_nonempty
+    have m_max := Finset.le_max' (Set.Finite.toFinset finite_all_n)
+  sorry
 
 -- NEXT STEP - do we need some kind of minimality assumption on 'n'?
 -- The output of 'latest_x_vals' could have a smaller 'i'

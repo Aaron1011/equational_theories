@@ -2729,7 +2729,7 @@ structure LatestXVals (g: G) where
   distinct_i: ∀ a b: vals, a.val.i = b.val.i → a = b
   cur: XVals
   cur_in_vals: cur ∈ vals
-  preserves_i: ∀ val ∈ vals, (∃ t: @ReverseTree val, t.getData.a = g) → val.i = cur.i
+  preserves_i: ∀ val ∈ vals, val.i = (vals.image XVals.i).max → (∃ t: @ReverseTree val, t.getData.a = g) → val.i = cur.i
   minimal_vals: ∀ other_vals: vals, other_vals.val.i ≤ cur.i
   tree: @ReverseTree cur
   a_val: tree.getData.a = g
@@ -2807,24 +2807,26 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         exact (Classical.choose_spec (Classical.choose_spec has_tree)).2.2 other_vals other_vals.property
       distinct_i := prev_x_vals.distinct_i
       preserves_i := by
-        intro val h_val_prev exists_t
-        have additional_val: ∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ val.i := by
-          sorry
+        intro val h_val_prev val_i_max exists_t
+        -- have additional_val: ∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ val.i := by
+        --   sorry
 
         have im_nonempty: (prev_x_vals.vals.image XVals.i).Nonempty := by
           simp
           simp [Finset.Nonempty]
           use val
 
-        have val_i_max: val.i = (prev_x_vals.vals.image XVals.i).max' im_nonempty := by
-          sorry
+        rw [← Finset.coe_max' im_nonempty] at val_i_max
+        have val_i_max := WithBot.coe_eq_coe.mp val_i_max
+        simp at val_i_max
+
+        -- have val_i_max: val.i = (prev_x_vals.vals.image XVals.i).max' im_nonempty := by
+        --   sorry
 
         have chose_i_in: (Classical.choose has_tree).i ∈ (prev_x_vals.vals.image XVals.i) := by
           have my_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).1
           simp only [Finset.mem_image]
           use Classical.choose has_tree
-
-        have choose_i_gt: ∀ x ∈ (prev_x_vals.vals.image XVals.i), x ≤ (Classical.choose has_tree).i := by sorry
 
         have choose_i_greatest: IsGreatest (↑(Finset.image XVals.i prev_x_vals.vals)) (Classical.choose has_tree).i := by
           simp [IsGreatest]

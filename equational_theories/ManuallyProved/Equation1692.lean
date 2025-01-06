@@ -2728,7 +2728,7 @@ attribute [local instance] Classical.propDecidable
 
 structure LatestXVals (g: G) where
   vals: Finset XVals
-  distinct_i: ∀ a b: vals, a.val.i = b.val.i → a = b
+  distinct_i: ∀ a ∈ vals, ∀ b ∈ vals, a.i = b.i → a = b
   cur: XVals
   cur_in_vals: cur ∈ vals
   preserves_i: ∀ val ∈ vals, val.i = (vals.image XVals.i).max → (∃ t: @ReverseTree val, t.getData.a = g) → val.i = cur.i
@@ -2933,8 +2933,8 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
 --   t: @ReverseTree (full_x_vals g).target_val.vals
 --   preserves_tree: (∃ vals: XVals, ∃ other_t: @ReverseTree vals, other_t.getData.a = g) → t.getData.a = g
 
-set_option maxHeartbeats 5000000
-set_option maxRecDepth 5000000
+--set_option maxHeartbeats 5000000
+--set_option maxRecDepth 5000000
 
 lemma latest_x_vals_succ (n: ℕ): (latest_x_vals n).vals ⊆ (latest_x_vals (n + 1)).vals := by
   induction n with
@@ -3109,8 +3109,30 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
 
   have root_elem_eq: (latest_x_vals (g_to_num t.getData.a)).cur.root_elem = other_vals.root_elem := by
     by_contra!
-
-    sorry
+    by_cases n_le_num: n ≤ g_to_num t.getData.a
+    .
+      have vals_in := latest_x_vals_set n (g_to_num t.getData.a) n_le_num
+      have t_num_self := (latest_x_vals (g_to_num t.getData.a)).cur_in_vals
+      have n_self := (latest_x_vals n).cur_in_vals
+      specialize vals_in n_self
+      simp [← hvals] at out_num_eq
+      have vals_distinct := (latest_x_vals (g_to_num t.getData.a)).distinct_i (latest_x_vals n).cur vals_in (latest_x_vals (g_to_num t.getData.a)).cur t_num_self out_num_eq.symm
+      rw [← vals_distinct] at this
+      rw [hvals] at this
+      contradiction
+    .
+      simp at n_le_num
+      have n_le_num : g_to_num t.getData.a ≤ n := by linarith
+      -- TODO - deduplicate this
+      have vals_in := latest_x_vals_set  (g_to_num t.getData.a) n n_le_num
+      have t_num_self := (latest_x_vals (g_to_num t.getData.a)).cur_in_vals
+      have n_self := (latest_x_vals n).cur_in_vals
+      specialize vals_in t_num_self
+      simp [← hvals] at out_num_eq
+      have vals_distinct := (latest_x_vals (n)).distinct_i (latest_x_vals n).cur n_self (latest_x_vals (g_to_num t.getData.a)).cur vals_in out_num_eq.symm
+      rw [← vals_distinct] at this
+      rw [hvals] at this
+      contradiction
 
   have x_vals_eq: (latest_x_vals (g_to_num t.getData.a)).cur = other_vals := by
     calc

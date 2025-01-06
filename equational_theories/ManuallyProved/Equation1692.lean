@@ -2819,7 +2819,11 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         have val_i_max: val.i = (prev_x_vals.vals.image XVals.i).max' im_nonempty := by
           sorry
 
-        have chose_i_in: (Classical.choose has_tree).i ∈ (prev_x_vals.vals.image XVals.i) := by sorry
+        have chose_i_in: (Classical.choose has_tree).i ∈ (prev_x_vals.vals.image XVals.i) := by
+          have my_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).1
+          simp only [Finset.mem_image]
+          use Classical.choose has_tree
+
         have choose_i_gt: ∀ x ∈ (prev_x_vals.vals.image XVals.i), x ≤ (Classical.choose has_tree).i := by sorry
 
         have choose_i_greatest: IsGreatest (↑(Finset.image XVals.i prev_x_vals.vals)) (Classical.choose has_tree).i := by

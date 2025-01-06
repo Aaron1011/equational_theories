@@ -2750,16 +2750,6 @@ lemma single_x_vals: ∀ a b: XVals, (∃ t1: @ReverseTree a, ∃ t2: @ReverseTr
   obtain ⟨t1, t2, h_t1_t2⟩ := exists_data
   sorry
 
-variable {F α β γ ι κ : Type*}
-variable [SemilatticeSup α] [OrderBot α]
-variable {s₁ s₂ : Finset β} {f g : β → α} {a : α}
-variable {s : Finset β} (H : s.Nonempty) (f : β → α)
-
--- Copy-pasted from Mathlib Finset.sup'_eq_of_forall
-lemma sup'_eq_of_forall {a : α} (h : ∀ b ∈ s, f b = a) : s.sup' H f = a :=
-  le_antisymm (Finset.sup'_le _ _ (fun _ hb ↦ (h _ hb).le))
-    (Finset.le_sup'_of_le _ H.choose_spec (h _ H.choose_spec).ge)
-
 noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
   match hn: n with
   | 0 =>

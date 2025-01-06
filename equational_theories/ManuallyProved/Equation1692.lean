@@ -2933,6 +2933,14 @@ lemma latest_x_vals_i_eq {other_vals: XVals} (t: @ReverseTree other_vals) {n: â„
       rw [hvals]
     let m := Finset.max' (Set.Finite.toFinset finite_all_n) finset_nonempty
     have m_max := Finset.le_max' (Set.Finite.toFinset finite_all_n)
+
+    have g_num_nonzero: Â¬(g_to_num t.getData.a = 0) := by linarith
+    have g_num_succ: g_to_num t.getData.a = (g_to_num t.getData.a - 1) + 1 := by omega
+    nth_rw 2 [latest_x_vals.eq_def] at other_i_lt
+    rw [g_num_nonzero] at other_i_lt
+
+
+
   sorry
 
 -- NEXT STEP - do we need some kind of minimality assumption on 'n'?

@@ -2731,6 +2731,7 @@ structure LatestXVals (g: G) where
   minimal_vals: ∀ other_vals: vals, other_vals.val.i ≤ cur.i
   tree: @ReverseTree cur
   a_val: tree.getData.a = g
+  cur_maximal: ∀ x_vals: XVals, ∀ t: @ReverseTree x_vals, x_vals ∈ vals → t.getData.a = g → x_vals.i ≤ cur.i
   tree_agree: ∀ other_vals: XVals, ∀ other_tree: @ReverseTree other_vals, other_tree.getData.a = g → tree.getData.b = other_tree.getData.b
 
 lemma single_x_vals: ∀ a b: XVals, (∃ t1: @ReverseTree a, ∃ t2: @ReverseTree b, t1.getData.a = t2.getData.a) → a = b := by
@@ -2934,10 +2935,24 @@ lemma latest_x_vals_i_eq {other_vals: XVals} (t: @ReverseTree other_vals) {n: �
     let m := Finset.max' (Set.Finite.toFinset finite_all_n) finset_nonempty
     have m_max := Finset.le_max' (Set.Finite.toFinset finite_all_n)
 
+    have other_vals_in := latest_x_vals_set _ _ (le_of_lt args_lt)
+    have n_cur_in := (latest_x_vals n).cur_in_vals
+    specialize other_vals_in n_cur_in
+    simp [hvals] at other_vals_in
+
+
+    have rhs_maximal := (latest_x_vals (g_to_num t.getData.a)).cur_maximal other_vals t other_vals_in
+    simp [g_enum_inverse] at rhs_maximal
+
+
+
+
     have g_num_nonzero: ¬(g_to_num t.getData.a = 0) := by linarith
     have g_num_succ: g_to_num t.getData.a = (g_to_num t.getData.a - 1) + 1 := by omega
     nth_rw 2 [latest_x_vals.eq_def] at other_i_lt
-    rw [g_num_nonzero] at other_i_lt
+    rw [g_num_succ] at other_i_lt
+    simp at other_i_lt
+
 
 
 

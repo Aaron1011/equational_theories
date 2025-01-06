@@ -2726,8 +2726,10 @@ noncomputable def full_x_vals (g: G): WrapperXValsFullData g := by
 
 structure LatestXVals (g: G) where
   vals: Finset XVals
+  distinct_i: ∀ a b: vals, a.val.i = b.val.i → a = b
   cur: XVals
   cur_in_vals: cur ∈ vals
+  preserves_i: ∀ val ∈ vals, (∃ t: @ReverseTree val, t.getData.a = g) → val.i = cur.i
   minimal_vals: ∀ other_vals: vals, other_vals.val.i ≤ cur.i
   tree: @ReverseTree cur
   a_val: tree.getData.a = g
@@ -2964,11 +2966,13 @@ lemma latest_x_vals_i_eq {other_vals: XVals} (t: @ReverseTree other_vals) {n: �
     have m_cur_in := (latest_x_vals m).cur_in_vals
     specialize other_vals_in m_cur_in
     rw [m_in.2] at other_vals_in
+    have exists_t: ∃ t_other: @ReverseTree other_vals, t_other.getData.a = g_enumerate (g_to_num t.getData.a) := by
+      use t
+      rw [g_enum_inverse]
 
-    have g_vals_eq: (latest_x_vals (g_to_num t.getData.a)).cur = other_vals := by
-      sorry
+    have preserves_i := (latest_x_vals (g_to_num t.getData.a)).preserves_i other_vals other_vals_in exists_t
 
-    rw [g_vals_eq] at orig_other_i_lt
+    rw [preserves_i] at orig_other_i_lt
     -- This obtains a contradiction
     simp at orig_other_i_lt
 
@@ -2991,9 +2995,6 @@ lemma latest_x_vals_i_eq {other_vals: XVals} (t: @ReverseTree other_vals) {n: �
     -- simp at other_i_lt
 
 
-
-
-  sorry
 
 -- NEXT STEP - do we need some kind of minimality assumption on 'n'?
 -- The output of 'latest_x_vals' could have a smaller 'i'

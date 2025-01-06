@@ -2724,12 +2724,15 @@ noncomputable def full_x_vals (g: G): WrapperXValsFullData g := by
   rw [g_enum_inverse] at bar
   exact bar
 
+attribute [local instance] Classical.propDecidable
+
 structure LatestXVals (g: G) where
   vals: Finset XVals
   distinct_i: ∀ a b: vals, a.val.i = b.val.i → a = b
   cur: XVals
   cur_in_vals: cur ∈ vals
   preserves_i: ∀ val ∈ vals, val.i = (vals.image XVals.i).max → (∃ t: @ReverseTree val, t.getData.a = g) → val.i = cur.i
+  choose_min_i: cur.i = (({v ∈ vals | ∃ t: @ReverseTree v, t.getData.a = g} : Finset XVals).image (fun v => v.i)).min
   minimal_vals: ∀ other_vals: vals, other_vals.val.i ≤ cur.i
   tree: @ReverseTree cur
   a_val: tree.getData.a = g
@@ -2770,6 +2773,13 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         simp only [ReverseTree.getData, x_vals, XVals.root_elem, hn]
         rw [g_enum_zero_eq_zero]
         simp only [mk_x_vals]
+      choose_min_i := by
+        dsimp [x_vals]
+        have exists_t: ∃ t: @ReverseTree (mk_x_vals 0 (g_enumerate n)), t.getData.a = g_enumerate 0 := by
+          use ReverseTree.root
+        rw [Finset.filter_singleton]
+        simp only [exists_t]
+        simp
       minimal_vals := by simp
       distinct_i := by simp
       preserves_i := by simp
@@ -2790,7 +2800,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
   }
   | a + 1 =>
     let prev_x_vals := latest_x_vals a
-    by_cases has_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n ∧ ∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ x_vals.i
+    by_cases has_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n ∧ (∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ x_vals.i) ∧ x_vals.i = (({v ∈ prev_x_vals.vals | ∃ t: @ReverseTree v, t.getData.a = (g_enumerate n)} : Finset XVals).image (fun v => v.i)).min
     . exact {
       vals := prev_x_vals.vals,
       cur := Classical.choose has_tree,
@@ -2804,8 +2814,15 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         exact tree_eq
       minimal_vals := by
         intro other_vals
-        exact (Classical.choose_spec (Classical.choose_spec has_tree)).2.2 other_vals other_vals.property
+        exact (Classical.choose_spec (Classical.choose_spec has_tree)).2.2.1 other_vals other_vals.property
       distinct_i := prev_x_vals.distinct_i
+      choose_min_i := by
+        have my_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).2.2.2
+        have n_eq: n = a + 1 := by
+          simp [hn]
+        rw [← n_eq]
+        exact my_spec
+
       preserves_i := by
         intro val h_val_prev val_i_max exists_t
         -- have additional_val: ∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ val.i := by
@@ -2835,7 +2852,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           apply chose_i_in
           simp [upperBounds]
           intro a ha
-          have my_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).2.2
+          have my_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).2.2.1
           specialize my_spec a ha
           simp at my_spec
           exact my_spec
@@ -3094,9 +3111,11 @@ lemma latest_x_vals_i_eq {other_vals: XVals} (t: @ReverseTree other_vals) {n: �
     -- 'preserve_i' is too strong - we could have multiple trees with different 'i' values that still
     -- have a correct 'a' node. We should also require that 'other_vals' has a maximal 'i' value
 
+    -- Is this even true?
+    have other_vals_max: other_vals.i = (Finset.image XVals.i (latest_x_vals (g_to_num t.getData.a)).vals).max := by
+      sorry
 
-    have preserves_i := (latest_x_vals (g_to_num t.getData.a)).preserves_i other_vals other_vals_in exists_t
-
+    have preserves_i := (latest_x_vals (g_to_num t.getData.a)).preserves_i other_vals other_vals_in other_vals_max exists_t
     rw [preserves_i] at orig_other_i_lt
     -- This obtains a contradiction
     simp at orig_other_i_lt

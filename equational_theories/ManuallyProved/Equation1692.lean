@@ -2725,12 +2725,17 @@ noncomputable def full_x_vals (g: G): WrapperXValsFullData g := by
   exact bar
 
 structure LatestXVals (g: G) where
-  vals: Set XVals
+  vals: Finset XVals
   cur: XVals
   cur_in_vals: cur ∈ vals
   minimal_vals: ∀ other_vals: vals, other_vals.val.i ≤ cur.i
   tree: @ReverseTree cur
   a_val: tree.getData.a = g
+  -- new_cur_maximal: cur.i = (vals.image XVals.i).max' (by
+  --   simp
+  --   simp [Finset.Nonempty]
+  --   use cur
+  -- )
   cur_maximal: ∀ x_vals: XVals, ∀ t: @ReverseTree x_vals, x_vals ∈ vals → t.getData.a = g → x_vals.i ≤ cur.i
   tree_agree: ∀ other_vals: XVals, ∀ other_tree: @ReverseTree other_vals, other_tree.getData.a = g → tree.getData.b = other_tree.getData.b
 
@@ -2754,6 +2759,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         rw [g_enum_zero_eq_zero]
         simp only [mk_x_vals]
       minimal_vals := sorry
+      cur_maximal := sorry
       tree_agree := by
         intro other_vals other_tree a_eq
         rw [g_enum_zero_eq_zero] at a_eq
@@ -2783,6 +2789,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         rw [← n_eq]
         exact tree_eq
       minimal_vals := sorry
+      cur_maximal := sorry
       tree_agree := by
         intro other_vals other_tree a_eq
         sorry
@@ -2798,6 +2805,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           simp only [ReverseTree.getData, new_x_vals, XVals.root_elem, hn]
           simp [mk_x_vals]
         minimal_vals := sorry
+        cur_maximal := sorry
         tree_agree := by
           intro other_vals other_tree a_eq
           sorry
@@ -2908,6 +2916,20 @@ lemma cast_data_eq {vals1 vals2: XVals} (t: @ReverseTree vals1) (h_vals: vals1 =
   rw [heq_comm]
   simp
 
+-- lemma latest_x_vals_preserves_cur {vals: XVals} (a b: ℕ) (hb: a ≤ b) (hvals: vals ∈ (latest_x_vals a).vals): (latest_x_vals b).cur = vals := by
+--   induction b with
+--   | zero =>
+--     have a_eq_zero: a = 0 := by
+--       omega
+--     simp only [latest_x_vals]
+--     rw [a_eq_zero] at hvals
+--     simp only [latest_x_vals] at hvals
+--     simp only [Finset.mem_singleton] at hvals
+--     exact hvals.symm
+--   | succ new_b h_prev =>
+--     have vals_set
+
+
 lemma latest_x_vals_i_eq {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (hvals: (latest_x_vals n).cur = other_vals): (latest_x_vals (g_to_num t.getData.a)).cur.i = other_vals.i := by
   by_contra!
   by_cases t_i_lt: (latest_x_vals (g_to_num t.getData.a)).cur.i < other_vals.i
@@ -2915,9 +2937,10 @@ lemma latest_x_vals_i_eq {other_vals: XVals} (t: @ReverseTree other_vals) {n: �
   .
     simp at t_i_lt
     have other_i_lt: other_vals.i < (latest_x_vals (g_to_num t.getData.a)).cur.i := by omega
+    have orig_other_i_lt := other_i_lt
     simp [← hvals] at other_i_lt
     have args_lt := Monotone.reflect_lt latest_x_vals_i_monotone other_i_lt
-    let all_n := {m: ℕ | m < g_to_num t.getData.a ∧ (latest_x_vals m).cur.i = other_vals.i}
+    let all_n := {m: ℕ | m < g_to_num t.getData.a ∧ (latest_x_vals m).cur = other_vals}
     have finite_all_n: all_n.Finite := by
       simp [all_n]
       rw [Set.finite_iff_bddAbove]
@@ -2934,24 +2957,38 @@ lemma latest_x_vals_i_eq {other_vals: XVals} (t: @ReverseTree other_vals) {n: �
       rw [hvals]
     let m := Finset.max' (Set.Finite.toFinset finite_all_n) finset_nonempty
     have m_max := Finset.le_max' (Set.Finite.toFinset finite_all_n)
+    have m_in := Finset.max'_mem (Set.Finite.toFinset finite_all_n) finset_nonempty
+    simp only [Set.Finite.mem_toFinset, all_n,  Set.mem_setOf_eq] at m_in
 
-    have other_vals_in := latest_x_vals_set _ _ (le_of_lt args_lt)
-    have n_cur_in := (latest_x_vals n).cur_in_vals
-    specialize other_vals_in n_cur_in
-    simp [hvals] at other_vals_in
+    have other_vals_in := latest_x_vals_set _ _ (le_of_lt m_in.1)
+    have m_cur_in := (latest_x_vals m).cur_in_vals
+    specialize other_vals_in m_cur_in
+    rw [m_in.2] at other_vals_in
+
+    have g_vals_eq: (latest_x_vals (g_to_num t.getData.a)).cur = other_vals := by
+      sorry
+
+    rw [g_vals_eq] at orig_other_i_lt
+    -- This obtains a contradiction
+    simp at orig_other_i_lt
 
 
-    have rhs_maximal := (latest_x_vals (g_to_num t.getData.a)).cur_maximal other_vals t other_vals_in
-    simp [g_enum_inverse] at rhs_maximal
+    --simp [hvals] at other_vals_in
+
+
+    -- have rhs_maximal := (latest_x_vals (g_to_num t.getData.a)).cur_maximal _ t other_vals_in
+    -- simp [g_enum_inverse] at rhs_maximal
 
 
 
 
-    have g_num_nonzero: ¬(g_to_num t.getData.a = 0) := by linarith
-    have g_num_succ: g_to_num t.getData.a = (g_to_num t.getData.a - 1) + 1 := by omega
-    nth_rw 2 [latest_x_vals.eq_def] at other_i_lt
-    rw [g_num_succ] at other_i_lt
-    simp at other_i_lt
+
+
+    -- have g_num_nonzero: ¬(g_to_num t.getData.a = 0) := by linarith
+    -- have g_num_succ: g_to_num t.getData.a = (g_to_num t.getData.a - 1) + 1 := by omega
+    -- nth_rw 2 [latest_x_vals.eq_def] at other_i_lt
+    -- rw [g_num_succ] at other_i_lt
+    -- simp at other_i_lt
 
 
 

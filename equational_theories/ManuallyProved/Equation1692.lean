@@ -2767,6 +2767,8 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         dsimp [x_vals]
         have exists_t: ∃ t: @ReverseTree (mk_x_vals 0 (g_enumerate n)), t.getData.a = g_enumerate 0 := by
           use ReverseTree.root
+          simp only [ReverseTree.getData, mk_x_vals]
+          rw [hn]
         rw [Finset.filter_singleton]
         simp only [exists_t]
         simp
@@ -2889,6 +2891,12 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           simp only [ReverseTree.getData, new_x_vals, XVals.root_elem, hn]
           simp [mk_x_vals]
         minimal_vals := sorry
+        distinct_i := by
+          sorry
+        preserves_i := by
+          sorry
+        choose_min_i := by
+          sorry
         --cur_maximal := sorry
         -- tree_agree := by
         --   intro other_vals other_tree a_eq
@@ -2925,7 +2933,8 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
 --   t: @ReverseTree (full_x_vals g).target_val.vals
 --   preserves_tree: (∃ vals: XVals, ∃ other_t: @ReverseTree vals, other_t.getData.a = g) → t.getData.a = g
 
-set_option maxHeartbeats 500000
+set_option maxHeartbeats 5000000
+set_option maxRecDepth 5000000
 
 lemma latest_x_vals_succ (n: ℕ): (latest_x_vals n).vals ⊆ (latest_x_vals (n + 1)).vals := by
   induction n with
@@ -2933,20 +2942,20 @@ lemma latest_x_vals_succ (n: ℕ): (latest_x_vals n).vals ⊆ (latest_x_vals (n 
     rw [latest_x_vals]
     simp [g_enum_zero_eq_zero]
     rw [latest_x_vals]
-    simp
+    --simp
     by_cases has_tree: ∃ x_vals: XVals, ∃ new_t: @ReverseTree x_vals, x_vals.i < 1 ∧ new_t.getData.a = g_enumerate 1
     .
       simp only [latest_x_vals]
       simp [g_enum_zero_eq_zero]
       rw [dite_cond_eq_true]
-      simp
+      --simp
       simp only [eq_iff_iff, iff_true]
       exact has_tree
     .
       simp only [latest_x_vals]
       simp [g_enum_zero_eq_zero]
       rw [dite_cond_eq_false]
-      simp
+      --simp
       simp only [eq_iff_iff, iff_false]
       exact has_tree
   | succ new_n h_prev =>
@@ -2960,7 +2969,7 @@ lemma latest_x_vals_succ (n: ℕ): (latest_x_vals n).vals ⊆ (latest_x_vals (n 
     . rw [dite_cond_eq_false]
       simp only [Nat.succ_eq_add_one, Option.some.injEq,
         eq_iff_iff, iff_true, iff_false]
-      simp
+      --simp
       simp only [Nat.succ_eq_add_one, Option.some.injEq,
         eq_iff_iff, iff_false]
       exact has_tree

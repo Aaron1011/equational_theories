@@ -2966,13 +2966,37 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 match hx with
                 | .inl x_in_prev =>
                   have prev_choose_min := prev_x_vals.choose_min_i
+                  have x_i_le: (Finset.image (fun v ↦ v.i) (Finset.filter (fun v ↦ ∃ t: @ReverseTree v, t.getData.a = g_enumerate a) prev_x_vals.vals)).min ≤ x.i := by
+                    apply Finset.min_le
+                    simp only [Option.some.injEq,
+                      Nat.cast_id, Finset.mem_image, Finset.mem_filter]
+                    use prev_x_vals.cur
+                    sorry
+
+
+                    --refine ⟨⟨x_in_prev, ?_⟩, ?_⟩
+                   -- use prev_x_vals.tree
+
+
                   dsimp [new_x_vals]
                   have prex_vals_a := prev_x_vals.a_val
+                  have prev_minimal := prev_x_vals.minimal_vals
+                  obtain ⟨x_tree, h_x_tree⟩ := new_has_tree
                   have actually_has_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n ∧ (∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ x_vals.i) ∧ x_vals.i = (({v ∈ prev_x_vals.vals | ∃ t: @ReverseTree v, t.getData.a = (g_enumerate n)} : Finset XVals).image (fun v => v.i)).min := by
-                    use prev_x_vals.cur
-                    use prev_x_vals.tree
-                    refine ⟨prev_x_vals.cur_in_vals, ?_, prev_x_vals.minimal_vals, ?_
-                  sorry
+                    use x
+                    use x_tree
+                    refine ⟨x_in_prev, ?_, ?_, ?_⟩
+                    .
+                      simp only [hn]
+                      exact h_x_tree
+                    .
+                      intro other_vals h_other_vals
+                      specialize prev_minimal other_vals h_other_vals
+
+
+                      sorry
+                    . sorry
+                  contradiction
                 | .inr x_eq_new => exact x_eq_new
               . intro x_eq_new
                 use ReverseTree.root

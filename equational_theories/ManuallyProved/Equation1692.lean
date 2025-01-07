@@ -2731,6 +2731,7 @@ structure LatestXVals (g: G) where
   distinct_i: ∀ a ∈ vals, ∀ b ∈ vals, a.i = b.i → a = b
   cur: XVals
   cur_in_vals: cur ∈ vals
+  -- FIXME - can we just delete 'preserves_i'?
   preserves_i: ∀ val ∈ vals, val.i = (vals.image XVals.i).max → (∃ t: @ReverseTree val, t.getData.a = g) → val.i = cur.i
   choose_min_i: cur.i = (({v ∈ vals | ∃ t: @ReverseTree v, t.getData.a = g} : Finset XVals).image (fun v => v.i)).min
   minimal_vals: ∀ other_vals ∈ vals, other_vals.i ≤ cur.i
@@ -2950,7 +2951,28 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         preserves_i := by
           sorry
         choose_min_i := by
-          sorry
+          conv =>
+            rhs
+            arg 1
+            arg 2
+            rw [Finset.filter_congr (q := fun v => v = new_x_vals)]
+            rfl
+            tactic =>
+              intro x
+              simp only [Finset.mem_union, Finset.mem_singleton, Option.some.injEq, iff_false]
+              intro hx
+              refine ⟨?_, ?_⟩
+              . intro new_has_tree
+                sorry
+              . intro x_eq_new
+                use ReverseTree.root
+                simp only [ReverseTree.getData]
+                rw [x_eq_new]
+                simp only [new_x_vals, mk_x_vals]
+                rw [hn]
+          --rw [Finset.filter_union]
+          --simp [Finset.filter_singleton]
+          simp [Finset.filter_eq' (prev_x_vals.vals ∪ {new_x_vals}) new_x_vals]
         --cur_maximal := sorry
         -- tree_agree := by
         --   intro other_vals other_tree a_eq

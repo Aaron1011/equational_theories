@@ -2963,7 +2963,10 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
               intro hx
               refine ⟨?_, ?_⟩
               . intro new_has_tree
-                sorry
+                match hx with
+                | .inl x_in_prev =>
+                  sorry
+                | .inr x_eq_new => exact x_eq_new
               . intro x_eq_new
                 use ReverseTree.root
                 simp only [ReverseTree.getData]

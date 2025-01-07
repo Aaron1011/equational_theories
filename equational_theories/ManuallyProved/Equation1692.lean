@@ -2965,6 +2965,13 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
               . intro new_has_tree
                 match hx with
                 | .inl x_in_prev =>
+                  have prev_choose_min := prev_x_vals.choose_min_i
+                  dsimp [new_x_vals]
+                  have prex_vals_a := prev_x_vals.a_val
+                  have actually_has_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n ∧ (∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ x_vals.i) ∧ x_vals.i = (({v ∈ prev_x_vals.vals | ∃ t: @ReverseTree v, t.getData.a = (g_enumerate n)} : Finset XVals).image (fun v => v.i)).min := by
+                    use prev_x_vals.cur
+                    use prev_x_vals.tree
+                    refine ⟨prev_x_vals.cur_in_vals, ?_, prev_x_vals.minimal_vals, ?_
                   sorry
                 | .inr x_eq_new => exact x_eq_new
               . intro x_eq_new

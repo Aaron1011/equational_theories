@@ -2911,7 +2911,42 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
             rw [h_new]
         distinct_i := by
           intro a ha b hb i_eq
-          sorry
+          simp at ha
+          simp at hb
+          match ha with
+          | .inl a_prev =>
+            match hb with
+            | .inl b_prev => apply prev_x_vals.distinct_i a a_prev b b_prev i_eq
+            | .inr b_new =>
+              have a_le_max: a.i ≤ max_i := by
+                dsimp [max_i]
+                apply Finset.le_max'
+                simp
+                use a
+              have a_lt_b: a.i < b.i := by
+                rw [b_new]
+                dsimp [new_x_vals, mk_x_vals]
+                omega
+              rw [i_eq] at a_lt_b
+              -- obtains a contradiction
+              simp at a_lt_b
+          | .inr a_new =>
+            match hb with
+            | .inl b_prev =>
+              -- TODO - this is identical to the other case, just with variables swapped around
+                have b_le_max: b.i ≤ max_i := by
+                  dsimp [max_i]
+                  apply Finset.le_max'
+                  simp
+                  use b
+                have b_lt_a: b.i < a.i := by
+                  rw [a_new]
+                  dsimp [new_x_vals, mk_x_vals]
+                  omega
+                rw [i_eq] at b_lt_a
+                -- obtains a contradiction
+                simp at b_lt_a
+            | .inr b_new => rw [a_new, b_new]
         preserves_i := by
           sorry
         choose_min_i := by

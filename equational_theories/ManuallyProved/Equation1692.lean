@@ -2571,7 +2571,7 @@ noncomputable def g_denumerable: Denumerable G := by
   have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
   exact Classical.choice nonempty_denum
 
-noncomputable abbrev g_enumerate: ℕ → G := by
+@[irreducible] noncomputable abbrev g_enumerate: ℕ → G := by
   have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
   have bar := Classical.choice nonempty_denum
   exact Denumerable.ofNat G
@@ -2583,7 +2583,7 @@ lemma g_enum_one_eq_one: g_enumerate 1 = fun₀ | 1 => 1 := by
   sorry
 
 
-noncomputable def g_to_num (g: G): ℕ := by
+@[irreducible] noncomputable def g_to_num (g: G): ℕ := by
   have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
   have bar := Classical.choice nonempty_denum
   exact bar.toEncodable.encode g
@@ -2923,7 +2923,24 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           | .inl a_prev =>
             match hb with
             | .inl b_prev => apply prev_x_vals.distinct_trees a a_prev b b_prev exists_trees
-            | .inr b_new => sorry
+            | .inr b_new =>
+              obtain ⟨ta, tb, h_tree_eq⟩ := exists_trees
+              obtain ⟨ta_g, ta_m, ta_supp, ta_supp_lt, ta_sum⟩ := (tree_linear_comb ta).1
+              obtain ⟨tb_g, tb_m, tb_supp, tb_supp_lt, tb_sum⟩ := (tree_linear_comb tb).1
+              -- OTDO - this should be the normal 'has_tree'
+              have simple_not_tree: ¬ ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n := by
+                sorry
+              match tb with
+              | .root =>
+                simp [ReverseTree.getData, b_new, new_x_vals, mk_x_vals] at h_tree_eq
+                have simple_exists_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n := by
+                  use a
+                  use ta
+
+
+
+
+
           | .inr a_new =>
             match hb with
             | .inl b_prev => sorry

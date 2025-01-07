@@ -2777,6 +2777,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
       minimal_vals := by simp
       distinct_i := by simp
       preserves_i := by simp
+      distinct_trees := by simp
       --cur_maximal := sorry
       -- tree_agree := by
       --   intro other_vals other_tree a_eq
@@ -2818,6 +2819,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         rw [← n_eq]
         exact my_spec
 
+      distinct_trees := prev_x_vals.distinct_trees
       preserves_i := by
         intro val h_val_prev val_i_max exists_t
         -- have additional_val: ∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ val.i := by
@@ -2912,6 +2914,21 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
             omega
           | .inr h_new =>
             rw [h_new]
+
+        distinct_trees := by
+          intro a ha b hb exists_trees
+          simp at ha
+          simp at hb
+          match ha with
+          | .inl a_prev =>
+            match hb with
+            | .inl b_prev => apply prev_x_vals.distinct_trees a a_prev b b_prev exists_trees
+            | .inr b_new => sorry
+          | .inr a_new =>
+            match hb with
+            | .inl b_prev => sorry
+            | .inr b_new => rw [a_new, b_new]
+
         distinct_i := by
           intro a ha b hb i_eq
           simp at ha

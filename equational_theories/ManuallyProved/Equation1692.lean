@@ -3249,28 +3249,54 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
       rw [hvals] at this
       contradiction
 
-  -- TODO - this all seems ridiculous. Can we somehow eliminate all of this nonsense (except for 'temp_partial_function')
-  have cast_trees := cast_data_eq (latest_x_vals (g_to_num t.getData.a)).tree x_vals_eq
-  have types_eq: @ReverseTree (latest_x_vals (g_to_num t.getData.a)).cur = @ReverseTree other_vals := by
-    simp [x_vals_eq]
-  have trees_eq := cast_data_eq t x_vals_eq.symm types_eq.symm
+  have new_cast_trees := cast_data_eq t hvals.symm
+  have types_eq: @ReverseTree other_vals = @ReverseTree (latest_x_vals n).cur := by
+    simp [← hvals]
+  have trees_eq := cast_data_eq t hvals.symm types_eq
   have orig_trees_eq := trees_eq
 
-  have better_x_vals_eq: (latest_x_vals (g_to_num t.getData.a)).cur = other_vals := by
+  have x_vals_eq: (latest_x_vals (g_to_num t.getData.a)).cur = other_vals := by
     by_cases n_le_num: n ≤ g_to_num t.getData.a
     . have vals_subset := latest_x_vals_set n (g_to_num t.getData.a) n_le_num
       have t_num_self := (latest_x_vals (g_to_num t.getData.a)).cur_in_vals
       have n_self := (latest_x_vals n).cur_in_vals
       specialize vals_subset n_self
+
+      have a_eq := (latest_x_vals (g_to_num t.getData.a)).a_val
+
       have same_tree: ∃ ta: @ReverseTree (latest_x_vals n).cur, ∃ tb: @ReverseTree (latest_x_vals (g_to_num t.getData.a)).cur, ta.getData.a = tb.getData.a := by
-        use t
+        use (cast types_eq t)
+        use (latest_x_vals (g_to_num t.getData.a)).tree
+        rw [a_eq]
+        rw [g_enum_inverse]
+        rw [trees_eq]
+
+
 
       have x_vals_eq := (latest_x_vals (g_to_num t.getData.a)).distinct_trees (latest_x_vals n).cur vals_subset (latest_x_vals (g_to_num t.getData.a)).cur t_num_self same_tree
       rw [hvals] at x_vals_eq
       exact x_vals_eq.symm
+    -- TODO - this is almost identical to the other case - can we combine them?
+    . have vals_subset := latest_x_vals_set (g_to_num t.getData.a) n (by linarith)
+      have t_num_self := (latest_x_vals (g_to_num t.getData.a)).cur_in_vals
+      have n_self := (latest_x_vals n).cur_in_vals
+      specialize vals_subset t_num_self
+
+      have a_eq := (latest_x_vals (g_to_num t.getData.a)).a_val
+
+      have same_tree: ∃ tb: @ReverseTree (latest_x_vals (g_to_num t.getData.a)).cur, ∃ ta: @ReverseTree (latest_x_vals n).cur, tb.getData.a = ta.getData.a := by
+        use (latest_x_vals (g_to_num t.getData.a)).tree
+        use (cast types_eq t)
+        rw [a_eq]
+        rw [g_enum_inverse]
+        rw [trees_eq]
+
+      have x_vals_eq := (latest_x_vals n).distinct_trees (latest_x_vals (g_to_num t.getData.a)).cur vals_subset (latest_x_vals n).cur n_self same_tree
+      rw [hvals] at x_vals_eq
+      exact x_vals_eq
 
 
-  have x_vals_eq: (latest_x_vals (g_to_num t.getData.a)).cur = other_vals := by
+  have old_x_vals_eq: (latest_x_vals (g_to_num t.getData.a)).cur = other_vals := by
     calc
       (latest_x_vals (g_to_num t.getData.a)).cur = {
         i := (latest_x_vals (g_to_num t.getData.a)).cur.i
@@ -3294,6 +3320,12 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
 
   simp [g_enum_inverse] at a_eq
 
+  -- TODO - this all seems ridiculous. Can we somehow eliminate all of this nonsense (except for 'temp_partial_function')
+  have cast_trees := cast_data_eq (latest_x_vals (g_to_num t.getData.a)).tree x_vals_eq
+  have types_eq: @ReverseTree (latest_x_vals (g_to_num t.getData.a)).cur = @ReverseTree other_vals := by
+    simp [x_vals_eq]
+  have trees_eq := cast_data_eq t x_vals_eq.symm types_eq.symm
+  have orig_trees_eq := trees_eq
   apply_fun (fun x => TreeData.a x) at trees_eq
   simp [← a_eq] at trees_eq
   have partial_fun_trees := temp_partial_function trees_eq

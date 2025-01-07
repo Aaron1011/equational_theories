@@ -2936,6 +2936,28 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 have simple_exists_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n := by
                   use a
                   use ta
+                contradiction
+              | .left tb_parent =>
+                simp [ReverseTree.getData, b_new, new_x_vals, mk_x_vals] at h_tree_eq
+                sorry
+              | .right tb_parent =>
+                simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at h_tree_eq
+                simp [b_new, new_x_vals, mk_x_vals] at h_tree_eq
+                have ta_max_lt: (a.x_vals (ta_m - 1)).support.max < max_i + 1 := by
+                  simp [max_i]
+                have ta_supp_lt: ta.getData.a.support.max < ((2 ^ (max_i + 1) + (newNum tb_parent - 1) * 2 ^ (max_i + 1 + 1)): ℕ) := by
+                  sorry
+                have i_not_supp: (2 ^ (max_i + 1) + (newNum tb_parent - 1) * 2 ^ (max_i + 1 + 1)) ∉ ta.getData.a.support := by
+                  sorry
+
+                have app_eq := DFunLike.congr (x := (2 ^ (max_i + 1) + (newNum tb_parent - 1) * 2 ^ (max_i + 1 + 1))) h_tree_eq rfl
+                simp at app_eq
+                have eval_zero := Finsupp.not_mem_support_iff.mp i_not_supp
+                -- This obtains a contradiction
+                simp [eval_zero] at app_eq
+
+
+
 
 
 

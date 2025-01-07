@@ -2729,6 +2729,7 @@ attribute [local instance] Classical.propDecidable
 structure LatestXVals (g: G) where
   vals: Finset XVals
   distinct_i: ∀ a ∈ vals, ∀ b ∈ vals, a.i = b.i → a = b
+  distinct_trees: ∀ a ∈ vals, ∀ b ∈ vals, (∃ ta: @ReverseTree a, ∃ tb: @ReverseTree b, ta.getData.a = tb.getData.a) → a = b
   cur: XVals
   cur_in_vals: cur ∈ vals
   -- FIXME - can we just delete 'preserves_i'?
@@ -2793,6 +2794,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
   }
   | a + 1 =>
     let prev_x_vals := latest_x_vals a
+    -- WRONG - we may need to grab a previous 'XVals' tree when looking up a node with a larger index (e.g. if 'basis_n 3' has a very high g_to_num)
     by_cases has_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n ∧ (∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ x_vals.i) ∧ x_vals.i = (({v ∈ prev_x_vals.vals | ∃ t: @ReverseTree v, t.getData.a = (g_enumerate n)} : Finset XVals).image (fun v => v.i)).min
     . exact {
       vals := prev_x_vals.vals,
@@ -2993,7 +2995,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                       intro other_vals h_other_vals
                       specialize prev_minimal other_vals h_other_vals
                       have x_i_ge: other_vals.i ≤ x.i := by
-                        omega
+                        sorry
                       omega
                     .
                       sorry
@@ -3103,6 +3105,8 @@ lemma latest_x_vals_set (a b: ℕ) (hab: a ≤ b): (latest_x_vals a).vals ⊆ (l
       rw [a_eq_b_plus]
 
 
+-- This is FALSE with the correct definition of 'latest_x_vals' - the 'cur' tree may jump
+-- around in the set of XVals
 lemma latest_x_vals_succ_i (n: ℕ): (latest_x_vals n).cur.i ≤ (latest_x_vals (n + 1)).cur.i := by
   have vals_in_self := (latest_x_vals n).cur_in_vals
   have vals_in := (latest_x_vals_set n (n + 1) (by omega)) (latest_x_vals n).cur_in_vals
@@ -3245,6 +3249,27 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
       rw [hvals] at this
       contradiction
 
+  -- TODO - this all seems ridiculous. Can we somehow eliminate all of this nonsense (except for 'temp_partial_function')
+  have cast_trees := cast_data_eq (latest_x_vals (g_to_num t.getData.a)).tree x_vals_eq
+  have types_eq: @ReverseTree (latest_x_vals (g_to_num t.getData.a)).cur = @ReverseTree other_vals := by
+    simp [x_vals_eq]
+  have trees_eq := cast_data_eq t x_vals_eq.symm types_eq.symm
+  have orig_trees_eq := trees_eq
+
+  have better_x_vals_eq: (latest_x_vals (g_to_num t.getData.a)).cur = other_vals := by
+    by_cases n_le_num: n ≤ g_to_num t.getData.a
+    . have vals_subset := latest_x_vals_set n (g_to_num t.getData.a) n_le_num
+      have t_num_self := (latest_x_vals (g_to_num t.getData.a)).cur_in_vals
+      have n_self := (latest_x_vals n).cur_in_vals
+      specialize vals_subset n_self
+      have same_tree: ∃ ta: @ReverseTree (latest_x_vals n).cur, ∃ tb: @ReverseTree (latest_x_vals (g_to_num t.getData.a)).cur, ta.getData.a = tb.getData.a := by
+        use t
+
+      have x_vals_eq := (latest_x_vals (g_to_num t.getData.a)).distinct_trees (latest_x_vals n).cur vals_subset (latest_x_vals (g_to_num t.getData.a)).cur t_num_self same_tree
+      rw [hvals] at x_vals_eq
+      exact x_vals_eq.symm
+
+
   have x_vals_eq: (latest_x_vals (g_to_num t.getData.a)).cur = other_vals := by
     calc
       (latest_x_vals (g_to_num t.getData.a)).cur = {
@@ -3269,12 +3294,6 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
 
   simp [g_enum_inverse] at a_eq
 
-  -- TODO - this all seems ridiculous. Can we somehow eliminate all of this nonsense (except for 'temp_partial_function')
-  have cast_trees := cast_data_eq (latest_x_vals (g_to_num t.getData.a)).tree x_vals_eq
-  have types_eq: @ReverseTree (latest_x_vals (g_to_num t.getData.a)).cur = @ReverseTree other_vals := by
-    simp [x_vals_eq]
-  have trees_eq := cast_data_eq t x_vals_eq.symm types_eq.symm
-  have orig_trees_eq := trees_eq
   apply_fun (fun x => TreeData.a x) at trees_eq
   simp [← a_eq] at trees_eq
   have partial_fun_trees := temp_partial_function trees_eq

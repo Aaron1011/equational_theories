@@ -2733,7 +2733,7 @@ structure LatestXVals (g: G) where
   cur_in_vals: cur ∈ vals
   preserves_i: ∀ val ∈ vals, val.i = (vals.image XVals.i).max → (∃ t: @ReverseTree val, t.getData.a = g) → val.i = cur.i
   choose_min_i: cur.i = (({v ∈ vals | ∃ t: @ReverseTree v, t.getData.a = g} : Finset XVals).image (fun v => v.i)).min
-  minimal_vals: ∀ other_vals: vals, other_vals.val.i ≤ cur.i
+  minimal_vals: ∀ other_vals ∈ vals, other_vals.i ≤ cur.i
   tree: @ReverseTree cur
   a_val: tree.getData.a = g
   -- new_cur_maximal: cur.i = (vals.image XVals.i).max' (by
@@ -2806,7 +2806,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         exact tree_eq
       minimal_vals := by
         intro other_vals
-        exact (Classical.choose_spec (Classical.choose_spec has_tree)).2.2.1 other_vals other_vals.property
+        exact (Classical.choose_spec (Classical.choose_spec has_tree)).2.2.1 other_vals
       distinct_i := prev_x_vals.distinct_i
       choose_min_i := by
         have my_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).2.2.2
@@ -2881,7 +2881,13 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
       --   sorry
     }
     .
-      let new_x_vals := mk_x_vals (n + 1) (g_enumerate n)
+      have img_nonempty : (prev_x_vals.vals.image XVals.i).Nonempty := by
+        simp [Finset.Nonempty]
+        use prev_x_vals.cur.i
+        use prev_x_vals.cur
+        refine ⟨prev_x_vals.cur_in_vals, rfl⟩
+      let max_i := (prev_x_vals.vals.image XVals.i).max' img_nonempty
+      let new_x_vals := mk_x_vals (max_i + 1) (g_enumerate n)
       exact {
         vals := prev_x_vals.vals ∪ {new_x_vals},
         cur := new_x_vals,
@@ -2890,8 +2896,21 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         a_val := by
           simp only [ReverseTree.getData, new_x_vals, XVals.root_elem, hn]
           simp [mk_x_vals]
-        minimal_vals := sorry
+        minimal_vals := by
+          intro other_vals other_vals_in
+          simp at other_vals_in
+          match other_vals_in with
+          | .inl h_prev =>
+            dsimp [new_x_vals, mk_x_vals, max_i]
+            have le_max : other_vals.i ≤ (Finset.image XVals.i prev_x_vals.vals).max' img_nonempty := by
+              apply Finset.le_max'
+              simp
+              use other_vals
+            omega
+          | .inr h_new =>
+            rw [h_new]
         distinct_i := by
+          intro a ha b hb i_eq
           sorry
         preserves_i := by
           sorry

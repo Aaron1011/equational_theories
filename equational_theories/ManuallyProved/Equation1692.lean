@@ -2966,12 +2966,12 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 match hx with
                 | .inl x_in_prev =>
                   have prev_choose_min := prev_x_vals.choose_min_i
-                  have x_i_le: (Finset.image (fun v ↦ v.i) (Finset.filter (fun v ↦ ∃ t: @ReverseTree v, t.getData.a = g_enumerate a) prev_x_vals.vals)).min ≤ x.i := by
-                    apply Finset.min_le
-                    simp only [Option.some.injEq,
-                      Nat.cast_id, Finset.mem_image, Finset.mem_filter]
-                    use prev_x_vals.cur
-                    sorry
+                  -- have x_i_le: (Finset.image (fun v ↦ v.i) (Finset.filter (fun v ↦ ∃ t: @ReverseTree v, t.getData.a = g_enumerate a) prev_x_vals.vals)).min ≤ x.i := by
+                  --   apply Finset.min_le
+                  --   simp only [Option.some.injEq,
+                  --     Nat.cast_id, Finset.mem_image, Finset.mem_filter]
+                  --   use prev_x_vals.cur
+                  --   sorry
 
 
                     --refine ⟨⟨x_in_prev, ?_⟩, ?_⟩
@@ -2992,10 +2992,11 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                     .
                       intro other_vals h_other_vals
                       specialize prev_minimal other_vals h_other_vals
-
-
+                      have x_i_ge: other_vals.i ≤ x.i := by
+                        omega
+                      omega
+                    .
                       sorry
-                    . sorry
                   contradiction
                 | .inr x_eq_new => exact x_eq_new
               . intro x_eq_new

@@ -2934,10 +2934,10 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
               have tb_g_supp_nonempty: tb_g.support.Nonempty := by
                 sorry
 
-              have nonzero_b_coord: ∃ y ∈ Finset.range tb_m, tb_g y ≠ 0 := by
+              have nonzero_b_coord: ∃ y, y + 1 ∈ Finset.range tb_m ∧ tb_g (y + 1) ≠ 0 ∧ y > 0 := by
                 sorry
 
-              obtain ⟨y, y_lt_tb_m, h_y⟩ := nonzero_b_coord
+              obtain ⟨y, y_plus_in_range, h_y, y_gt_zero⟩ := nonzero_b_coord
 
               have outside_support: ∀ i ∈ Finset.range ta_m, (a.x_vals i) (b.x_to_index y) = 0 := by
                 intro i hi
@@ -2979,60 +2979,58 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                     simp
                     simp
 
-                  have two_factor_max: (2 ^ (max_i + 1) + (1 + y * 2)).factorization 2 = max_i + 1 := by
+                  have two_factor_max: (2 ^ (max_i + 1) * (1 + y * 2)).factorization 2 = max_i + 1 := by
+                    rw [Nat.factorization_mul]
                     rw [Nat.Prime.factorization_pow (Nat.prime_two)]
                     simp [Nat.factorization_eq_zero_of_not_dvd]
+                    simp
+                    simp
 
                   rw [this] at two_factor_i
                   rw [two_factor_max] at two_factor_i
                   omega
 
+              have rhs_sum: ∀ i ∈ Finset.range tb_m, i ≠ y → ((b.x_vals (i + 1)) (b.x_to_index y) = 0) := by
+                intro i hi i_neq_y
+                simp [XVals.x_vals, XVals.x_to_index]
+                simp [Finsupp.single_apply, i_neq_y]
+
+              have y_minus_in: y - 1 ∈ Finset.range tb_m := by
+                simp
+                omega
 
               by_contra!
               rw [ta_sum] at h_tree_eq
-              have eval_both_trees := DFunLike.congr (x := b.x_to_index 0) h_tree_eq rfl
+              have eval_both_trees := DFunLike.congr (x := b.x_to_index y) h_tree_eq rfl
+              simp at eval_both_trees
+              conv at eval_both_trees =>
+                lhs
+                rw [Finset.sum_eq_zero]
+                rfl
+                tactic =>
+                  intro x hx
+                  have foo := outside_support x hx
+                  simp [foo]
 
+              -- TODO - the delaborator makes it very hard to tell if the application is to the whole sum, or just one term
+              rw [tb_sum] at eval_both_trees
+              simp at eval_both_trees
+              conv at eval_both_trees =>
+                rhs
+                rw [Finset.sum_eq_single_of_mem (y + 1) y_plus_in_range]
+                rfl
+                tactic =>
+                  intro x hx x_neq_y
+                  by_cases x_eq_zero: x = 0
+                  . sorry
+                  . simp [XVals.x_vals, XVals.x_to_index, x_eq_zero]
+                    right
+                    simp [Finsupp.single_apply]
+                    omega
 
-              by_cases tb_m_zero: tb_m = 0
-              . simp [tb_m_zero] at tb_sum
-                -- TODO - obtain a contradiction, as something from 'new_x_vals' should never have a zero 'a'
-                sorry
-              . -- TODO - use linear independence somehow
-                sorry
-
-              by_cases tb_a_zero: tb.getData.a = 0
-              -- This should be impossible - use some fact about the 'g' that we pick
-              . sorry
-              . sorry
-
-
-              -- Old attempt
-              match tb with
-              | .root =>
-                simp [ReverseTree.getData, b_new, new_x_vals, mk_x_vals] at h_tree_eq
-                have simple_exists_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n := by
-                  use a
-                  use ta
-                contradiction
-              | .left tb_parent =>
-                simp [ReverseTree.getData, b_new, new_x_vals, mk_x_vals] at h_tree_eq
-
-                sorry
-              | .right tb_parent =>
-                simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at h_tree_eq
-                simp [b_new, new_x_vals, mk_x_vals] at h_tree_eq
-                have ta_max_lt: (a.x_vals (ta_m - 1)).support.max < max_i + 1 := by
-                  simp [max_i]
-                have ta_supp_lt: ta.getData.a.support.max < ((2 ^ (max_i + 1) + (newNum tb_parent - 1) * 2 ^ (max_i + 1 + 1)): ℕ) := by
-                  sorry
-                have i_not_supp: (2 ^ (max_i + 1) + (newNum tb_parent - 1) * 2 ^ (max_i + 1 + 1)) ∉ ta.getData.a.support := by
-                  sorry
-
-                have app_eq := DFunLike.congr (x := (2 ^ (max_i + 1) + (newNum tb_parent - 1) * 2 ^ (max_i + 1 + 1))) h_tree_eq rfl
-                simp at app_eq
-                have eval_zero := Finsupp.not_mem_support_iff.mp i_not_supp
-                -- This obtains a contradiction
-                simp [eval_zero] at app_eq
+              simp [XVals.x_vals, XVals.x_to_index] at eval_both_trees
+              rw [eq_comm] at eval_both_trees
+              contradiction
           | .inr a_new =>
             match hb with
             | .inl b_prev => sorry

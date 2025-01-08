@@ -351,8 +351,8 @@ structure XVals where
   root_elem: G
   supp_gt: ∀ n, root_elem.support.max < (basis_n (2^(i) + n*2^(i+1))).support.min
   root_neq: root_elem ∉ Set.range (fun n => basis_n (2^(i) + n*2^(i+1)))
-  root_nonzero: root_elem ≠ 0
-  root_indep: ∀ n, LinearIndependent ℚ ![root_elem, (basis_n (2^(i) + n*2^(i+1)))]
+  root_nonzero: i ≠ 0 → root_elem ≠ 0
+  root_indep: i ≠ 0 → LinearIndependent ℚ (fun n => if n = 0 then root_elem else basis_n (2^(i) + (n-1)*2^(i+1)))
   -- x_basis: Set.range x_vals ⊆ Set.range basis_n
 
 noncomputable def XVals.x_vals (vals: XVals) (n: ℕ): G := if n = 0 then vals.root_elem else basis_n (2^(vals.i) + (n-1)*2^(vals.i+1))
@@ -2927,9 +2927,75 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
               obtain ⟨ta, tb, h_tree_eq⟩ := exists_trees
               obtain ⟨ta_g, ta_m, ta_supp, ta_supp_lt, ta_sum⟩ := (tree_linear_comb ta).1
               obtain ⟨tb_g, tb_m, tb_supp, tb_supp_lt, tb_sum⟩ := (tree_linear_comb tb).1
-              -- OTDO - this should be the normal 'has_tree'
+              -- TODO - this should be the normal 'has_tree'
               have simple_not_tree: ¬ ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n := by
                 sorry
+
+              have tb_g_supp_nonempty: tb_g.support.Nonempty := by
+                sorry
+
+              have outside_support: ∀ i ∈ Finset.range ta_m, (a.x_vals i) (b.x_to_index 0) = 0 := by
+                intro i hi
+                simp [XVals.x_vals, XVals.x_to_index]
+                by_cases i_eq_zero: i = 0
+                . simp [i_eq_zero]
+                  sorry
+                . simp [i_eq_zero]
+                  simp [b_new, new_x_vals, mk_x_vals]
+                  rw [Finsupp.single_apply]
+                  simp
+                  have ai_le_max: a.i ≤ max_i := by
+                    dsimp [max_i]
+                    apply Finset.le_max'
+                    simp
+                    use a
+                  have a_i_lt_max_succ: a.i < max_i + 1 := by
+                    omega
+                  have disjoint_vals := s_i_disjoint a.i (max_i + 1) a_i_lt_max_succ
+                  by_contra!
+                  by_cases i_eq_one: i = 1
+                  . simp [i_eq_one] at this
+                    rw [this] at a_i_lt_max_succ
+                    simp at a_i_lt_max_succ
+                  .
+                    conv at this =>
+                      lhs
+                      equals (2 ^ a.i) * (1 + (i - 1) * 2) =>
+                        rw [Nat.pow_succ]
+                        ring
+
+                    have two_factor_i: (2^a.i * (1 + ( i - 1)*2)).factorization 2 = a.i := by
+                      rw [Nat.factorization_mul]
+                      rw [Nat.Prime.factorization_pow (Nat.prime_two)]
+                      simp [Nat.factorization_eq_zero_of_not_dvd]
+                      simp
+                      simp
+
+                    have two_factor_max: (2 ^ (max_i + 1)).factorization 2 = max_i + 1 := by
+                      rw [Nat.Prime.factorization_pow (Nat.prime_two)]
+                      simp [Nat.factorization_eq_zero_of_not_dvd]
+
+                    rw [this, two_factor_max] at two_factor_i
+                    omega
+
+
+
+                  sorry
+
+              by_cases tb_m_zero: tb_m = 0
+              . simp [tb_m_zero] at tb_sum
+                -- TODO - obtain a contradiction, as something from 'new_x_vals' should never have a zero 'a'
+                sorry
+              . -- TODO - use linear independence somehow
+                sorry
+
+              by_cases tb_a_zero: tb.getData.a = 0
+              -- This should be impossible - use some fact about the 'g' that we pick
+              . sorry
+              . sorry
+
+
+              -- Old attempt
               match tb with
               | .root =>
                 simp [ReverseTree.getData, b_new, new_x_vals, mk_x_vals] at h_tree_eq
@@ -2939,6 +3005,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 contradiction
               | .left tb_parent =>
                 simp [ReverseTree.getData, b_new, new_x_vals, mk_x_vals] at h_tree_eq
+
                 sorry
               | .right tb_parent =>
                 simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at h_tree_eq
@@ -2955,14 +3022,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 have eval_zero := Finsupp.not_mem_support_iff.mp i_not_supp
                 -- This obtains a contradiction
                 simp [eval_zero] at app_eq
-
-
-
-
-
-
-
-
           | .inr a_new =>
             match hb with
             | .inl b_prev => sorry

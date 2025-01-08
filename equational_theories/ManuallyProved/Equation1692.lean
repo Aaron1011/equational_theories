@@ -2934,7 +2934,12 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
               have tb_g_supp_nonempty: tb_g.support.Nonempty := by
                 sorry
 
-              have outside_support: ∀ i ∈ Finset.range ta_m, (a.x_vals i) (b.x_to_index 0) = 0 := by
+              have nonzero_b_coord: ∃ y ∈ Finset.range tb_m, tb_g y ≠ 0 := by
+                sorry
+
+              obtain ⟨y, y_lt_tb_m, h_y⟩ := nonzero_b_coord
+
+              have outside_support: ∀ i ∈ Finset.range ta_m, (a.x_vals i) (b.x_to_index y) = 0 := by
                 intro i hi
                 simp [XVals.x_vals, XVals.x_to_index]
                 by_cases i_eq_zero: i = 0
@@ -2960,6 +2965,13 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                       rw [Nat.pow_succ]
                       ring
 
+                  conv at this =>
+                    rhs
+                    equals (2 ^ (max_i + 1)) * (1 + y * 2) =>
+                      rw [Nat.pow_succ]
+                      ring
+
+
                   have two_factor_i: (2^a.i * (1 + ( i - 1)*2)).factorization 2 = a.i := by
                     rw [Nat.factorization_mul]
                     rw [Nat.Prime.factorization_pow (Nat.prime_two)]
@@ -2967,12 +2979,19 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                     simp
                     simp
 
-                  have two_factor_max: (2 ^ (max_i + 1)).factorization 2 = max_i + 1 := by
+                  have two_factor_max: (2 ^ (max_i + 1) + (1 + y * 2)).factorization 2 = max_i + 1 := by
                     rw [Nat.Prime.factorization_pow (Nat.prime_two)]
                     simp [Nat.factorization_eq_zero_of_not_dvd]
 
-                  rw [this, two_factor_max] at two_factor_i
+                  rw [this] at two_factor_i
+                  rw [two_factor_max] at two_factor_i
                   omega
+
+
+              by_contra!
+              rw [ta_sum] at h_tree_eq
+              have eval_both_trees := DFunLike.congr (x := b.x_to_index 0) h_tree_eq rfl
+
 
               by_cases tb_m_zero: tb_m = 0
               . simp [tb_m_zero] at tb_sum

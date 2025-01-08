@@ -2931,11 +2931,41 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
               have simple_not_tree: ¬ ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n := by
                 sorry
 
+              have b_i_nonzero: b.i ≠ 0 := by
+                simp [b_new, new_x_vals, mk_x_vals]
+
               have tb_g_supp_nonempty: tb_g.support.Nonempty := by
-                sorry
+                by_contra!
+                have tb_eq_zero: tb_g = 0 := by
+                  simp at this
+                  exact this
+                simp [tb_eq_zero] at tb_sum
+                match tb with
+                | .root =>
+                  have tb_a_nonzero := b.root_nonzero b_i_nonzero
+                  simp [ReverseTree.getData] at tb_sum
+                  contradiction
+                | .left tb_parent =>
+                  simp [ReverseTree.getData] at tb_sum
+                  have b_nonzero := (tree_vals_nonzero tb_parent).2
+                  contradiction
+                | .right tb_parent =>
+                  simp [ReverseTree.getData] at tb_sum
+                  simp [XVals.x_vals] at tb_sum
+                  simp [newnum_neq_zero] at tb_sum
+
+              by_cases tb_root: tb = ReverseTree.root
+              . sorry
 
               have nonzero_b_coord: ∃ y, y + 1 ∈ Finset.range tb_m ∧ tb_g (y + 1) ≠ 0 ∧ y > 0 := by
-                sorry
+                match tb with
+                | .root => contradiction
+                | .left tb_parent =>
+                  simp [ReverseTree.getData] at tb_sum
+                  sorry
+                | .right tb_parent =>
+                  simp [ReverseTree.getData] at tb_sum
+                  sorry
 
               obtain ⟨y, y_plus_in_range, h_y, y_gt_zero⟩ := nonzero_b_coord
 
@@ -2995,9 +3025,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 simp [XVals.x_vals, XVals.x_to_index]
                 simp [Finsupp.single_apply, i_neq_y]
 
-              have y_minus_in: y - 1 ∈ Finset.range tb_m := by
-                simp
-                omega
 
               by_contra!
               rw [ta_sum] at h_tree_eq

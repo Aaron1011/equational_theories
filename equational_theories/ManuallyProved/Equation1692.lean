@@ -2953,34 +2953,26 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                     omega
                   have disjoint_vals := s_i_disjoint a.i (max_i + 1) a_i_lt_max_succ
                   by_contra!
-                  by_cases i_eq_one: i = 1
-                  . simp [i_eq_one] at this
-                    rw [this] at a_i_lt_max_succ
-                    simp at a_i_lt_max_succ
-                  .
-                    conv at this =>
-                      lhs
-                      equals (2 ^ a.i) * (1 + (i - 1) * 2) =>
-                        rw [Nat.pow_succ]
-                        ring
 
-                    have two_factor_i: (2^a.i * (1 + ( i - 1)*2)).factorization 2 = a.i := by
-                      rw [Nat.factorization_mul]
-                      rw [Nat.Prime.factorization_pow (Nat.prime_two)]
-                      simp [Nat.factorization_eq_zero_of_not_dvd]
-                      simp
-                      simp
+                  conv at this =>
+                    lhs
+                    equals (2 ^ a.i) * (1 + (i - 1) * 2) =>
+                      rw [Nat.pow_succ]
+                      ring
 
-                    have two_factor_max: (2 ^ (max_i + 1)).factorization 2 = max_i + 1 := by
-                      rw [Nat.Prime.factorization_pow (Nat.prime_two)]
-                      simp [Nat.factorization_eq_zero_of_not_dvd]
+                  have two_factor_i: (2^a.i * (1 + ( i - 1)*2)).factorization 2 = a.i := by
+                    rw [Nat.factorization_mul]
+                    rw [Nat.Prime.factorization_pow (Nat.prime_two)]
+                    simp [Nat.factorization_eq_zero_of_not_dvd]
+                    simp
+                    simp
 
-                    rw [this, two_factor_max] at two_factor_i
-                    omega
+                  have two_factor_max: (2 ^ (max_i + 1)).factorization 2 = max_i + 1 := by
+                    rw [Nat.Prime.factorization_pow (Nat.prime_two)]
+                    simp [Nat.factorization_eq_zero_of_not_dvd]
 
-
-
-                  sorry
+                  rw [this, two_factor_max] at two_factor_i
+                  omega
 
               by_cases tb_m_zero: tb_m = 0
               . simp [tb_m_zero] at tb_sum

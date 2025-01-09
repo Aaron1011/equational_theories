@@ -2654,6 +2654,18 @@ structure PrevData (g: G) (prev_isos: Set XValsIso) where
   tree: @ReverseTree x_vals_iso.vals
   tree_in_range: tree.getData.a = x_vals_iso.iso g
 
+lemma xvals_root_not_supp (vals: XVals) (n: ℕ): vals.root_elem (vals.x_to_index (n)) = 0 := by
+  have not_supp := vals.supp_gt n
+  rw [← Finsupp.not_mem_support_iff]
+  apply Finset.not_mem_of_max_lt_coe
+  simp [XVals.x_to_index]
+  simp [basis_n] at not_supp
+  have supp_single := Finsupp.support_single_ne_zero (2 ^ vals.i + n * 2 ^ (vals.i + 1)) (b := (1 : ℚ)) (by simp)
+  simp [supp_single] at not_supp
+  exact not_supp
+
+-- Linear independence alone is insufficient to prove this - we could have an alterate definition of ReverseTree
+-- with linearly independent elements, but with the root re-appearing somewhere later on
 lemma tree_b_neq_root_mul {vals: XVals} (t: @ReverseTree vals) (a: ℚ): t.getData.b ≠ a • vals.root_elem := by
   induction t with
   | root =>
@@ -2695,6 +2707,51 @@ lemma tree_b_neq_root_mul {vals: XVals} (t: @ReverseTree vals) (a: ℚ): t.getDa
   | right t2_parent h_parent =>
     simp [ReverseTree.getData]
     by_contra!
+    match t2_parent with
+    | .root =>
+      simp [ReverseTree.getData] at this
+      simp [XVals.x_vals] at this
+      have app_eq := DFunLike.congr (x := 2^(vals.i)) this rfl
+      simp at app_eq
+      have not_supp := xvals_root_not_supp vals 0
+      simp [XVals.x_to_index] at not_supp
+      simp [not_supp] at app_eq
+    | .left t2_parent_parent =>
+      simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at this
+      obtain ⟨g, m, m_le, g_supp_max, t_sum⟩ := (tree_linear_comb t2_parent_parent).2
+
+      have app_eq := DFunLike.congr (x := 2 ^ vals.i + (newNum t2_parent_parent - 1) * 2 ^ (vals.i + 1)) this rfl
+      have not_supp := xvals_root_not_supp vals (newNum t2_parent_parent - 1)
+      simp [XVals.x_to_index] at not_supp
+      simp [not_supp] at app_eq
+
+      have outside_support: ∀ x ∈ Finset.range m, (vals.x_vals x) (vals.x_to_index (newNum t2_parent_parent - 1)) = 0 := by
+        intro x hx
+        simp [XVals.x_to_index]
+        by_cases x_eq_zero: x = 0
+        . simp [XVals.x_vals, x_eq_zero]
+          have not_supp := xvals_root_not_supp vals (newNum t2_parent_parent - 1)
+          simp [XVals.x_to_index] at not_supp
+          simp [not_supp]
+        . simp [XVals.x_vals, x_eq_zero]
+          have x_minus_lt: x - 1 < (newNum t2_parent_parent - 1) := by
+            simp at hx
+            omega
+          simp [Finsupp.single_apply]
+          omega
+      rw [t_sum] at app_eq
+      simp at app_eq
+      rw [Finset.sum_eq_zero] at app_eq
+      rotate_left 1
+      . intro x hx
+        have outside := outside_support x hx
+        simp [XVals.x_to_index] at outside
+        simp [outside]
+      . simp at app_eq
+    | .right t2_parent_parent =>
+      simp [ReverseTree.getData] at this
+      sorry
+
     sorry
 
 

@@ -1069,6 +1069,10 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
         simp [this]
       rw [sum_eq_zero] at b_eq
       rw [b_eq] at h_prev
+
+      by_cases prev_a_zero: prev.getData.a = 0
+      . simp [ReverseTree.getData] at ht
+
       have foo := LinearIndependent.ne_zero 1 h_prev
       simp at foo
 

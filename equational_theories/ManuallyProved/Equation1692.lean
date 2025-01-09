@@ -2886,13 +2886,48 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
       --   sorry
     }
     .
+      have prev_x_vals_nonempty: prev_x_vals.vals.Nonempty := by
+        simp [Finset.Nonempty]
+        use prev_x_vals.cur
       have img_nonempty : (prev_x_vals.vals.image XVals.i).Nonempty := by
         simp [Finset.Nonempty]
         use prev_x_vals.cur.i
         use prev_x_vals.cur
         refine ⟨prev_x_vals.cur_in_vals, rfl⟩
+      have supp_img_nonempty: (prev_x_vals.vals.image fun v => v.root_elem.support.max.getD 0).Nonempty := by
+        simp only [Finset.image_nonempty]
+        exact prev_x_vals_nonempty
       let max_i := (prev_x_vals.vals.image XVals.i).max' img_nonempty
-      let new_x_vals := mk_x_vals (max_i + 1) (g_enumerate n)
+      let max_root_supp := ({(g_enumerate n).support.max.getD 0} ∪ (prev_x_vals.vals.image fun v => v.root_elem.support.max.getD 0)).max' (
+        by
+          refine ⟨Option.getD (g_enumerate n).support.max 0, ?_⟩
+          simp
+      )
+      let new_x_vals := mk_x_vals ((max max_i max_root_supp) + 1) (g_enumerate n)
+
+      have g_supp_le: (g_enumerate n).support.max.getD 0 ≤ max max_i max_root_supp := by
+        simp [le_max_iff]
+        right
+        simp [max_root_supp]
+        apply Finset.le_max'
+        simp
+
+      have g_supp_lt: (g_enumerate n).support.max.getD 0 < max max_i max_root_supp + 1 := by
+        omega
+      have new_vals_not_supp: ∀ i, (new_x_vals.x_to_index i) ∉ (g_enumerate n).support := by
+        intro i
+        simp only [XVals.x_to_index, new_x_vals, mk_x_vals]
+        have supp_max_lt: (g_enumerate n).support.max.getD 0 < (2 ^ (max max_i max_root_supp + 1)) := by
+          have lt_self_pow := Nat.lt_pow_self Nat.one_lt_two (n := (max max_i max_root_supp + 1))
+          omega
+        apply Finset.not_mem_of_max_lt_coe
+        match h_supp_max: (g_enumerate n).support.max with
+        | WithBot.some max_val =>
+          simp [h_supp_max] at supp_max_lt
+          rw [WithBot.coe_lt_coe]
+          omega
+
+
       exact {
         vals := prev_x_vals.vals ∪ {new_x_vals},
         cur := new_x_vals,
@@ -2957,6 +2992,20 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
               by_cases tb_root: tb = ReverseTree.root
               . sorry
 
+              have nonzero_in_supp: ∃ y, y > 0 ∧ y ∈ tb_g.support := by
+                by_contra!
+                obtain ⟨y, hy⟩ := tb_g_supp_nonempty
+                have y_eq_zero: y = 0 := by
+                  by_contra! y_neq_zero
+                  have y_gt_zero: y > 0 := by omega
+                  specialize this y y_gt_zero
+                  contradiction
+                match tb with
+                | .root => contradiction
+                | .left tb_parent => sorry
+                | .right tb_parent => sorry
+
+
               have nonzero_b_coord: ∃ y, y + 1 ∈ Finset.range tb_m ∧ tb_g (y + 1) ≠ 0 ∧ y > 0 := by
                 match tb with
                 | .root => contradiction
@@ -2997,7 +3046,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
 
                   conv at this =>
                     rhs
-                    equals (2 ^ (max_i + 1)) * (1 + y * 2) =>
+                    equals (2 ^ (max max_i max_root_supp + 1)) * (1 + y * 2) =>
                       rw [Nat.pow_succ]
                       ring
 
@@ -3009,7 +3058,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                     simp
                     simp
 
-                  have two_factor_max: (2 ^ (max_i + 1) * (1 + y * 2)).factorization 2 = max_i + 1 := by
+                  have two_factor_max: (2 ^ (max max_i max_root_supp + 1) * (1 + y * 2)).factorization 2 = max max_i max_root_supp + 1 := by
                     rw [Nat.factorization_mul]
                     rw [Nat.Prime.factorization_pow (Nat.prime_two)]
                     simp [Nat.factorization_eq_zero_of_not_dvd]
@@ -3049,7 +3098,11 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 tactic =>
                   intro x hx x_neq_y
                   by_cases x_eq_zero: x = 0
-                  . sorry
+                  . simp [x_eq_zero, XVals.x_vals, b_new, XVals.x_to_index]
+                    right
+
+
+                    sorry
                   . simp [XVals.x_vals, XVals.x_to_index, x_eq_zero]
                     right
                     simp [Finsupp.single_apply]

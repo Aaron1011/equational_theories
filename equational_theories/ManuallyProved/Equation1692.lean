@@ -2567,11 +2567,11 @@ lemma g_countable: Countable (@Set.univ G) := by
   simp [G]
   exact Set.countable_univ
 
-noncomputable def g_denumerable: Denumerable G := by
+@[irreducible] noncomputable def g_denumerable: Denumerable G := by
   have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
   exact Classical.choice nonempty_denum
 
-noncomputable abbrev g_enumerate: ℕ → G := by
+@[irreducible] noncomputable abbrev g_enumerate: ℕ → G := by
   have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
   have bar := Classical.choice nonempty_denum
   exact Denumerable.ofNat G
@@ -2905,9 +2905,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
               obtain ⟨ta, tb, h_tree_eq⟩ := exists_trees
               obtain ⟨ta_g, ta_m, ta_supp, ta_supp_lt, ta_sum⟩ := (tree_linear_comb ta).1
               obtain ⟨tb_g, tb_m, tb_supp, tb_supp_lt, tb_sum⟩ := (tree_linear_comb tb).1
-              -- TODO - this should be the normal 'has_tree'
-              have simple_not_tree: ¬ ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n := by
-                sorry
 
               have b_i_nonzero: b.i ≠ 0 := by
                 simp [b_new, new_x_vals, mk_x_vals]
@@ -3240,16 +3237,25 @@ lemma latest_x_vals_set (a b: ℕ) (hab: a ≤ b): (latest_x_vals a).vals ⊆ (l
       omega
     rw [a_eq_zero]
   | succ new_b h_prev =>
-    have new_b_in: (latest_x_vals new_b).vals ⊆ (latest_x_vals (new_b + 1)).vals := by
-      apply latest_x_vals_succ
     by_cases a_le_new_b: a ≤ new_b
     .
-      specialize h_prev a_le_new_b
-      have new_b_subset := latest_x_vals_succ new_b
-      exact fun ⦃a_1⦄ a ↦ new_b_subset (h_prev a)
-    . have a_eq_b_plus: a = new_b + 1 := by
-        omega
-      rw [a_eq_b_plus]
+      have new_b_in: (latest_x_vals new_b).vals ⊆ (latest_x_vals (new_b + 1)).vals := by
+        conv =>
+          rhs
+          simp [latest_x_vals]
+        by_cases has_tree: ∃ x_vals ∈ (latest_x_vals new_b).vals, ∃ x: @ReverseTree x_vals, x.getData.a = g_enumerate (new_b + 1)
+        . rw [dite_cond_eq_true]
+          simp [has_tree]
+        . rw [dite_cond_eq_false]
+          . simp
+            exact Finset.subset_union_left
+          . simp [has_tree]
+
+      exact Finset.Subset.trans (h_prev a_le_new_b) new_b_in
+    .
+      have a_eq_new_b_succ: a = new_b + 1 := by omega
+      rw [a_eq_new_b_succ]
+
 
 
 noncomputable def f (g: G): G := (latest_x_vals (g_to_num g)).tree.getData.b

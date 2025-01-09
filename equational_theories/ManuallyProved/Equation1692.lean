@@ -2755,8 +2755,6 @@ structure LatestXVals (g: G) where
   distinct_trees: ∀ a ∈ vals, ∀ b ∈ vals, (∃ ta: @ReverseTree a, ∃ tb: @ReverseTree b, ta.getData.a = tb.getData.a) → a = b
   cur: XVals
   cur_in_vals: cur ∈ vals
-  -- FIXME - can we just delete 'preserves_i'?
-  preserves_i: ∀ val ∈ vals, val.i = (vals.image XVals.i).max → (∃ t: @ReverseTree val, t.getData.a = g) → val.i = cur.i
   choose_min_i: cur.i = (({v ∈ vals | ∃ t: @ReverseTree v, t.getData.a = g} : Finset XVals).image (fun v => v.i)).min
   minimal_vals: ∀ other_vals ∈ vals, other_vals.i ≤ cur.i
   tree: @ReverseTree cur
@@ -2793,7 +2791,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         simp
       minimal_vals := by simp
       distinct_i := by simp
-      preserves_i := by simp
       distinct_trees := by simp
       --cur_maximal := sorry
       -- tree_agree := by
@@ -2837,70 +2834,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         exact my_spec
 
       distinct_trees := prev_x_vals.distinct_trees
-      preserves_i := by
-        intro val h_val_prev val_i_max exists_t
-        -- have additional_val: ∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ val.i := by
-        --   sorry
-
-        have im_nonempty: (prev_x_vals.vals.image XVals.i).Nonempty := by
-          simp
-          simp [Finset.Nonempty]
-          use val
-
-        rw [← Finset.coe_max' im_nonempty] at val_i_max
-        have val_i_max := WithBot.coe_eq_coe.mp val_i_max
-        simp at val_i_max
-
-        -- have val_i_max: val.i = (prev_x_vals.vals.image XVals.i).max' im_nonempty := by
-        --   sorry
-
-        have chose_i_in: (Classical.choose has_tree).i ∈ (prev_x_vals.vals.image XVals.i) := by
-          have my_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).1
-          simp only [Finset.mem_image]
-          use Classical.choose has_tree
-
-        have choose_i_greatest: IsGreatest (↑(Finset.image XVals.i prev_x_vals.vals)) (Classical.choose has_tree).i := by
-          simp [IsGreatest]
-          refine ⟨?_, ?_⟩
-          simp at chose_i_in
-          apply chose_i_in
-          simp [upperBounds]
-          intro a ha
-          have my_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).2.2.1
-          specialize my_spec a ha
-          simp at my_spec
-          exact my_spec
-
-
-        have choose_max: (prev_x_vals.vals.image XVals.i).max' im_nonempty = (Classical.choose has_tree).i := by
-          --simp [Finset.max', Finset.sup', Finset.sup]
-          --simp
-
-
-          have foo := Finset.isGreatest_max' _ im_nonempty
-          exact IsGreatest.unique foo choose_i_greatest
-
-        rw [choose_max] at val_i_max
-        exact val_i_max
-
-
-
-        -- have my_spec := prev_x_vals.preserves_i val h_val_prev
-
-
-        -- have exists_t: ∃ other_t: @ReverseTree val, other_t.getData.a = g_enumerate a := by
-        --   sorry
-        -- have other_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).2.1
-        -- specialize my_spec exists_t
-        -- rw [my_spec]
-
-        -- sorry
-
-
-      --cur_maximal := sorry
-      -- tree_agree := by
-      --   intro other_vals other_tree a_eq
-      --   sorry
     }
     .
       have prev_x_vals_nonempty: prev_x_vals.vals.Nonempty := by
@@ -3261,8 +3194,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 -- obtains a contradiction
                 simp at b_lt_a
             | .inr b_new => rw [a_new, b_new]
-        preserves_i := by
-          sorry
         choose_min_i := by
           conv =>
             rhs

@@ -351,6 +351,7 @@ structure XVals where
   root_elem: G
   supp_gt: ∀ n, root_elem.support.max < (basis_n (2^(i) + n*2^(i+1))).support.min
   root_neq: root_elem ∉ Set.range (fun n => basis_n (2^(i) + n*2^(i+1)))
+  root_i_zero: i = 0 → root_elem = 0
   root_nonzero: i ≠ 0 → root_elem ≠ 0
   root_indep: i ≠ 0 → LinearIndependent ℚ (fun n => if n = 0 then root_elem else basis_n (2^(i) + (n-1)*2^(i+1)))
   -- x_basis: Set.range x_vals ⊆ Set.range basis_n
@@ -977,7 +978,40 @@ lemma eval_larger_b_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: n
   simp at fun_congr
   exact fun_congr
 
-lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by
+
+lemma xvals_root_not_supp (vals: XVals) (n: ℕ): vals.root_elem (vals.x_to_index (n)) = 0 := by
+  have not_supp := vals.supp_gt n
+  rw [← Finsupp.not_mem_support_iff]
+  apply Finset.not_mem_of_max_lt_coe
+  simp [XVals.x_to_index]
+  simp [basis_n] at not_supp
+  have supp_single := Finsupp.support_single_ne_zero (2 ^ vals.i + n * 2 ^ (vals.i + 1)) (b := (1 : ℚ)) (by simp)
+  simp [supp_single] at not_supp
+  exact not_supp
+
+lemma xvals_basis_not_root_supp (vals: XVals) (n: ℕ): (vals.x_vals (n + 1)) (WithBot.unbot' 0 vals.root_elem.support.max) = 0 := by
+  simp [XVals.x_vals]
+  have supp_gt := vals.supp_gt n
+  simp at supp_gt
+  simp [Finsupp.support_single_ne_zero] at supp_gt
+  rw [← Finsupp.not_mem_support_iff]
+  simp [Finsupp.support_single_ne_zero]
+  match h_max: vals.root_elem.support.max with
+  | WithBot.some a =>
+    simp [h_max] at supp_gt
+    norm_cast at supp_gt
+    rw [← WithBot.some] at supp_gt
+    rw [Nat.cast_withBot] at supp_gt
+    rw [WithBot.coe_lt_coe] at supp_gt
+    simp [h_max]
+    omega
+  | none =>
+    simp [WithBot.none_eq_bot]
+    have exp_gt_zero: 2 ^ vals.i > 0 := by exact Nat.two_pow_pos vals.i
+    omega
+
+
+lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getData.a ≠ 0): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by
   induction t with
   | root =>
     simp [LinearIndependent.pair_iff]
@@ -994,6 +1028,17 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals): LinearIndepe
     rw [Finset.sum_pair (by simp)] at basis_indep
     simp at basis_indep
     simp [basis_n, XVals.x_vals] at eq_zero
+
+    have root_supp := xvals_root_not_supp vals 0
+    simp [XVals.x_to_index] at root_supp
+
+
+    have rhs_apply := DFunLike.congr (x := 2^vals.i) eq_zero rfl
+    simp [root_supp] at rhs_apply
+
+    have lhs_apply := DFunLike.congr (x := WithBot.unbot' 0 vals.root_elem.support.max) eq_zero rfl
+
+
     have root_indep := vals.root_indep 0
     simp [LinearIndependent.pair_iff] at root_indep
     exact root_indep p q eq_zero
@@ -2561,15 +2606,6 @@ def tree_to_supp {vals: XVals} (t: @ReverseTree vals): Set ℕ :=
   t.getData.a.support.toSet
 
 
-lemma xvals_root_not_supp (vals: XVals) (n: ℕ): vals.root_elem (vals.x_to_index (n)) = 0 := by
-  have not_supp := vals.supp_gt n
-  rw [← Finsupp.not_mem_support_iff]
-  apply Finset.not_mem_of_max_lt_coe
-  simp [XVals.x_to_index]
-  simp [basis_n] at not_supp
-  have supp_single := Finsupp.support_single_ne_zero (2 ^ vals.i + n * 2 ^ (vals.i + 1)) (b := (1 : ℚ)) (by simp)
-  simp [supp_single] at not_supp
-  exact not_supp
 
 -- Linear independence alone is insufficient to prove this - we could have an alterate definition of ReverseTree
 -- with linearly independent elements, but with the root re-appearing somewhere later on
@@ -2724,6 +2760,7 @@ structure LatestXVals (g: G) where
 def x_vals_zero: XVals := {
       i := 0
       root_elem := 0
+      root_i_zero := by simp
       supp_gt := by
         intro n
         simp
@@ -2847,6 +2884,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
       let new_x_vals: XVals := {
         i := ((max max_i max_root_supp) + 1)
         root_elem := g_enumerate n
+        root_i_zero := by simp
         supp_gt := by
           intro x
           simp [basis_n]

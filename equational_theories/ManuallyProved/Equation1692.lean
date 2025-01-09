@@ -3191,44 +3191,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
 --set_option maxHeartbeats 5000000
 --set_option maxRecDepth 5000000
 
-lemma latest_x_vals_succ (n: ℕ): (latest_x_vals n).vals ⊆ (latest_x_vals (n + 1)).vals := by
-  induction n with
-  | zero =>
-    rw [latest_x_vals]
-    simp [g_enum_zero_eq_zero]
-    rw [latest_x_vals]
-    --simp
-    by_cases has_tree: ∃ x_vals: XVals, ∃ new_t: @ReverseTree x_vals, x_vals.i < 1 ∧ new_t.getData.a = g_enumerate 1
-    .
-      simp only [latest_x_vals]
-      simp [g_enum_zero_eq_zero]
-      rw [dite_cond_eq_true]
-      --simp
-      simp only [eq_iff_iff, iff_true]
-      exact has_tree
-    .
-      simp only [latest_x_vals]
-      simp [g_enum_zero_eq_zero]
-      rw [dite_cond_eq_false]
-      --simp
-      simp only [eq_iff_iff, iff_false]
-      exact has_tree
-  | succ new_n h_prev =>
-    nth_rw 2 [latest_x_vals]
-    by_cases has_tree: ∃ x_vals: XVals, ∃ new_t: @ReverseTree x_vals, x_vals.i < new_n + 1 + 1 ∧ new_t.getData.a = g_enumerate (new_n + 1 + 1)
-    .
-      rw [dite_cond_eq_true]
-      simp only [Nat.succ_eq_add_one, Option.some.injEq,
-        eq_iff_iff, iff_true]
-      exact has_tree
-    . rw [dite_cond_eq_false]
-      simp only [Nat.succ_eq_add_one, Option.some.injEq,
-        eq_iff_iff, iff_true, iff_false]
-      --simp
-      simp only [Nat.succ_eq_add_one, Option.some.injEq,
-        eq_iff_iff, iff_false]
-      exact has_tree
-
 
 lemma latest_x_vals_set (a b: ℕ) (hab: a ≤ b): (latest_x_vals a).vals ⊆ (latest_x_vals b).vals := by
   induction b with

@@ -3027,18 +3027,18 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                   simp [b_new, new_x_vals, mk_x_vals]
                 contradiction
 
-              have nonzero_in_supp: ∃ y, y > 0 ∧ y ∈ tb_g.support := by
-                by_contra!
-                obtain ⟨y, hy⟩ := tb_g_supp_nonempty
-                have y_eq_zero: y = 0 := by
-                  by_contra! y_neq_zero
-                  have y_gt_zero: y > 0 := by omega
-                  specialize this y y_gt_zero
-                  contradiction
-                match tb with
-                | .root => contradiction
-                | .left tb_parent => sorry
-                | .right tb_parent => sorry
+              -- have nonzero_in_supp: ∃ y, y > 0 ∧ y ∈ tb_g.support := by
+              --   by_contra!
+              --   obtain ⟨y, hy⟩ := tb_g_supp_nonempty
+              --   have y_eq_zero: y = 0 := by
+              --     by_contra! y_neq_zero
+              --     have y_gt_zero: y > 0 := by omega
+              --     specialize this y y_gt_zero
+              --     contradiction
+              --   match tb with
+              --   | .root => contradiction
+              --   | .left tb_parent => sorry
+              --   | .right tb_parent => sorry
 
               have tb_m_nonzero: 0 < tb_m := by
                 by_contra!
@@ -3081,9 +3081,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 | .root => contradiction
                 | .left tb_parent =>
                   simp [ReverseTree.getData] at tb_sum
-                  rw [eq_comm, eq_neg_iff_add_eq_zero] at tb_sum
-                  simp at tb_sum
-                  sorry
+
                   sorry
                 | .right tb_parent =>
                   simp [ReverseTree.getData] at tb_sum

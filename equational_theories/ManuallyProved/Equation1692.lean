@@ -2721,7 +2721,21 @@ structure LatestXVals (g: G) where
 noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
   match hn: n with
   | 0 =>
-    let x_vals := mk_x_vals 0 (g_enumerate n)
+    let x_vals: XVals := {
+      i := 0
+      root_elem := 0
+      supp_gt := by
+        intro n
+        simp
+        rw [Finsupp.support_single_ne_zero]
+        . simp
+          norm_cast
+          apply WithBot.bot_lt_coe
+        . simp
+      root_neq := by simp
+      root_nonzero := by simp
+      root_indep := by simp
+    }
     exact {
       vals := {x_vals},
       cur := x_vals,

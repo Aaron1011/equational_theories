@@ -2532,6 +2532,9 @@ lemma g_countable: Countable (@Set.univ G) := by
 lemma g_enum_zero_eq_zero: g_enumerate 0 = 0 := by
   sorry
 
+lemma g_enum_nonzero_eq_nonzero (n: ℕ) (hn: n > 0): g_enumerate n ≠ 0 := by
+  sorry
+
 lemma g_enum_one_eq_one: g_enumerate 1 = fun₀ | 1 => 1 := by
   sorry
 
@@ -2718,10 +2721,7 @@ structure LatestXVals (g: G) where
   --cur_maximal: ∀ x_vals: XVals, ∀ t: @ReverseTree x_vals, x_vals ∈ vals → t.getData.a = g → x_vals.i ≤ cur.i
   --tree_agree: ∀ other_vals: XVals, ∀ other_tree: @ReverseTree other_vals, other_tree.getData.a = g → tree.getData.b = other_tree.getData.b
 
-noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
-  match hn: n with
-  | 0 =>
-    let x_vals: XVals := {
+def x_vals_zero: XVals := {
       i := 0
       root_elem := 0
       supp_gt := by
@@ -2736,6 +2736,11 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
       root_nonzero := by simp
       root_indep := by simp
     }
+
+noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
+  match hn: n with
+  | 0 =>
+    let x_vals := x_vals_zero
     exact {
       vals := {x_vals},
       cur := x_vals,
@@ -2744,7 +2749,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
       a_val := by
         simp only [ReverseTree.getData, x_vals, XVals.root_elem, hn]
         rw [g_enum_zero_eq_zero]
-        simp only [mk_x_vals]
+        simp only [x_vals_zero]
       distinct_i := by simp
       distinct_trees := by simp
       --cur_maximal := sorry
@@ -2799,7 +2804,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           refine ⟨Option.getD (g_enumerate n).support.max 0, ?_⟩
           simp
       )
-      let new_x_vals := mk_x_vals ((max max_i max_root_supp) + 1) (g_enumerate n)
 
       have g_supp_le: (g_enumerate n).support.max.getD 0 ≤ max max_i max_root_supp := by
         simp [le_max_iff]
@@ -2808,11 +2812,12 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         apply Finset.le_max'
         simp
 
+
       have g_supp_lt: (g_enumerate n).support.max.getD 0 < max max_i max_root_supp + 1 := by
         omega
-      have new_vals_not_supp: ∀ i, (new_x_vals.x_to_index i) ∉ (g_enumerate n).support := by
+
+      have new_vals_not_supp: ∀ i, (2^(((max max_i max_root_supp) + 1)) + i*2^(((max max_i max_root_supp) + 1))) ∉ (g_enumerate n).support := by
         intro i
-        simp only [XVals.x_to_index, new_x_vals, mk_x_vals]
         have supp_max_lt: (g_enumerate n).support.max.getD 0 < (2 ^ (max max_i max_root_supp + 1)) := by
           have lt_self_pow := Nat.lt_pow_self Nat.one_lt_two (n := (max max_i max_root_supp + 1))
           omega
@@ -2824,6 +2829,107 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           omega
         | none =>
           apply WithBot.none_lt_some
+
+      have new_vals_not_supp_double_plus: ∀ i, (2^(((max max_i max_root_supp) + 1)) + i*2^(((max max_i max_root_supp) + 1 + 1))) ∉ (g_enumerate n).support := by
+        intro i
+        have supp_max_lt: (g_enumerate n).support.max.getD 0 < (2 ^ (max max_i max_root_supp + 1)) := by
+          have lt_self_pow := Nat.lt_pow_self Nat.one_lt_two (n := (max max_i max_root_supp + 1))
+          omega
+        apply Finset.not_mem_of_max_lt_coe
+        match h_supp_max: (g_enumerate n).support.max with
+        | WithBot.some max_val =>
+          simp [h_supp_max] at supp_max_lt
+          rw [WithBot.coe_lt_coe]
+          omega
+        | none =>
+          apply WithBot.none_lt_some
+
+      let new_x_vals := mk_x_vals ((max max_i max_root_supp) + 1) (g_enumerate n)
+      let new_x_vals: XVals := {
+        i := ((max max_i max_root_supp) + 1)
+        root_elem := g_enumerate n
+        supp_gt := by
+          intro x
+          simp [basis_n]
+          rw [Finsupp.support_single_ne_zero]
+          . simp
+            have not_supp := new_vals_not_supp x
+            norm_cast
+            have supp_max_lt: (g_enumerate n).support.max.getD 0 < (2 ^ (max max_i max_root_supp + 1)) := by
+              have lt_self_pow := Nat.lt_pow_self Nat.one_lt_two (n := (max max_i max_root_supp + 1))
+              omega
+            match h_supp_max: (g_enumerate n).support.max with
+            | WithBot.some max_val =>
+              norm_cast
+              simp [h_supp_max] at supp_max_lt
+              rw [Nat.cast_withBot]
+              rw [WithBot.coe_lt_coe]
+              omega
+            | none =>
+              apply WithBot.none_lt_some
+          . simp
+        root_neq := by
+          simp
+          intro x
+          by_contra!
+          have app_eq := DFunLike.congr (x := 2 ^ (max max_i max_root_supp + 1) + x * 2 ^ (max max_i max_root_supp + 1 + 1)) this rfl
+          simp at app_eq
+          have not_supp := new_vals_not_supp_double_plus x
+          rw [Finsupp.not_mem_support_iff] at not_supp
+          simp [not_supp] at app_eq
+        root_nonzero := by
+          simp
+          apply g_enum_nonzero_eq_nonzero
+          omega
+        root_indep := by
+          simp
+          rw [linearIndependent_iff']
+          by_contra!
+          obtain ⟨s, g, h_sum_zero, h_nonzero_coord⟩ := this
+          obtain ⟨i, hi⟩ := h_nonzero_coord
+          have g_supp_nonempty: (g_enumerate n).support.Nonempty := by
+            by_contra!
+            simp at this
+            have g_nonzero := g_enum_nonzero_eq_nonzero n (by omega)
+            contradiction
+          have max_in_supp := Finset.max'_mem (g_enumerate n).support g_supp_nonempty
+          match i_is_zero: i with
+          | 0 =>
+            have app_eq := DFunLike.congr (x := (g_enumerate n).support.max' g_supp_nonempty) h_sum_zero rfl
+            simp at app_eq
+            rw [Finset.sum_eq_single_of_mem 0] at app_eq
+            . simp at app_eq
+              simp [hi.2] at app_eq
+              rw [← Finsupp.not_mem_support_iff] at app_eq
+              contradiction
+            . exact hi.1
+            intro b hb b_nonzero
+            simp [b_nonzero]
+            have better_supp_lt: (g_enumerate n).support.max' g_supp_nonempty < max max_i max_root_supp + 1 := by
+              rw [← Finset.coe_max' g_supp_nonempty] at g_supp_lt
+              simp [WithBot.some] at g_supp_lt
+              have supp_max_nonzero: (g_enumerate n) ((g_enumerate n).support.max' g_supp_nonempty) ≠ 0 := by
+                by_contra!
+                rw [← Finsupp.not_mem_support_iff] at this
+                contradiction
+
+              have new_lt := g_supp_lt ((g_enumerate n).support.max' g_supp_nonempty) supp_max_nonzero
+              omega
+
+            have lt_self_pow := Nat.lt_pow_self Nat.one_lt_two (n := (max max_i max_root_supp + 1))
+            have max_lt_pow: (g_enumerate n).support.max' g_supp_nonempty < 2 ^ (max max_i max_root_supp + 1) := by
+              omega
+
+            have max_neq: (g_enumerate n).support.max' g_supp_nonempty ≠ 2 ^ (max max_i max_root_supp + 1) + (b - 1) * 2 ^ (max max_i max_root_supp + 1 + 1) := by omega
+            simp [Finsupp.single_apply]
+
+            simp [max_neq.symm]
+          | b + 1 =>
+
+            sorry
+          sorry
+      }
+
 
       have prev_vals_root_not_supp: ∀ vals ∈ prev_x_vals.vals, ∀ i, (new_x_vals.x_to_index i) ∉ vals.root_elem.support := by
         intro vals h_vals i

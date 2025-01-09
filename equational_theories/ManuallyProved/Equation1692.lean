@@ -3268,18 +3268,6 @@ lemma latest_x_vals_set (a b: ℕ) (hab: a ≤ b): (latest_x_vals a).vals ⊆ (l
       rw [a_eq_b_plus]
 
 
--- This is FALSE with the correct definition of 'latest_x_vals' - the 'cur' tree may jump
--- around in the set of XVals
-lemma latest_x_vals_succ_i (n: ℕ): (latest_x_vals n).cur.i ≤ (latest_x_vals (n + 1)).cur.i := by
-  have vals_in_self := (latest_x_vals n).cur_in_vals
-  have vals_in := (latest_x_vals_set n (n + 1) (by omega)) (latest_x_vals n).cur_in_vals
-  have foo := (latest_x_vals (n + 1)).minimal_vals ⟨(latest_x_vals n).cur, vals_in⟩
-  simp at foo
-  exact foo
-
-lemma latest_x_vals_i_monotone: Monotone (fun n => (latest_x_vals n).cur.i) := by
-  apply monotone_nat_of_le_succ latest_x_vals_succ_i
-
 noncomputable def f (g: G): G := (latest_x_vals (g_to_num g)).tree.getData.b
 
 

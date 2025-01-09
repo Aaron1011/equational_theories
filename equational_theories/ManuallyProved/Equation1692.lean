@@ -2749,10 +2749,51 @@ lemma tree_b_neq_root_mul {vals: XVals} (t: @ReverseTree vals) (a: ℚ): t.getDa
         simp [outside]
       . simp at app_eq
     | .right t2_parent_parent =>
+      -- TODO - we can do a bunch of deduplication within this branch, and also come parts with the '.left' branch
       simp [ReverseTree.getData] at this
-      sorry
+      simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at this
+      obtain ⟨g, m, m_le, g_supp_max, t_sum⟩ := (tree_linear_comb t2_parent_parent).2
+      obtain ⟨left_g, left_m, left_m_le, left_g_supp_max, left_t_sum⟩ := (tree_linear_comb t2_parent_parent).1
 
-    sorry
+      have app_eq := DFunLike.congr (x := 2 ^ vals.i + (newNum t2_parent_parent - 1) * 2 ^ (vals.i + 1)) this rfl
+      have not_supp := xvals_root_not_supp vals (newNum t2_parent_parent - 1)
+      simp [XVals.x_to_index] at not_supp
+      simp [not_supp] at app_eq
+
+      have outside_support: ∀ x, x < newNum t2_parent_parent → (vals.x_vals x) (vals.x_to_index (newNum t2_parent_parent - 1)) = 0 := by
+        intro x hx
+        simp [XVals.x_to_index]
+        by_cases x_eq_zero: x = 0
+        . simp [XVals.x_vals, x_eq_zero]
+          have not_supp := xvals_root_not_supp vals (newNum t2_parent_parent - 1)
+          simp [XVals.x_to_index] at not_supp
+          simp [not_supp]
+        . simp [XVals.x_vals, x_eq_zero]
+          have x_minus_lt: x - 1 < (newNum t2_parent_parent - 1) := by
+            simp at hx
+            omega
+          simp [Finsupp.single_apply]
+          omega
+      rw [t_sum] at app_eq
+      simp at app_eq
+      rw [Finset.sum_eq_zero] at app_eq
+      rotate_left 1
+      . intro x hx
+        simp at hx
+        have outside := outside_support x (by omega)
+        simp [XVals.x_to_index] at outside
+        simp [outside]
+
+      rw [left_t_sum] at app_eq
+      simp at app_eq
+      rw [Finset.sum_eq_zero] at app_eq
+      rotate_left 1
+      . intro x hx
+        simp at hx
+        have outside := outside_support x (by omega)
+        simp [XVals.x_to_index] at outside
+        simp [outside]
+      simp at app_eq
 
 
 noncomputable def full_x_vals_num (n: ℕ): WrapperXValsFullData (g_enumerate n) := by

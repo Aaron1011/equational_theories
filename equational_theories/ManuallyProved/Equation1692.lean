@@ -2844,7 +2844,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         | none =>
           apply WithBot.none_lt_some
 
-      let new_x_vals := mk_x_vals ((max max_i max_root_supp) + 1) (g_enumerate n)
       let new_x_vals: XVals := {
         i := ((max max_i max_root_supp) + 1)
         root_elem := g_enumerate n
@@ -2948,7 +2947,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
 
       have prev_vals_root_not_supp: ∀ vals ∈ prev_x_vals.vals, ∀ i, (new_x_vals.x_to_index i) ∉ vals.root_elem.support := by
         intro vals h_vals i
-        simp only [XVals.x_to_index, new_x_vals, mk_x_vals]
+        simp only [XVals.x_to_index, new_x_vals]
         have supp_max_lt: vals.root_elem.support.max.getD 0 < (2 ^ (max max_i max_root_supp + 1)) := by
           have lt_self_pow := Nat.lt_pow_self Nat.one_lt_two (n := (max max_i max_root_supp + 1))
           have le_max_plus: vals.root_elem.support.max.getD 0 ≤ max max_i max_root_supp := by
@@ -2994,7 +2993,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
               obtain ⟨tb_g, tb_m, tb_supp, tb_supp_lt, tb_sum⟩ := (tree_linear_comb tb).1
 
               have b_i_nonzero: b.i ≠ 0 := by
-                simp [b_new, new_x_vals, mk_x_vals]
+                simp [b_new, new_x_vals]
 
               have tb_g_supp_nonempty: tb_g.support.Nonempty := by
                 by_contra!
@@ -3024,7 +3023,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                   use ta
                   refine ⟨a_prev, ?_⟩
                   rw [h_tree_eq]
-                  simp [b_new, new_x_vals, mk_x_vals]
+                  simp [b_new, new_x_vals]
                 contradiction
 
               -- have nonzero_in_supp: ∃ y, y > 0 ∧ y ∈ tb_g.support := by
@@ -3083,7 +3082,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                   simp [ReverseTree.getData] at tb_sum
                   obtain ⟨parent_g, parent_m, parent_supp, parent_supp_lt, parent_sum⟩ := (tree_linear_comb tb_parent).2
                   have bi_neq_zero: b.i ≠ 0 := by
-                    simp [b_new, new_x_vals, mk_x_vals]
+                    simp [b_new, new_x_vals]
 
                   apply_fun (fun y => -y) at tb_sum
                   simp at tb_sum
@@ -3093,11 +3092,11 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                   contradiction
                 | .right tb_parent =>
                   simp [ReverseTree.getData] at tb_sum
-                  simp [XVals.x_vals, b_new, new_x_vals, mk_x_vals, newnum_neq_zero] at tb_sum
+                  simp [XVals.x_vals, b_new, new_x_vals, newnum_neq_zero] at tb_sum
                   have app_eq := DFunLike.congr (x := new_x_vals.x_to_index (newNum tb_parent - 1)) tb_sum rfl
-                  simp [XVals.x_to_index, new_x_vals, mk_x_vals, Finsupp.single_apply] at app_eq
+                  simp [XVals.x_to_index, new_x_vals, Finsupp.single_apply] at app_eq
                   have eval_to_zero := (new_vals_not_supp_double_plus (newNum tb_parent - 1))
-                  simp [new_x_vals, mk_x_vals, XVals.x_to_index] at eval_to_zero
+                  simp [new_x_vals, XVals.x_to_index] at eval_to_zero
                   -- This gives us a contradiction
                   simp [eval_to_zero] at app_eq
 
@@ -3109,11 +3108,11 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 by_cases i_eq_zero: i = 0
                 . simp [i_eq_zero]
                   have y_outside := prev_vals_root_not_supp a a_prev y
-                  simp [new_x_vals, mk_x_vals, XVals.x_to_index] at y_outside
-                  simp [b_new, new_x_vals, mk_x_vals]
+                  simp [new_x_vals, XVals.x_to_index] at y_outside
+                  simp [b_new, new_x_vals]
                   exact y_outside
                 . simp [i_eq_zero]
-                  simp [b_new, new_x_vals, mk_x_vals]
+                  simp [b_new, new_x_vals]
                   rw [Finsupp.single_apply]
                   simp
                   have ai_le_max: a.i ≤ max_i := by
@@ -3189,8 +3188,8 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                   . simp [x_eq_zero, XVals.x_vals, XVals.x_to_index]
                     right
                     have not_i := new_vals_not_supp_double_plus y
-                    simp [XVals.x_to_index, new_x_vals, mk_x_vals] at not_i
-                    simp [b_new, new_x_vals, mk_x_vals]
+                    simp [XVals.x_to_index, new_x_vals] at not_i
+                    simp [b_new, new_x_vals]
                     exact not_i
                   . simp [XVals.x_vals, XVals.x_to_index, x_eq_zero]
                     right
@@ -3221,7 +3220,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 use a
               have a_lt_b: a.i < b.i := by
                 rw [b_new]
-                dsimp [new_x_vals, mk_x_vals]
+                dsimp [new_x_vals]
                 omega
               rw [i_eq] at a_lt_b
               -- obtains a contradiction
@@ -3237,7 +3236,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                   use b
                 have b_lt_a: b.i < a.i := by
                   rw [a_new]
-                  dsimp [new_x_vals, mk_x_vals]
+                  dsimp [new_x_vals]
                   omega
                 rw [i_eq] at b_lt_a
                 -- obtains a contradiction
@@ -3455,10 +3454,10 @@ lemma neg_f_zero: - f (0) = (latest_x_vals 0).tree.left.getData.a := by
   simp [ReverseTree.getData]
   simp only [latest_x_vals]
   rw [g_num_zero_eq_zero]
-  simp only [mk_x_vals, XVals.x_vals]
+  simp only [XVals.x_vals]
   simp
   simp [latest_x_vals]
-  simp only [ReverseTree.getData, mk_x_vals, XVals.x_vals]
+  simp only [ReverseTree.getData, XVals.x_vals]
   simp
 
 lemma f_neg_b {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (hvals: (latest_x_vals n).cur = other_vals): f (-t.getData.b) = t.left.getData.b := by
@@ -3476,7 +3475,7 @@ theorem not_equation_23: (f (0)) + (f (- (f (0)))) ≠ 0 := by
   rw [neg_f_zero, eval_neg]
   simp [f]
   simp [latest_x_vals]
-  simp only [ReverseTree.getData, mk_x_vals, XVals.x_vals]
+  simp only [ReverseTree.getData, XVals.x_vals]
   simp
   have mynum_gt_1 := newnem_gt_one (@ReverseTree.root x_vals_zero)
   have root_neq_zero: newNum (@ReverseTree.root x_vals_zero) ≠ 0 := by
@@ -3586,7 +3585,7 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
     match t with
     | .root =>
       simp only [ReverseTree.getData]
-      simp only [mk_x_vals, XVals.x_vals]
+      simp only [XVals.x_vals]
       simp
       by_contra!
       rw [← Finsupp.single_neg] at this
@@ -3692,7 +3691,7 @@ theorem not_equation_3456: f 0 ≠ f ((f 0) + f (- (f 0))) := by
   rw [sum_1_3_eq_tree]
   rw [new_eval_left (n := 0)]
   simp only [ReverseTree.getData]
-  simp [mk_x_vals, XVals.x_vals, newnum_neq_zero, newNum, x_vals_zero]
+  simp [XVals.x_vals, newnum_neq_zero, newNum, x_vals_zero]
   by_contra!
   rw [Finsupp.single_left_inj] at this
   linarith
@@ -3704,7 +3703,7 @@ lemma nothing_maps_some_val {vals: XVals} (t: @ReverseTree vals) (i: ℕ): t.get
   match t with
   | .root =>
     simp only [ReverseTree.getData]
-    simp only [mk_x_vals, XVals.x_vals]
+    simp only [XVals.x_vals]
     simp
     by_contra!
     rw [← Finsupp.single_neg] at this

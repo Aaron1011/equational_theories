@@ -2922,12 +2922,27 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
 
             have max_neq: (g_enumerate n).support.max' g_supp_nonempty ≠ 2 ^ (max max_i max_root_supp + 1) + (b - 1) * 2 ^ (max max_i max_root_supp + 1 + 1) := by omega
             simp [Finsupp.single_apply]
-
             simp [max_neq.symm]
           | b + 1 =>
-
-            sorry
-          sorry
+            have app_eq := DFunLike.congr (x := 2 ^ (max max_i max_root_supp + 1) + (b) * 2 ^ (max max_i max_root_supp + 1 + 1)) h_sum_zero rfl
+            simp at app_eq
+            rw [Finset.sum_eq_single_of_mem (b + 1)] at app_eq
+            . simp at app_eq
+              have g_nonzero := hi.2
+              contradiction
+            . exact hi.1
+            . intro x hx
+              by_cases x_eq: x = 0
+              . simp [x_eq]
+                right
+                have not_supp := new_vals_not_supp_double_plus b
+                rw [← Finsupp.not_mem_support_iff]
+                exact not_supp
+              . simp [x_eq]
+                intro x_neq_b_plus
+                simp [Finsupp.single_apply]
+                have not_x_minus: x - 1 ≠ b := by omega
+                simp [not_x_minus]
       }
 
 

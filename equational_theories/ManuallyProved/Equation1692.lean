@@ -2654,6 +2654,50 @@ structure PrevData (g: G) (prev_isos: Set XValsIso) where
   tree: @ReverseTree x_vals_iso.vals
   tree_in_range: tree.getData.a = x_vals_iso.iso g
 
+lemma tree_b_neq_root_mul {vals: XVals} (t: @ReverseTree vals) (a: ℚ): t.getData.b ≠ a • vals.root_elem := by
+  induction t with
+  | root =>
+    simp [ReverseTree.getData]
+    have tree_sup := vals.supp_gt 0
+    simp at tree_sup
+    have foo := Finsupp.support_single_ne_zero (2 ^ vals.i) (b := (1 : ℚ)) (by simp)
+    rw [foo] at tree_sup
+    simp at tree_sup
+
+    by_contra!
+    have app_eq := DFunLike.congr (x := vals.x_to_index 0) this rfl
+    simp [XVals.x_vals, XVals.x_to_index] at app_eq
+
+    have eval_zero: vals.root_elem (2 ^ vals.i) = 0 := by
+      rw [← Finsupp.not_mem_support_iff]
+      apply Finset.not_mem_of_max_lt_coe
+      exact tree_sup
+    rw [eval_zero] at app_eq
+    simp at app_eq
+  | left t1_parent h_parent =>
+    simp [ReverseTree.getData]
+    have tree_sup := vals.supp_gt 0
+    simp at tree_sup
+    have foo := Finsupp.support_single_ne_zero (2 ^ vals.i) (b := (1 : ℚ)) (by simp)
+    rw [foo] at tree_sup
+    simp at tree_sup
+
+    by_contra!
+    have app_eq := DFunLike.congr (x := vals.x_to_index 0) this rfl
+    simp [XVals.x_vals, XVals.x_to_index] at app_eq
+
+    have eval_zero: vals.root_elem (2 ^ vals.i) = 0 := by
+      rw [← Finsupp.not_mem_support_iff]
+      apply Finset.not_mem_of_max_lt_coe
+      exact tree_sup
+    rw [eval_zero] at app_eq
+    simp at app_eq
+  | right t2_parent h_parent =>
+    simp [ReverseTree.getData]
+    by_contra!
+    sorry
+
+
 noncomputable def full_x_vals_num (n: ℕ): WrapperXValsFullData (g_enumerate n) := by
   let g := g_enumerate n
   match hn: n with
@@ -3081,8 +3125,16 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 | .root => contradiction
                 | .left tb_parent =>
                   simp [ReverseTree.getData] at tb_sum
+                  obtain ⟨parent_g, parent_m, parent_supp, parent_supp_lt, parent_sum⟩ := (tree_linear_comb tb_parent).2
+                  have bi_neq_zero: b.i ≠ 0 := by
+                    simp [b_new, new_x_vals, mk_x_vals]
 
-                  sorry
+                  apply_fun (fun y => -y) at tb_sum
+                  simp at tb_sum
+                  have neq_mul := tree_b_neq_root_mul tb_parent (-(tb_g 0))
+                  simp at neq_mul
+                  simp [XVals.x_vals] at tb_sum
+                  contradiction
                 | .right tb_parent =>
                   simp [ReverseTree.getData] at tb_sum
                   simp [XVals.x_vals, b_new, new_x_vals, mk_x_vals, newnum_neq_zero] at tb_sum

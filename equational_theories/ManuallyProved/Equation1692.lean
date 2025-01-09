@@ -2935,9 +2935,18 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         have supp_max_lt: vals.root_elem.support.max.getD 0 < (2 ^ (max max_i max_root_supp + 1)) := by
           have lt_self_pow := Nat.lt_pow_self Nat.one_lt_two (n := (max max_i max_root_supp + 1))
           have le_max_plus: vals.root_elem.support.max.getD 0 ≤ max max_i max_root_supp := by
+            simp
+            right
+            apply Finset.le_max'
+            simp
+            right
+            use vals
+          have lt_max_plus: vals.root_elem.support.max.getD 0 < max max_i max_root_supp + 1 := by
+            omega
           omega
+
         apply Finset.not_mem_of_max_lt_coe
-        match h_supp_max: (g_enumerate n).support.max with
+        match h_supp_max: vals.root_elem.support.max with
         | WithBot.some max_val =>
           simp [h_supp_max] at supp_max_lt
           rw [WithBot.coe_lt_coe]
@@ -3041,9 +3050,10 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 simp [XVals.x_vals, XVals.x_to_index]
                 by_cases i_eq_zero: i = 0
                 . simp [i_eq_zero]
-                  have y_outside := new_vals_not_supp y
-                  simp
-                  sorry
+                  have y_outside := prev_vals_root_not_supp a a_prev y
+                  simp [new_x_vals, mk_x_vals, XVals.x_to_index] at y_outside
+                  simp [b_new, new_x_vals, mk_x_vals]
+                  exact y_outside
                 . simp [i_eq_zero]
                   simp [b_new, new_x_vals, mk_x_vals]
                   rw [Finsupp.single_apply]

@@ -3309,18 +3309,6 @@ lemma new_eval_left {other_vals: XVals} (t: @ReverseTree other_vals) {n: ℕ} (h
   rw [← orig_trees_eq]
 
 
-lemma neq_implies_neq_i {vals1 vals2: XVals} (h_vals: vals1 ≠ vals2): vals1.i ≠ vals2.i := by
-  by_contra! vals_eq
-  have vals_destructure: vals1 = { i := vals1.i} := by
-    simp
-  have choose_destructure: vals2 = { i := vals2.i} := by
-    simp
-  rw [vals_eq] at vals_destructure
-  rw [← choose_destructure] at vals_destructure
-  contradiction
-
-
-
 lemma f_functional_eq (g: G): f (f (- f g)) = g - (f g) := by
   let g_data := latest_x_vals (g_to_num g)
   have neg_eq_left: - f g = (latest_x_vals (g_to_num g)).tree.left.getData.a := by

@@ -2755,7 +2755,6 @@ structure LatestXVals (g: G) where
   distinct_trees: ∀ a ∈ vals, ∀ b ∈ vals, (∃ ta: @ReverseTree a, ∃ tb: @ReverseTree b, ta.getData.a = tb.getData.a) → a = b
   cur: XVals
   cur_in_vals: cur ∈ vals
-  minimal_vals: ∀ other_vals ∈ vals, other_vals.i ≤ cur.i
   tree: @ReverseTree cur
   a_val: tree.getData.a = g
   -- new_cur_maximal: cur.i = (vals.image XVals.i).max' (by
@@ -2779,7 +2778,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         simp only [ReverseTree.getData, x_vals, XVals.root_elem, hn]
         rw [g_enum_zero_eq_zero]
         simp only [mk_x_vals]
-      minimal_vals := by simp
       distinct_i := by simp
       distinct_trees := by simp
       --cur_maximal := sorry
@@ -2800,21 +2798,18 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
   | a + 1 =>
     let prev_x_vals := latest_x_vals a
     -- WRONG - we may need to grab a previous 'XVals' tree when looking up a node with a larger index (e.g. if 'basis_n 3' has a very high g_to_num)
-    by_cases has_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n ∧ (∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ x_vals.i) ∧ x_vals.i = (({v ∈ prev_x_vals.vals | ∃ t: @ReverseTree v, t.getData.a = (g_enumerate n)} : Finset XVals).image (fun v => v.i)).min
+    by_cases has_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n
     . exact {
       vals := prev_x_vals.vals,
       cur := Classical.choose has_tree,
       cur_in_vals := (Classical.choose_spec (Classical.choose_spec has_tree)).1,
       tree := Classical.choose (Classical.choose_spec has_tree)
       a_val := by
-        have tree_eq := (Classical.choose_spec (Classical.choose_spec has_tree)).2.1
+        have tree_eq := (Classical.choose_spec (Classical.choose_spec has_tree)).2
         have n_eq: n = a  +1 := by
           simp [hn]
         rw [← n_eq]
         exact tree_eq
-      minimal_vals := by
-        intro other_vals
-        exact (Classical.choose_spec (Classical.choose_spec has_tree)).2.2.1 other_vals
       distinct_i := prev_x_vals.distinct_i
       distinct_trees := prev_x_vals.distinct_trees
     }
@@ -2897,19 +2892,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         a_val := by
           simp only [ReverseTree.getData, new_x_vals, XVals.root_elem, hn]
           simp [mk_x_vals]
-        minimal_vals := by
-          intro other_vals other_vals_in
-          simp at other_vals_in
-          match other_vals_in with
-          | .inl h_prev =>
-            dsimp [new_x_vals, mk_x_vals, max_i]
-            have le_max : other_vals.i ≤ (Finset.image XVals.i prev_x_vals.vals).max' img_nonempty := by
-              apply Finset.le_max'
-              simp
-              use other_vals
-            omega
-          | .inr h_new =>
-            rw [h_new]
 
         distinct_trees := by
           intro a ha b hb exists_trees
@@ -3258,6 +3240,8 @@ lemma latest_x_vals_set (a b: ℕ) (hab: a ≤ b): (latest_x_vals a).vals ⊆ (l
       omega
     rw [a_eq_zero]
   | succ new_b h_prev =>
+    have new_b_in: (latest_x_vals new_b).vals ⊆ (latest_x_vals (new_b + 1)).vals := by
+      apply latest_x_vals_succ
     by_cases a_le_new_b: a ≤ new_b
     .
       specialize h_prev a_le_new_b

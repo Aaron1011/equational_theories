@@ -2676,22 +2676,22 @@ lemma tree_b_neq_root_mul {vals: XVals} (t: @ReverseTree vals) (a: ℚ): t.getDa
     simp at app_eq
   | left t1_parent h_parent =>
     simp [ReverseTree.getData]
-    have tree_sup := vals.supp_gt 0
+    have tree_sup := vals.supp_gt (newNum t1_parent - 1)
     simp at tree_sup
-    have foo := Finsupp.support_single_ne_zero (2 ^ vals.i) (b := (1 : ℚ)) (by simp)
+    have foo := Finsupp.support_single_ne_zero (2 ^ vals.i + (newNum t1_parent - 1) * 2 ^ (vals.i + 1)) (b := (1 : ℚ)) (by simp)
     rw [foo] at tree_sup
     simp at tree_sup
 
     by_contra!
-    have app_eq := DFunLike.congr (x := vals.x_to_index 0) this rfl
+    have app_eq := DFunLike.congr (x := vals.x_to_index ((newNum t1_parent - 1))) this rfl
     simp [XVals.x_vals, XVals.x_to_index] at app_eq
 
-    have eval_zero: vals.root_elem (2 ^ vals.i) = 0 := by
+    have eval_zero: vals.root_elem (2 ^ vals.i + (newNum t1_parent - 1) * 2 ^ (vals.i + 1)) = 0 := by
       rw [← Finsupp.not_mem_support_iff]
       apply Finset.not_mem_of_max_lt_coe
       exact tree_sup
     rw [eval_zero] at app_eq
-    simp at app_eq
+    simp [newnum_neq_zero] at app_eq
   | right t2_parent h_parent =>
     simp [ReverseTree.getData]
     by_contra!

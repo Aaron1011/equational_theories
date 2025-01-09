@@ -2979,7 +2979,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         tree := ReverseTree.root,
         a_val := by
           simp only [ReverseTree.getData, new_x_vals, XVals.root_elem, hn]
-          simp [mk_x_vals]
 
         distinct_trees := by
           intro a ha b hb exists_trees
@@ -3097,7 +3096,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                   simp [XVals.x_vals, b_new, new_x_vals, mk_x_vals, newnum_neq_zero] at tb_sum
                   have app_eq := DFunLike.congr (x := new_x_vals.x_to_index (newNum tb_parent - 1)) tb_sum rfl
                   simp [XVals.x_to_index, new_x_vals, mk_x_vals, Finsupp.single_apply] at app_eq
-                  have eval_to_zero := (new_vals_not_supp (newNum tb_parent - 1))
+                  have eval_to_zero := (new_vals_not_supp_double_plus (newNum tb_parent - 1))
                   simp [new_x_vals, mk_x_vals, XVals.x_to_index] at eval_to_zero
                   -- This gives us a contradiction
                   simp [eval_to_zero] at app_eq
@@ -3189,7 +3188,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                   by_cases x_eq_zero: x = 0
                   . simp [x_eq_zero, XVals.x_vals, XVals.x_to_index]
                     right
-                    have not_i := new_vals_not_supp y
+                    have not_i := new_vals_not_supp_double_plus y
                     simp [XVals.x_to_index, new_x_vals, mk_x_vals] at not_i
                     simp [b_new, new_x_vals, mk_x_vals]
                     exact not_i

@@ -2906,6 +2906,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
       have prev_x_vals_nonempty: prev_x_vals.vals.Nonempty := by
         simp [Finset.Nonempty]
         use prev_x_vals.cur
+        exact prev_x_vals.cur_in_vals
       have img_nonempty : (prev_x_vals.vals.image XVals.i).Nonempty := by
         simp [Finset.Nonempty]
         use prev_x_vals.cur.i

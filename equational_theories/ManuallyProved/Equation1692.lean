@@ -3017,7 +3017,15 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                   simp [newnum_neq_zero] at tb_sum
 
               by_cases tb_root: tb = ReverseTree.root
-              . sorry
+              .
+                simp [tb_root, ReverseTree.getData] at h_tree_eq
+                have simple_have_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n := by
+                  use a
+                  use ta
+                  refine ⟨a_prev, ?_⟩
+                  rw [h_tree_eq]
+                  simp [b_new, new_x_vals, mk_x_vals]
+                contradiction
 
               have nonzero_in_supp: ∃ y, y > 0 ∧ y ∈ tb_g.support := by
                 by_contra!

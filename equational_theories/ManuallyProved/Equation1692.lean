@@ -1061,20 +1061,30 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
 
 
     have nonzero_b_coord: ∃n, n < max_num ∧ b_coords n ≠ 0 := by
-      by_contra!
-      have sum_eq_zero: ∑ i ∈ Finset.range max_num, b_coords i • vals.x_vals i = 0 := by
-        apply Finset.sum_eq_zero
-        intro x hx
-        specialize this x (Finset.mem_range.mp hx)
-        simp [this]
-      rw [sum_eq_zero] at b_eq
-      rw [b_eq] at h_prev
-
       by_cases prev_a_zero: prev.getData.a = 0
       . simp [ReverseTree.getData] at ht
+        by_contra!
+        have sum_eq_zero: ∑ i ∈ Finset.range max_num, b_coords i • vals.x_vals i = 0 := by
+          apply Finset.sum_eq_zero
+          intro x hx
+          specialize this x (Finset.mem_range.mp hx)
+          simp [this]
+        rw [sum_eq_zero] at b_eq
+        contradiction
 
-      have foo := LinearIndependent.ne_zero 1 h_prev
-      simp at foo
+      .
+        by_contra!
+        have sum_eq_zero: ∑ i ∈ Finset.range max_num, b_coords i • vals.x_vals i = 0 := by
+          apply Finset.sum_eq_zero
+          intro x hx
+          specialize this x (Finset.mem_range.mp hx)
+          simp [this]
+        rw [sum_eq_zero] at b_eq
+        rw [b_eq] at h_prev
+
+        specialize h_prev prev_a_zero
+        have foo := LinearIndependent.ne_zero 1 h_prev
+        simp at foo
 
     rw [b_eq]
     simp only [LinearIndependent.pair_iff]

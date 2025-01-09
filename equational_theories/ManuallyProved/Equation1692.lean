@@ -2926,6 +2926,8 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           simp [h_supp_max] at supp_max_lt
           rw [WithBot.coe_lt_coe]
           omega
+        | none =>
+          apply WithBot.none_lt_some
 
 
       exact {
@@ -3098,11 +3100,12 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 tactic =>
                   intro x hx x_neq_y
                   by_cases x_eq_zero: x = 0
-                  . simp [x_eq_zero, XVals.x_vals, b_new, XVals.x_to_index]
+                  . simp [x_eq_zero, XVals.x_vals, XVals.x_to_index]
                     right
-
-
-                    sorry
+                    have not_i := new_vals_not_supp y
+                    simp [XVals.x_to_index, new_x_vals, mk_x_vals] at not_i
+                    simp [b_new, new_x_vals, mk_x_vals]
+                    exact not_i
                   . simp [XVals.x_vals, XVals.x_to_index, x_eq_zero]
                     right
                     simp [Finsupp.single_apply]

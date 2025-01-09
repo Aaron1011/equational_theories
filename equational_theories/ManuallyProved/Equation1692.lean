@@ -3040,18 +3040,62 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 | .left tb_parent => sorry
                 | .right tb_parent => sorry
 
-
-              have nonzero_b_coord: ∃ y, y + 1 ∈ Finset.range tb_m ∧ tb_g (y + 1) ≠ 0 ∧ y > 0 := by
+              have tb_m_nonzero: 0 < tb_m := by
+                by_contra!
+                simp at this
+                simp [this] at tb_sum
+                have tb_root_nonzero := b.root_nonzero b_i_nonzero
                 match tb with
                 | .root => contradiction
                 | .left tb_parent =>
                   simp [ReverseTree.getData] at tb_sum
+                  have parent_b_nonzero := (tree_vals_nonzero tb_parent).2
+                  contradiction
+                | .right tb_parent =>
+                  simp [ReverseTree.getData] at tb_sum
+                  simp [XVals.x_vals] at tb_sum
+                  simp [newnum_neq_zero] at tb_sum
+
+              have nonzero_b_coord: ∃ y, y + 1 ∈ Finset.range tb_m ∧ tb_g (y + 1) ≠ 0 := by
+                by_contra!
+                have tb_coords_zero: ∀ z ∈ Finset.range tb_m, z > 0 → tb_g z = 0 := by
+                  intro z hz z_gt_zero
+                  have z_minus_plus: z - 1 + 1 = z := by
+                    apply Nat.sub_add_cancel
+                    omega
+
+                  specialize this (z - 1)
+                  simp [z_minus_plus] at this
+                  simp at hz
+                  exact this hz
+                rw [Finset.sum_eq_single_of_mem 0 ?_ ?_] at tb_sum
+                rotate_left 1
+                . simp
+                  exact tb_m_nonzero
+                . intro x hx x_neq_zero
+                  specialize tb_coords_zero x hx (by omega)
+                  simp [tb_coords_zero]
+
+
+                match tb with
+                | .root => contradiction
+                | .left tb_parent =>
+                  simp [ReverseTree.getData] at tb_sum
+                  rw [eq_comm, eq_neg_iff_add_eq_zero] at tb_sum
+                  simp at tb_sum
+                  sorry
                   sorry
                 | .right tb_parent =>
                   simp [ReverseTree.getData] at tb_sum
-                  sorry
+                  simp [XVals.x_vals, b_new, new_x_vals, mk_x_vals, newnum_neq_zero] at tb_sum
+                  have app_eq := DFunLike.congr (x := new_x_vals.x_to_index (newNum tb_parent - 1)) tb_sum rfl
+                  simp [XVals.x_to_index, new_x_vals, mk_x_vals, Finsupp.single_apply] at app_eq
+                  have eval_to_zero := (new_vals_not_supp (newNum tb_parent - 1))
+                  simp [new_x_vals, mk_x_vals, XVals.x_to_index] at eval_to_zero
+                  -- This gives us a contradiction
+                  simp [eval_to_zero] at app_eq
 
-              obtain ⟨y, y_plus_in_range, h_y, y_gt_zero⟩ := nonzero_b_coord
+              obtain ⟨y, y_plus_in_range, h_y⟩ := nonzero_b_coord
 
               have outside_support: ∀ i ∈ Finset.range ta_m, (a.x_vals i) (b.x_to_index y) = 0 := by
                 intro i hi

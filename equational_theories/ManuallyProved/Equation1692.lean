@@ -1037,11 +1037,23 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
     simp [root_supp] at rhs_apply
 
     have lhs_apply := DFunLike.congr (x := WithBot.unbot' 0 vals.root_elem.support.max) eq_zero rfl
-
-
-    have root_indep := vals.root_indep 0
-    simp [LinearIndependent.pair_iff] at root_indep
-    exact root_indep p q eq_zero
+    simp [rhs_apply] at lhs_apply
+    match lhs_apply with
+    | .inl p_eq_zero => exact ⟨p_eq_zero, rhs_apply⟩
+    | .inr q_eq_zero =>
+      simp [ReverseTree.getData] at ht
+      have support_nonempty : vals.root_elem.support.Nonempty := by
+        simp [Finsupp.support_nonempty_iff]
+        exact ht
+      rw [← Finset.coe_max' support_nonempty] at lhs_apply
+      simp at lhs_apply
+      have root_supp_nonzero: vals.root_elem (vals.root_elem.support.max' support_nonempty) ≠ 0 := by
+        by_contra!
+        rw [← Finsupp.not_mem_support_iff] at this
+        have max'_in := Finset.max'_mem _ support_nonempty
+        contradiction
+      simp [root_supp_nonzero] at lhs_apply
+      exact ⟨lhs_apply, rhs_apply⟩
   | left prev h_prev =>
     simp [ReverseTree.getData]
     simp [ReverseTree.getData] at h_prev

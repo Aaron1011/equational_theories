@@ -2755,7 +2755,6 @@ structure LatestXVals (g: G) where
   distinct_trees: ∀ a ∈ vals, ∀ b ∈ vals, (∃ ta: @ReverseTree a, ∃ tb: @ReverseTree b, ta.getData.a = tb.getData.a) → a = b
   cur: XVals
   cur_in_vals: cur ∈ vals
-  choose_min_i: cur.i = (({v ∈ vals | ∃ t: @ReverseTree v, t.getData.a = g} : Finset XVals).image (fun v => v.i)).min
   minimal_vals: ∀ other_vals ∈ vals, other_vals.i ≤ cur.i
   tree: @ReverseTree cur
   a_val: tree.getData.a = g
@@ -2780,15 +2779,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         simp only [ReverseTree.getData, x_vals, XVals.root_elem, hn]
         rw [g_enum_zero_eq_zero]
         simp only [mk_x_vals]
-      choose_min_i := by
-        dsimp [x_vals]
-        have exists_t: ∃ t: @ReverseTree (mk_x_vals 0 (g_enumerate n)), t.getData.a = g_enumerate 0 := by
-          use ReverseTree.root
-          simp only [ReverseTree.getData, mk_x_vals]
-          rw [hn]
-        rw [Finset.filter_singleton]
-        simp only [exists_t]
-        simp
       minimal_vals := by simp
       distinct_i := by simp
       distinct_trees := by simp
@@ -2826,13 +2816,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         intro other_vals
         exact (Classical.choose_spec (Classical.choose_spec has_tree)).2.2.1 other_vals
       distinct_i := prev_x_vals.distinct_i
-      choose_min_i := by
-        have my_spec := (Classical.choose_spec (Classical.choose_spec has_tree)).2.2.2
-        have n_eq: n = a + 1 := by
-          simp [hn]
-        rw [← n_eq]
-        exact my_spec
-
       distinct_trees := prev_x_vals.distinct_trees
     }
     .
@@ -3194,68 +3177,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 -- obtains a contradiction
                 simp at b_lt_a
             | .inr b_new => rw [a_new, b_new]
-        choose_min_i := by
-          conv =>
-            rhs
-            arg 1
-            arg 2
-            rw [Finset.filter_congr (q := fun v => v = new_x_vals)]
-            rfl
-            tactic =>
-              intro x
-              simp only [Finset.mem_union, Finset.mem_singleton, Option.some.injEq, iff_false]
-              intro hx
-              refine ⟨?_, ?_⟩
-              . intro new_has_tree
-                match hx with
-                | .inl x_in_prev =>
-                  have prev_choose_min := prev_x_vals.choose_min_i
-                  -- have x_i_le: (Finset.image (fun v ↦ v.i) (Finset.filter (fun v ↦ ∃ t: @ReverseTree v, t.getData.a = g_enumerate a) prev_x_vals.vals)).min ≤ x.i := by
-                  --   apply Finset.min_le
-                  --   simp only [Option.some.injEq,
-                  --     Nat.cast_id, Finset.mem_image, Finset.mem_filter]
-                  --   use prev_x_vals.cur
-                  --   sorry
-
-
-                    --refine ⟨⟨x_in_prev, ?_⟩, ?_⟩
-                   -- use prev_x_vals.tree
-
-
-                  dsimp [new_x_vals]
-                  have prex_vals_a := prev_x_vals.a_val
-                  have prev_minimal := prev_x_vals.minimal_vals
-                  obtain ⟨x_tree, h_x_tree⟩ := new_has_tree
-                  have actually_has_tree: ∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n ∧ (∀ other_vals ∈ prev_x_vals.vals, other_vals.i ≤ x_vals.i) ∧ x_vals.i = (({v ∈ prev_x_vals.vals | ∃ t: @ReverseTree v, t.getData.a = (g_enumerate n)} : Finset XVals).image (fun v => v.i)).min := by
-                    use x
-                    use x_tree
-                    refine ⟨x_in_prev, ?_, ?_, ?_⟩
-                    .
-                      simp only [hn]
-                      exact h_x_tree
-                    .
-                      intro other_vals h_other_vals
-                      specialize prev_minimal other_vals h_other_vals
-                      have x_i_ge: other_vals.i ≤ x.i := by
-                        sorry
-                      omega
-                    .
-                      sorry
-                  contradiction
-                | .inr x_eq_new => exact x_eq_new
-              . intro x_eq_new
-                use ReverseTree.root
-                simp only [ReverseTree.getData]
-                rw [x_eq_new]
-                simp only [new_x_vals, mk_x_vals]
-                rw [hn]
-          --rw [Finset.filter_union]
-          --simp [Finset.filter_singleton]
-          simp [Finset.filter_eq' (prev_x_vals.vals ∪ {new_x_vals}) new_x_vals]
-        --cur_maximal := sorry
-        -- tree_agree := by
-        --   intro other_vals other_tree a_eq
-        --   sorry
       }
 
 -- lemma latest_vals_minimal (a b: ℕ) (ha: a < b) (t: @ReverseTree (latest_x_vals a).cur) : t.getData.a ≠ (latest_x_vals b).tree.getData.a := by

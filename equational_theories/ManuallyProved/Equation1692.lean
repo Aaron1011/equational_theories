@@ -3910,8 +3910,8 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
 
       match h_bot: largest_support with
       | .some largest_supp_n =>
-        have eval_at := DFunLike.congr (x := largest_supp_n) this rfl
-        simp at eval_at
+        have app_eq := DFunLike.congr (x := largest_supp_n) this rfl
+        simp at app_eq
 
         --have tree_num_ge_3: 3 ≤  1 + (newNum parent - 1) * 2 := by
         --  have gt_one := newnem_gt_one parent
@@ -3962,6 +3962,13 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
             . rw [Finsupp.single_apply]
               simp [three_ne_val]
               omega
+        have largest_ne_one: 1 ≠ largest_supp_n := by
+          omega
+        have largest_ne_three: 3 ≠ largest_supp_n := by
+          omega
+        have largest_ne_newnum: 1 + (newNum parent - 1) * 2 ≠ largest_supp_n := by
+          omega
+        simp [Finsupp.single_apply, largest_ne_one, largest_ne_three, largest_ne_newnum] at app_eq
 
 
 

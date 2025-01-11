@@ -3917,7 +3917,7 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
         --  have gt_one := newnem_gt_one parent
         --  omega
 
-        have largest_gt_three: 3 < largest_supp_n := by
+        have largest_gt_three: 3 < largest_supp_n ∧ 1 + (newNum parent - 1) * 2 < largest_supp_n := by
           rw [h_tree] at f_supp_increasing
           simp [ReverseTree.getData] at f_supp_increasing
           simp [same_vals, x_vals_zero, XVals.x_vals, newnum_neq_zero] at f_supp_increasing
@@ -3939,12 +3939,16 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
           rw [← Finsupp.single_neg] at h_bot
           rw [sub_eq_add_neg] at h_bot
           rw [← Finsupp.single_neg] at h_bot
-          rw [← WithBot.some_lt_some]
+          nth_rw 1 [← WithBot.some_lt_some]
+          nth_rw 2 [← WithBot.some_lt_some]
           rw [← h_bot]
           rw [← Finset.coe_max' (tree_b_supp_nonempty _)]
           rw [← WithBot.some_eq_coe]
           rw [WithBot.some_lt_some]
-          exact three_lt_target
+          exact second_supp_increase
+
+
+
           . simp [x_sum_supp]
             simp [Finsupp.support_single_ne_zero _]
           . simp [x_sum_supp]
@@ -3957,6 +3961,7 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
               omega
             . rw [Finsupp.single_apply]
               simp [three_ne_val]
+              omega
 
 
 

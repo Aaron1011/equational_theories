@@ -3945,6 +3945,18 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
           rw [← WithBot.some_eq_coe]
           rw [WithBot.some_lt_some]
           exact three_lt_target
+          . simp [x_sum_supp]
+            simp [Finsupp.support_single_ne_zero _]
+          . simp [x_sum_supp]
+            have one_ne_val: 1 ≠ 1 + (newNum parent - 1) * 2 := by omega
+            have three_ne_val: 3 ≠ 1 + (newNum parent - 1) * 2 := by omega
+            rw [Finsupp.single_apply]
+            simp [one_ne_val]
+            refine ⟨?_, ?_⟩
+            . have newnum_gt := newnem_gt_one parent
+              omega
+            . rw [Finsupp.single_apply]
+              simp [three_ne_val]
 
 
 

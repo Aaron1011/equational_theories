@@ -2199,9 +2199,10 @@ lemma partial_function {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_eq: t1.getD
     | .root => contradiction
     | .left t2_parent =>
         simp [ReverseTree.getData] at h_a_eq
-        rw [vals.x_to_index_eq] at h_a_eq
+        --rw [vals.x_to_index_eq] at h_a_eq
         have b_neq := xseq_zero_neq_b t2_parent (-1) (by simp)
         simp at b_neq
+        simp [XVals.x_to_index] at b_neq
         contradiction
     | .right t2_parent =>
         simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
@@ -2605,7 +2606,6 @@ lemma g_enum_zero_eq_zero: g_enumerate 0 = 0 := by
 
 lemma g_enum_nonzero_eq_nonzero (n: ℕ) (hn: n > 0): g_enumerate n ≠ 0 := by
   sorry
-
 lemma g_enum_one_eq_one: g_enumerate 1 = fun₀ | 1 => 1 := by
   sorry
 
@@ -2626,6 +2626,10 @@ lemma g_num_zero_eq_zero: g_to_num 0 = 0 := by
 
 lemma g_num_one_eq_one: g_to_num (fun₀ | 1 => 1) = 1 := by
   sorry
+
+lemma g_to_num_nonzero_eq_nonzero (g: G) (hg: g ≠ 0): g_to_num g ≠ 0 := by
+  sorry
+
 
 
 def tree_to_supp {vals: XVals} (t: @ReverseTree vals): Set ℕ :=
@@ -2767,6 +2771,8 @@ lemma tree_b_neq_root_mul {vals: XVals} (t: @ReverseTree vals) (a: ℚ): t.getDa
 
 attribute [local instance] Classical.propDecidable
 
+def finsuppNonPos (g: G) := ∀ x ∈ (Set.range g), x ≤ 0
+
 structure LatestXVals (g: G) where
   vals: Finset XVals
   distinct_i: ∀ a ∈ vals, ∀ b ∈ vals, a.i = b.i → a = b
@@ -2775,6 +2781,7 @@ structure LatestXVals (g: G) where
   cur_in_vals: cur ∈ vals
   tree: @ReverseTree cur
   a_val: tree.getData.a = g
+  supp_increasing: finsuppNonPos tree.getData.a → tree.getData.a.support.max < tree.getData.b.support.max
   -- new_cur_maximal: cur.i = (vals.image XVals.i).max' (by
   --   simp
   --   simp [Finset.Nonempty]
@@ -2800,6 +2807,9 @@ def x_vals_zero: XVals := {
       root_indep := by simp
     }
 
+set_option trace.profiler true
+set_option maxHeartbeats 5000000
+
 noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
   match hn: n with
   | 0 =>
@@ -2815,6 +2825,13 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         simp only [x_vals_zero]
       distinct_i := by simp
       distinct_trees := by simp
+      supp_increasing := by
+        simp [ReverseTree.getData, finsuppNonPos, x_vals, x_vals_zero]
+        simp [XVals.x_vals]
+        rw [Finsupp.support_single_ne_zero 1 (by simp)]
+        simp
+        -- TODO - fix this OfNat WithBot coe nonsense
+        exact Batteries.compareOfLessAndEq_eq_lt.mp rfl
       --cur_maximal := sorry
       -- tree_agree := by
       --   intro other_vals other_tree a_eq
@@ -2847,6 +2864,26 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         exact tree_eq
       distinct_i := prev_x_vals.distinct_i
       distinct_trees := prev_x_vals.distinct_trees
+      supp_increasing := by
+        intro non_pos_supp
+        match Classical.choose (Classical.choose_spec has_tree) with
+        | .root =>
+          simp [ReverseTree.getData]
+          have supp_gt := (Classical.choose has_tree).supp_gt 0
+          simp [basis_n] at supp_gt
+          rw [Finsupp.support_single_ne_zero _ (by simp)] at supp_gt
+          simp [XVals.x_vals]
+          rw [Finsupp.support_single_ne_zero _ (by simp)]
+          simp at supp_gt
+          simp
+          exact supp_gt
+        | .left parent =>
+          simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero]
+          sorry
+
+        | .right parent =>
+          sorry
+
     }
     .
       have prev_x_vals_nonempty: prev_x_vals.vals.Nonempty := by
@@ -3708,22 +3745,163 @@ theorem not_equation_2441: 0 ≠ (f ((f 0) + (f (- f 0)))) + (f ( -(f ((f 0) + f
   simp at app_eq
 
 lemma x_vals_zero_left_a: (latest_x_vals 0).tree.left.getData.a = (-fun₀ | 1 => 1) := by
+  let b := -fun₀ | 0 => (1 : Rat)
   simp [ReverseTree.getData, latest_x_vals]
   simp [XVals.x_vals, newnum_neq_zero, newNum, x_vals_zero]
+
 
 lemma x_vals_zero_left_b: (latest_x_vals 0).tree.left.getData.b = fun₀ | 3 => 1 := by
   simp [ReverseTree.getData]
   simp [XVals.x_vals, newnum_neq_zero, newNum]
   simp [latest_x_vals, x_vals_zero]
 
+-- TODO - this needs to be a lemma for some reason to allow unfolding 'latest_x_vals'
+-- lemma sup_lt: 3 < (f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support.max := by
+--   simp [f]
+--   let x_sum: G := (-fun₀ | 1 => 1) - fun₀ | 3 => 1
+
+--   have num_nonzero: ¬ (g_to_num x_sum = 0) := by
+--     apply g_to_num_nonzero_eq_nonzero
+--     refine Finsupp.support_nonempty_iff.mp ?_
+--     use 1
+--     simp [x_sum]
+
+--   by_cases in_root: (latest_x_vals (g_to_num x_sum)).cur = x_vals_zero
+--   . match (latest_x_vals (g_to_num (x_sum))).tree with
+--     | .root =>
+--       simp [ReverseTree.getData]
+
+
+--   -- . have eval_res := new_eval_left (n := (g_to_num x_sum)) (latest_x_vals (g_to_num x_sum)).tree rfl
+--   --   simp [f] at eval_res
+--   --   have a_eq := (latest_x_vals (g_to_num x_sum)).a_val
+--   --   rw [a_eq] at eval_res
+--   --   rw [g_num_inverse] at eval_res
+--   --   unfold x_sum at eval_res
+--   --   rw [eval_res]
+--     sorry
+--   . sorry
+
+
+
+--   rw [latest_x_vals.eq_def]
+--   have eq_sub_plus: (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)) = (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)) - 1 + 1 := by
+--     rw [Nat.sub_add_cancel]
+--     omega
+
+
+--   rw [eq_sub_plus]
+--   simp
+--   by_cases has_tree: ∃ x_vals, ∃ t: @ReverseTree x_vals, x_vals ∈ (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - 1)).vals ∧ t.getData.a = g_enumerate (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - 1 + 1)
+--   . rw [dite_cond_eq_true]
+--     simp
+
+
+lemma nonpos_not_tree_right {vals: XVals} (t: @ReverseTree vals) (ht: finsuppNonPos t.getData.a): ¬(∃ parent: ReverseTree, parent.right = t) := by
+  by_contra!
+  obtain ⟨parent, hparent⟩ := this
+  simp [finsuppNonPos] at ht
+  simp_rw [← hparent, ReverseTree.getData, XVals.x_vals] at ht
+  simp [newnum_neq_zero] at ht
+  specialize ht (2 ^ vals.i + (newNum parent - 1) * 2 ^ (vals.i + 1))
+  simp at ht
+  linarith
+
+
+
 
 theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0))) + (f (- (f 0) - f (- f 0) - f (- (f 0) - f (- f 0)))) := by
-  rw [neg_f_zero, new_eval_left (n := 0)]
-  nth_rw 1 [f_zero_eq]
-  simp [x_vals_zero_left_a, x_vals_zero_left_b]
-  by_contra!
+  -- rw [neg_f_zero, new_eval_left (n := 0)]
+  -- nth_rw 1 [f_zero_eq]
+  -- simp [x_vals_zero_left_a, x_vals_zero_left_b]
+  -- by_contra!
+
+  let x_sum: G := (-fun₀ | 1 => 1) - fun₀ | 3 => 1
+
+  have first_app_supp_nonempty: (f x_sum).support.Nonempty := by
+    rw [Finsupp.support_nonempty_iff]
+    simp [f]
+    have not_zero := (tree_vals_nonzero (latest_x_vals (g_to_num x_sum)).tree).2
+    exact not_zero
+
+  -- TODO - there should be a tactic to do this
+  have x_sum_nonpos: finsuppNonPos x_sum := by
+    simp [x_sum, finsuppNonPos]
+    intro x
+    simp [Finsupp.single_apply]
+    by_cases x_one: 1 = x
+    . simp [x_one]
+      have x_not_three: 3 ≠ x := by bv_omega
+      simp [x_not_three]
+    . simp [x_one]
+      by_cases x_three: 3 = x
+      . simp [x_three]
+      . simp [x_three]
+
+  have f_supp_increasing := (latest_x_vals (g_to_num x_sum)).supp_increasing
+  rw [(latest_x_vals (g_to_num x_sum)).a_val] at f_supp_increasing
+  simp [g_enum_inverse] at f_supp_increasing
+  specialize f_supp_increasing x_sum_nonpos
+
+  simp [x_sum] at f_supp_increasing
+
+  simp [neg_f_zero]
+  simp [new_eval_left (n := 0)]
+  simp [latest_x_vals, ReverseTree.getData, x_vals_zero, XVals.x_vals, newnum_neq_zero]
+  simp [f_zero_eq]
+  simp [newNum]
+
+  simp [f]
+
+  have x_sum_supp: x_sum.support = {1, 3} := by
+    unfold x_sum
+    rw [← Finsupp.single_neg, sub_eq_add_neg, ← Finsupp.single_neg]
+    have disjoint_supp: Disjoint (fun₀ | 1 => (-1 : ℚ)).support (fun₀ | 3 => (-1 : ℚ)).support := by
+      simp [Finsupp.support_single_ne_zero]
+    rw [Finsupp.support_add_eq disjoint_supp]
+    simp
+    rw [Finsupp.support_single_ne_zero _ (by simp), Finsupp.support_single_ne_zero _ (by simp)]
+    exact rfl
+
+
+  by_cases same_vals: (latest_x_vals (g_to_num (x_sum))).cur = x_vals_zero
+  . match h_tree: (latest_x_vals (g_to_num (x_sum))).tree with
+    | .root =>
+      unfold x_sum at h_tree
+      rw [h_tree] at f_supp_increasing
+      simp [XVals.x_vals, ReverseTree.getData] at f_supp_increasing
+      rw [Finsupp.support_single_ne_zero] at f_supp_increasing
+      simp at f_supp_increasing
+      simp [same_vals, x_vals_zero] at f_supp_increasing
+      unfold x_sum at x_sum_supp
+      rw [x_sum_supp] at f_supp_increasing
+      simp at f_supp_increasing
+      -- Obtain contradiction
+      linarith
+    | .left parent => sorry
+    | .right parent => sorry
+  . sorry
+
+
+
+
+
+  let f_first_max := (f x_sum).support.max' first_app_supp_nonempty
+  have first_supp_lt: 3 < f_first_max := by
+    simp [f_first_max, f, x_sum]
+    -- TODO - why can't I do `rw [latest_x_vals]`
+
+
+
+
+    by_cases same_vals: (latest_x_vals (g_to_num x_sum)).cur = x_vals_zero
+
+
+  --have first_app_max_supp: (f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support.max' first_app_supp_nonempty := by
+  --  simp [f, latest_x_vals]
+
+
   sorry
-  rfl
 
 
 

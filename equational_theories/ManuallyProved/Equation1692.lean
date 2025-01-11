@@ -3862,14 +3862,15 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
       unfold x_sum at h_tree
       rw [h_tree] at f_supp_increasing
       simp [XVals.x_vals, ReverseTree.getData] at f_supp_increasing
-      rw [Finsupp.support_single_ne_zero] at f_supp_increasing
-      simp at f_supp_increasing
+      --rw [Finsupp.support_single_ne_zero _] at f_supp_increasing
+      --simp at f_supp_increasing
       simp [same_vals, x_vals_zero] at f_supp_increasing
       unfold x_sum at x_sum_supp
       rw [x_sum_supp] at f_supp_increasing
       simp at f_supp_increasing
       -- Obtain contradiction
-      linarith
+      simp [Finsupp.support_single_ne_zero _] at f_supp_increasing
+
     | .left parent =>
       by_contra!
       unfold x_sum at same_vals

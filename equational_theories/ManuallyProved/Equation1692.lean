@@ -3991,8 +3991,8 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
         contradiction
 
 
-
-      sorry
+      simp
+      exact not_zero
     | .right parent =>
       have a_eq := (latest_x_vals (g_to_num (x_sum))).a_val
       have nonpos := nonpos_not_tree_right (latest_x_vals (g_to_num (x_sum))).tree

@@ -3970,9 +3970,26 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
           omega
         simp [Finsupp.single_apply, largest_ne_one, largest_ne_three, largest_ne_newnum] at app_eq
 
+        have eval_nonzero : (latest_x_vals (g_to_num (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - fun₀ | 1 + (newNum parent - 1) * 2 => 1))).tree.getData.b largest_supp_n ≠ 0 := by
+          rw [← Finsupp.mem_support_iff]
+          apply Finset.mem_of_max
+          rw [← WithBot.some_eq_coe, ← h_bot]
+
+        simp at eval_nonzero
+        rw [eq_comm] at app_eq
+        contradiction
+      | none =>
+        unfold largest_support at h_bot
+        rw [WithBot.none_eq_bot] at h_bot
+        rw [Finset.max_eq_bot] at h_bot
+        have supp_nonempty := tree_b_supp_nonempty (latest_x_vals
+            (g_to_num
+              (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - fun₀ | 1 + (newNum parent - 1) * 2 => 1))).tree
+
+        rw [Finset.nonempty_iff_ne_empty] at supp_nonempty
+        contradiction
 
 
-      simp at eval_at
 
       sorry
     | .right parent =>

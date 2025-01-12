@@ -413,101 +413,59 @@ lemma XVals.x_inj (vals: XVals): Function.Injective vals.x_vals := by
 --   simp [XVals.x_vals] at hy
 --   exact hy
 
-noncomputable def mk_x_vals (i: ℕ) (root: G): XVals := by
-  exact {
-    i := i,
-    root_elem := root
-    supp_gt := sorry
-    root_neq := sorry
-    root_nonzero := sorry
-    root_indep := sorry
-    -- x_to_index_inj := by simp [Function.Injective],
-    -- x_to_index_increasing := by simp [StrictMono],
-    -- x_to_index_eq := by simp,
-    -- x_inj := by
-    --   simp [Function.Injective]
-    --   intro a1 a2 funs_eq
-    --   have apply_eq: ((fun₀ | 2 ^ i + a1 * 2 ^ (i + 1) => (1: ℚ))) ( 2 ^ i + a1 * 2 ^ (i + 1)) = ((fun₀ | 2 ^ i + a2 * 2 ^ (i + 1) => 1)) (2 ^ i + a1 * 2 ^ (i + 1)) := by
-    --     rw [funs_eq]
-    --   simp at apply_eq
-    --   simp [Finsupp.single_apply] at apply_eq
-    --   rw [eq_comm] at apply_eq
-    --   simp at apply_eq
-    --   exact apply_eq.symm
-
-    -- x_supp_nonempty := by
-    --   intro n
-    --   simp [basis_n]
-    --   refine Finsupp.support_nonempty_iff.mpr ?_
-    --   simp
-    -- x_increasing := by
-    --   intro m n m_lt_n
-    --   simp only [basis_n, n_q_basis, Finsupp.coe_basisSingleOne]
-    --   have n_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ i + n * 2 ^ (i + 1)) (by simp)
-    --   have m_supp := Finsupp.support_single_ne_zero (b := (1 : ℚ)) (2 ^ i + m * 2 ^ (i + 1)) (by simp)
-    --   simp [n_supp, m_supp]
-    --   exact m_lt_n
-    -- x_basis := by
-    --   intro x hx
-    --   simp at hx
-    --   simp
-    --   obtain ⟨h, hy⟩ := hx
-    --   use 2 ^ i + h * 2 ^ (i + 1)
-  }
-
 -- MAJOR REFACTOR : This is no longer true, and needs to exclude the root element
-def mk_vals_range_s_i (i: ℕ) (root: G): Set.range (mk_x_vals i root).x_vals ⊆ (λ b => b.2) '' (s_i i) := by
-  simp [mk_x_vals, s_i]
-  intro x hx
-  simp at hx
-  simp
-  obtain ⟨y, hy⟩ := hx
-  use 2 ^ i + y * 2 ^ (i + 1)
-  left
-  refine ⟨hy, ?_⟩
-  simp [Nat.ModEq]
+-- def mk_vals_range_s_i (i: ℕ) (root: G): Set.range (mk_x_vals i root).x_vals ⊆ (λ b => b.2) '' (s_i i) := by
+--   simp [mk_x_vals, s_i]
+--   intro x hx
+--   simp at hx
+--   simp
+--   obtain ⟨y, hy⟩ := hx
+--   use 2 ^ i + y * 2 ^ (i + 1)
+--   left
+--   refine ⟨hy, ?_⟩
+--   simp [Nat.ModEq]
 
 
 
-def mk_vals_disjoint (vals1 vals2: XVals) (h_vals: vals1.i ≠ vals2.i) (h_roots: vals1.root_elem ≠ vals2.root_elem): Set.range vals1.x_vals ∩ Set.range vals2.x_vals = ∅ := by
-  have i_subset := mk_vals_range_s_i vals1.i
-  have j_subset := mk_vals_range_s_i vals2.i
-  have disjoint: s_i vals1.i ∩ s_i vals2.i = ∅ := by
-    by_cases i_lt_j: vals1.i < vals2.i
-    . exact s_i_disjoint vals1.i vals2.i i_lt_j
-    . simp at i_lt_j
-      have j_neq_i: vals2.i ≠ vals1.i := h_vals.symm
-      have j_lt_i: vals2.i < vals1.i := by
-        exact Nat.lt_of_le_of_ne i_lt_j j_neq_i
-      rw [Set.inter_comm]
-      exact s_i_disjoint vals2.i vals1.i j_lt_i
-  by_contra!
-  obtain ⟨x, x_in_i, x_in_j⟩ := this
-  have x_in_s_i: x ∈ (λ b => b.2) '' (s_i vals1.i) := by
-    exact i_subset x_in_i
-  have x_in_s_j: x ∈ (λ b => b.2) '' (s_i vals2.i) := by
-    exact j_subset x_in_j
+-- def mk_vals_disjoint (vals1 vals2: XVals) (h_vals: vals1.i ≠ vals2.i) (h_roots: vals1.root_elem ≠ vals2.root_elem): Set.range vals1.x_vals ∩ Set.range vals2.x_vals = ∅ := by
+--   have i_subset := mk_vals_range_s_i vals1.i
+--   have j_subset := mk_vals_range_s_i vals2.i
+--   have disjoint: s_i vals1.i ∩ s_i vals2.i = ∅ := by
+--     by_cases i_lt_j: vals1.i < vals2.i
+--     . exact s_i_disjoint vals1.i vals2.i i_lt_j
+--     . simp at i_lt_j
+--       have j_neq_i: vals2.i ≠ vals1.i := h_vals.symm
+--       have j_lt_i: vals2.i < vals1.i := by
+--         exact Nat.lt_of_le_of_ne i_lt_j j_neq_i
+--       rw [Set.inter_comm]
+--       exact s_i_disjoint vals2.i vals1.i j_lt_i
+--   by_contra!
+--   obtain ⟨x, x_in_i, x_in_j⟩ := this
+--   have x_in_s_i: x ∈ (λ b => b.2) '' (s_i vals1.i) := by
+--     exact i_subset x_in_i
+--   have x_in_s_j: x ∈ (λ b => b.2) '' (s_i vals2.i) := by
+--     exact j_subset x_in_j
 
-  simp at x_in_s_i
-  simp at x_in_s_j
-  obtain ⟨a, ha⟩ := x_in_s_i
-  obtain ⟨b, hb⟩ := x_in_s_j
-  have x_eq_basis_a := s_i_from_basis vals1.i ⟨a, x⟩ ha
-  have x_eq_basis_b := s_i_from_basis vals2.i ⟨b, x⟩ hb
-  simp at x_eq_basis_a
-  simp at x_eq_basis_b
+--   simp at x_in_s_i
+--   simp at x_in_s_j
+--   obtain ⟨a, ha⟩ := x_in_s_i
+--   obtain ⟨b, hb⟩ := x_in_s_j
+--   have x_eq_basis_a := s_i_from_basis vals1.i ⟨a, x⟩ ha
+--   have x_eq_basis_b := s_i_from_basis vals2.i ⟨b, x⟩ hb
+--   simp at x_eq_basis_a
+--   simp at x_eq_basis_b
 
-  have a_eq_b: a = b := by
-    rw [x_eq_basis_a] at x_eq_basis_b
-    have foo := Finsupp.single_left_inj (a := a) (a' := b) (b := (1:ℚ)) (by simp)
-    apply foo.mp x_eq_basis_b
+--   have a_eq_b: a = b := by
+--     rw [x_eq_basis_a] at x_eq_basis_b
+--     have foo := Finsupp.single_left_inj (a := a) (a' := b) (b := (1:ℚ)) (by simp)
+--     apply foo.mp x_eq_basis_b
 
-  rw [a_eq_b] at ha
-  have inter_elem: ⟨b, x⟩ ∈ (s_i vals1.i) ∩ (s_i vals2.i) := by
-    refine ⟨ha, hb⟩
-  have inter_nonempty: (s_i vals1.i) ∩ (s_i vals2.i) ≠ ∅ := by
-    exact ne_of_mem_of_not_mem' inter_elem fun a ↦ a
-  contradiction
+--   rw [a_eq_b] at ha
+--   have inter_elem: ⟨b, x⟩ ∈ (s_i vals1.i) ∩ (s_i vals2.i) := by
+--     refine ⟨ha, hb⟩
+--   have inter_nonempty: (s_i vals1.i) ∩ (s_i vals2.i) ≠ ∅ := by
+--     exact ne_of_mem_of_not_mem' inter_elem fun a ↦ a
+--   contradiction
 
 
 inductive ReverseTree {vals: XVals} where

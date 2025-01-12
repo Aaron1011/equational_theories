@@ -2382,14 +2382,16 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
                 simp at fun_congr
                 have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t1_parent - 1) is_t2_le
                 have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t1_parent - 1) is_t2_le
+                have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t1_parent - 1) (by simp)
                 have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t1_parent - 1) (by simp)
+                simp [XVals.x_to_index] at t1_a_zero
                 simp [XVals.x_to_index] at t1_b_zero
                 simp [XVals.x_to_index] at t2_a_zero
                 simp [XVals.x_to_index] at t2_b_zero
 
                 simp [XVals.x_to_index, XVals.x_vals, newnum_neq_zero] at fun_congr
 
-                simp [t1_b_zero, t2_a_zero, t2_b_zero, xSeq] at fun_congr
+                simp [t1_b_zero, t2_a_zero, t2_b_zero, t1_a_zero] at fun_congr
 
                 have newnum_t1_gt: 1 < newNum t1_parent := by
                   exact newnem_gt_one t1_parent
@@ -2406,7 +2408,7 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
             have parents_eq: t1_parent = t2_parent := by
               exact newnum_injective t1_parent t2_parent newnums_eq
             use t1_parent
-            left
+            right
             rw [parents_eq]
             refine ⟨rfl, rfl⟩
         | .right t2_parent =>

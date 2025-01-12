@@ -4029,18 +4029,23 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
     simp_rw [(latest_x_vals (g_to_num x_sum)).a_val, g_enum_inverse] at first_app_supp_pos
     specialize first_app_supp_pos x_sum_nonpos
 
+    have three_lt_max: 3 < ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)) := by
+      rw [x_sum_supp] at f_supp_increasing
+      simp at f_supp_increasing
+      exact f_supp_increasing
+
+
+    have three_neq_max: 3 ≠ ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)) := by omega
+    have one_neq_max: 1 ≠ ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)) := by
+      omega
+
+
+    have three_lt_second_term_max: 3 < (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support.max := by
+      sorry
+
     have second_app_has_neg: finsuppHasNeg (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)) := by
       simp [finsuppHasNeg]
       use (latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)
-
-      have three_lt_max: 3 < ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)) := by
-        rw [x_sum_supp] at f_supp_increasing
-        simp at f_supp_increasing
-        exact f_supp_increasing
-
-      have three_neq_max: 3 ≠ ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)) := by omega
-      have one_neq_max: 1 ≠ ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)) := by
-        omega
 
       simp [three_neq_max, one_neq_max]
       simp [f, x_sum]
@@ -4059,11 +4064,13 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
     by_contra!
     have app_eq:= DFunLike.congr (x := max_supp) this rfl
     have max_supp_gt_three: 3 < max_supp := by
+      have foo := lt_trans three_lt_second_term_max second_app_supp_increase
       unfold max_supp
-      sorry
+      rw [← WithBot.coe_lt_coe] at foo
 
     have max_supp_not_first: max_supp ∉ (f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support := by
       apply Finset.not_mem_of_max_lt_coe
+
       sorry
 
     have max_supp_neg_1: 1 ≠ max_supp := by omega

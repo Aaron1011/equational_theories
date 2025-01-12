@@ -4066,12 +4066,22 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
     have max_supp_gt_three: 3 < max_supp := by
       have foo := lt_trans three_lt_second_term_max second_app_supp_increase
       unfold max_supp
-      rw [← WithBot.coe_lt_coe] at foo
+      rw [← WithBot.coe_lt_coe]
+      simp
+      exact foo
+
 
     have max_supp_not_first: max_supp ∉ (f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support := by
-      apply Finset.not_mem_of_max_lt_coe
+      have max_supp_not_in_superset: max_supp ∉ (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support :=
+        by sorry
 
-      sorry
+
+
+      have first_subset := Finsupp.support_sub (f := (-fun₀ | 1 => 1) - fun₀ | 3 => 1) (g := f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))
+      have correct_subset : (f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support ⊆ (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support := by
+        sorry
+
+      exact fun a ↦ max_supp_not_in_superset (correct_subset a)
 
     have max_supp_neg_1: 1 ≠ max_supp := by omega
     have max_supp_neq_3: 3 ≠ max_supp := by omega

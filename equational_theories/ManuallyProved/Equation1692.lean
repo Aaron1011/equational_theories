@@ -4089,6 +4089,19 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
           exact Finset.subset_union_right
         . simp
           simp [f]
+
+          have three_neq_two_n: ∀ n, 3 ≠ 2^n := by
+            intro n
+            by_cases n_eq_zero: n = 0
+            . simp [n_eq_zero]
+            . by_cases n_eq_one: n = 1
+              . simp [n_eq_one]
+              . have n_gt_two: 2 ≤ n := by
+                  omega
+                have two_n_ge_4: 2^2 ≤ 2^n := by
+                  exact Nat.pow_le_pow_of_le_right (by simp) n_gt_two
+                omega
+
           match h_tree: (latest_x_vals (g_to_num (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) : Finsupp _ _))).tree with
           | .root =>
             simp [h_tree, ReverseTree.getData, XVals.x_vals]
@@ -4104,12 +4117,43 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
               exact ne_of_mem_of_not_mem ha two_not_mem
             . have cur_i_ge_two: 2 ≤ (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i := by omega
               have pow_ge_4: 2^2 ≤ 2^((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i) := by
-                apply?
+                refine Nat.pow_le_pow_of_le_right (by simp) cur_i_ge_two
               have a_le_3: a ≤ 3 := by
                 exact Nat.divisor_le ha
               omega
           | .left parent =>
-            sorry
+            simp [h_tree, ReverseTree.getData, XVals.x_vals, newnum_neq_zero]
+            rw [Finset.disjoint_iff_ne]
+            intro a ha b hb
+            rw [x_sum_supp] at ha
+            simp [Finsupp.support_single_ne_zero] at hb
+
+            have term_ge_4: 2^2 ≤ 2^((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i + 1) := by
+              rw [StrictMono.le_iff_le]
+              omega
+              exact pow_right_strictMono (a := 2) (by simp)
+
+            have newnum_ge: 1 ≤ (newNum parent - 1) := by
+              have val_ge := newnem_gt_one parent
+              omega
+
+            simp at term_ge_4
+
+            have full_term_ge: 4 ≤ (newNum parent - 1) * 2 ^ ((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i + 1) := by
+              exact le_mul_of_one_le_of_le newnum_ge term_ge_4
+
+            have four_le_b: 4 ≤ b := by
+              rw [hb]
+              omega
+
+
+            by_cases a_eq_one: a = 1
+            . omega
+            .
+              simp [a_eq_one] at ha
+              rw [ha]
+              rw [hb]
+              omega
           | .right parent =>
             sorry
 

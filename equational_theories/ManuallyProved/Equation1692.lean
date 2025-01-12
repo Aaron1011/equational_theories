@@ -3234,8 +3234,31 @@ lemma left_tree_supp_increasing {vals: XVals} (t: @ReverseTree vals): t.left.get
   . intro a b a_neq_b
     by_cases a_eq_zero: a = 0
     . simp [a_eq_zero, XVals.x_vals]
+      have b_neq_zero: b ≠ 0 := by omega
+      simp [b_neq_zero]
       sorry
-    . sorry
+    .
+      simp [XVals.x_vals, a_eq_zero]
+      by_cases g_a_zero: g a = 0
+      .
+        simp [g_a_zero]
+      .
+        rw [Finsupp.support_single_ne_zero]
+        simp
+        by_cases b_eq_zero: b = 0
+        . simp [b_eq_zero]
+          right
+          sorry
+        . simp [b_eq_zero]
+          rw [← Finsupp.not_mem_support_iff]
+          by_cases g_b_zero: g b = 0
+          . simp [g_b_zero]
+          .
+            rw [Finsupp.support_single_ne_zero]
+            simp
+            omega
+            simp [g_b_zero]
+        simp [g_a_zero]
 
 
   have supp_max_sum: (∑ i ∈ Finset.range m, g i • vals.x_vals i).support.max = (vals.x_vals (m - 1)).support.max := by

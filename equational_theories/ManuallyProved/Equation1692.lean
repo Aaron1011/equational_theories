@@ -2605,10 +2605,31 @@ lemma partial_function {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_eq: t1.getD
             | .right t2_parent_parent =>
                 simp [ReverseTree.getData, vals.x_to_index_eq, basis_n, XVals.x_vals, newnum_neq_zero, XVals.x_to_index] at h_a_eq
                 rw [← Finsupp.single_neg] at h_a_eq
-                have vals_neq := basis_neq_elem_diff t2_parent_parent (vals.x_to_index (newNum t1_parent_parent - 1)) (1) (-1) (-1) (by simp) (by simp) (by simp)
-                simp [XVals.x_to_index] at vals_neq
-                rw [← sub_eq_add_neg, ← Finsupp.single_neg] at vals_neq
-                contradiction
+                by_cases t_a_zero: t2_parent_parent.getData.a = 0
+                .
+                  simp [t_a_zero] at h_a_eq
+                  match t2_parent_parent with
+                  | .root =>
+                    simp [ReverseTree.getData, XVals.x_vals, XVals.x_to_index] at h_a_eq
+                    rw [← Finsupp.single_neg] at h_a_eq
+                    rw [Finsupp.single_eq_single_iff] at h_a_eq
+                    simp at h_a_eq
+                    have bad := h_a_eq.2
+                    contradiction
+                  | .left grandparent =>
+                    simp [ReverseTree.getData, XVals.x_vals, XVals.x_to_index, newnum_neq_zero] at h_a_eq
+                    rw [← Finsupp.single_neg] at h_a_eq
+                    rw [Finsupp.single_eq_single_iff] at h_a_eq
+                    simp at h_a_eq
+                    have bad := h_a_eq.2
+                    contradiction
+                  | .right grandparent =>
+                    simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at t_a_zero
+                .
+                  have vals_neq := basis_neq_elem_diff t2_parent_parent (vals.x_to_index (newNum t1_parent_parent - 1)) (1) (-1) (-1) (by simp) (by simp) (by simp) t_a_zero
+                  simp [XVals.x_to_index] at vals_neq
+                  rw [← sub_eq_add_neg, ← Finsupp.single_neg] at vals_neq
+                  contradiction
         | .right t1_parent_parent =>
           match t2_parent with
           | .root =>

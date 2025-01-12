@@ -353,7 +353,7 @@ structure XVals where
   root_neq: root_elem ∉ Set.range (fun n => basis_n (2^(i) + n*2^(i+1)))
   root_i_zero: i = 0 → root_elem = 0
   root_nonzero: i ≠ 0 → root_elem ≠ 0
-  root_indep: i ≠ 0 → LinearIndependent ℚ (fun n => if n = 0 then root_elem else basis_n (2^(i) + (n-1)*2^(i+1)))
+  root_indep: root_elem ≠ 0 → LinearIndependent ℚ (fun n => if n = 0 then root_elem else basis_n (2^(i) + (n-1)*2^(i+1)))
   -- x_basis: Set.range x_vals ⊆ Set.range basis_n
 
 noncomputable def XVals.x_vals (vals: XVals) (n: ℕ): G := if n = 0 then vals.root_elem else basis_n (2^(vals.i) + (n-1)*2^(vals.i+1))
@@ -1143,35 +1143,151 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
     --simp only [basis_n] at hs_t
 
 
-    simp [n_q_basis] at basis_x_val_indep
-    apply (basis_x_val_indep _) at hs_t
-    obtain ⟨b_nonzero, h_b_lt, h_b_zeronzero⟩ := nonzero_b_coord
-    have s_eq_zero := hs_t b_nonzero
+    --simp [n_q_basis] at basis_x_val_indep
+    have new_basis_indep := vals.root_indep
+    by_cases root_elem_zero: vals.root_elem = 0
+    . have prev_eq_sub_plus: newNum prev = newNum prev - 1 + 1 := by
+        have ge_one := newnem_gt_one prev
+        omega
+      --specialize basis_x_val_indep (Finset.range (newNum prev + 1))
+      --simp [Finset.sum_range_succ' _ _] at basis_x_val_indep
+      --simp [XVals.x_to_index] at basis_x_val_indep
 
-    have newnum_prev_nonzero: 1 < newNum prev := by
-      exact newnem_gt_one prev
+      simp [Finset.sum_range_succ' _ _] at hs_t
 
-    have neq_zero: newNum prev ≠ 0 := by
-      omega
 
-    have b_nonzero_lt: b_nonzero < newNum prev + 1 := by
-      linarith
+      -- rw [← Finset.sum_range_reflect] at hs_t
+      -- rw [Finset.sum_range_add _] at hs_t
+      have not_lt: ¬ (newNum prev < max_num) := by omega
+      simp [not_lt, newnum_neq_zero] at hs_t
+      conv at hs_t =>
+        left
+        rhs
+        simp [XVals.x_vals, root_elem_zero]
+      simp at hs_t
 
-    have b_nonzero_lt_other: b_nonzero < newNum prev := by
-      linarith
 
-    have n_nonzero_neq: newNum prev ≠ b_nonzero := by
-      omega
+      simp only [XVals.x_vals] at hs_t
+      have not_zero: ∀ x: ℕ, x + 1 ≠ 0 := by exact fun x ↦ Ne.symm (Nat.zero_ne_add_one x)
+      have plus_minus_eq: ∀ x: ℕ, x + 1 - 1 = x := by omega
+      --simp only [not_zero] at hs_t
+      --simp only [↓reduceIte, plus_minus_eq, Finsupp.coe_basisSingleOne, Function.comp_apply] at hs_t
+      --simp only [Finsupp.coe_basisSingleOne, Function.comp_apply, XVals.x_to_index] at basis_x_val_indep
+      apply (basis_x_val_indep _) at hs_t
 
-    simp [neq_zero, b_nonzero_lt, n_nonzero_neq, h_b_lt, h_b_zeronzero] at s_eq_zero
-    have foo: ¬(newNum prev < max_num) := by
-      linarith
 
-    have t_eq_zero := hs_t (newNum prev)
-    simp [foo] at t_eq_zero
-    refine ⟨s_eq_zero, t_eq_zero⟩
-    intro x hx hx_not_in
-    simp [hx_not_in]
+      have newnum_prev_gt_zero: 0 < newNum prev := by
+        omega
+
+      have other_b_nonzero: ∃n, 0 < n ∧ n < max_num ∧ b_coords n ≠ 0 := by
+        by_contra!
+
+        have coords_zero: ∀ i, b_coords (i + 1) = 0 := by
+          intro i
+          by_cases i_plus_lt: i + 1 < max_num
+          . apply this (i + 1) (by simp) i_plus_lt
+          . have i_plus_ge: max_num ≤ (i + 1) := by omega
+            have i_plus_not_supp: (i + 1) ∉ b_coords.support := by
+              apply Finset.not_mem_of_max_lt_coe
+              simp
+              rw [← WithBot.coe_le_coe] at i_plus_ge
+              apply LT.lt.trans_le b_coord_card i_plus_ge
+            exact Finsupp.not_mem_support_iff.mp i_plus_not_supp
+
+        simp [coords_zero] at hs_t
+        specialize hs_t (newNum prev - 1)
+        simp [newnum_prev_gt_zero] at hs_t
+
+
+
+
+
+
+        --specialize hs_t n
+        simp [this] at hs_t
+
+
+      -- TODO - deduplite this with the other 'root_elem_zero' branch
+      obtain ⟨b_nonzero, h_b_lt, h_b_zeronzero⟩ := nonzero_b_coord
+      have s_eq_zero := hs_t (b_nonzero - 1)
+      have b_nonzero_lt: b_nonzero < newNum prev := by omega
+      simp [b_nonzero_lt] at s_eq_zero
+
+
+
+      have newnum_prev_nonzero: 1 < newNum prev := by
+        exact newnem_gt_one prev
+
+
+
+      have newnum_prev_neq_one: newNum prev ≠ 1 := by
+        omega
+
+      by_cases b_nonzero_eq_zero: b_nonzero = 0
+      . simp [b_nonzero_eq_zero, newnum_prev_neq_one, newnum_prev_gt_zero] at s_eq_zero
+        by_cases maxnum_gt_one: max_num > 1
+        . simp [maxnum_gt_one] at s_eq_zero
+          sorry
+        . sorry
+
+
+
+
+
+      have neq_zero: newNum prev ≠ 0 := by
+        omega
+
+      have b_nonzero_lt: b_nonzero < newNum prev + 1 := by
+        linarith
+
+      have b_nonzero_lt_other: b_nonzero < newNum prev := by
+        linarith
+
+      have n_nonzero_neq: newNum prev ≠ b_nonzero := by
+        omega
+
+
+
+      --simp [neq_zero, b_nonzero_lt, n_nonzero_neq, h_b_lt, h_b_zeronzero] at s_eq_zero
+      have foo: ¬(newNum prev < max_num) := by
+        linarith
+
+      have t_eq_zero := hs_t (newNum prev - 1)
+      have gt_zero: 0 < newNum prev := by
+        linarith
+      have sub_plus_eq : newNum prev - 1 + 1 = newNum prev := by
+        omega
+      simp [foo, gt_zero, sub_plus_eq] at t_eq_zero
+      --refine ⟨s_eq_zero, t_eq_zero⟩
+      sorry
+    . specialize new_basis_indep root_elem_zero
+      rw [linearIndependent_iff'] at new_basis_indep
+      apply (new_basis_indep _) at hs_t
+      obtain ⟨b_nonzero, h_b_lt, h_b_zeronzero⟩ := nonzero_b_coord
+      have s_eq_zero := hs_t b_nonzero
+
+      have newnum_prev_nonzero: 1 < newNum prev := by
+        exact newnem_gt_one prev
+
+      have neq_zero: newNum prev ≠ 0 := by
+        omega
+
+      have b_nonzero_lt: b_nonzero < newNum prev + 1 := by
+        linarith
+
+      have b_nonzero_lt_other: b_nonzero < newNum prev := by
+        linarith
+
+      have n_nonzero_neq: newNum prev ≠ b_nonzero := by
+        omega
+
+      simp [neq_zero, b_nonzero_lt, n_nonzero_neq, h_b_lt, h_b_zeronzero] at s_eq_zero
+      have foo: ¬(newNum prev < max_num) := by
+        linarith
+
+      have t_eq_zero := hs_t (newNum prev)
+      simp [foo] at t_eq_zero
+      refine ⟨s_eq_zero, t_eq_zero⟩
   | right prev h_prev =>
     simp [ReverseTree.getData]
     simp [ReverseTree.getData] at h_prev
@@ -3038,7 +3154,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           apply g_enum_nonzero_eq_nonzero
           omega
         root_indep := by
-          simp
+          intro n_not_zero
           rw [linearIndependent_iff']
           by_contra!
           obtain ⟨s, g, h_sum_zero, h_nonzero_coord⟩ := this

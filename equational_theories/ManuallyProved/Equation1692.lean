@@ -1950,7 +1950,41 @@ lemma xseq_zero_neq_b {vals: XVals} (t: @ReverseTree vals) (s: ℚ) (hs: s ≠ 0
       simp only [one_smul, neg_one_smul, add_comm] at vals_neq
       rw [neg_smul, ← sub_eq_add_neg] at vals_neq
       rw [smul_sub] at this
-      contradiction
+      match t2_parent_parent with
+      | .root =>
+        simp [ReverseTree.getData, XVals.x_vals] at this
+        have eval_at := DFunLike.congr (x := (vals.x_to_index (0))) this rfl
+        have root_not_supp := xvals_root_not_supp vals (0)
+        simp [XVals.x_to_index] at root_not_supp
+        simp [XVals.x_to_index] at eval_at
+        simp [root_not_supp] at eval_at
+        contradiction
+      | .left ancestor =>
+        simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at this
+        have eval_at := DFunLike.congr (x := (vals.x_to_index (newNum ancestor - 1))) this rfl
+        have root_not_supp := xvals_root_not_supp vals (newNum ancestor - 1)
+        simp [XVals.x_to_index] at root_not_supp
+        simp [XVals.x_to_index] at eval_at
+        simp [root_not_supp] at eval_at
+        have ancestor_zero := eval_larger_b_eq_zero ancestor (newNum t1_parent - 1) (by simp)
+        sorry
+      | .right ancestor =>
+        simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at this
+        have ancestor_a_zero := eval_larger_a_eq_zero ancestor (newNum ancestor - 1) (by simp)
+        have ancestor_b_zero := eval_larger_b_eq_zero ancestor (newNum ancestor - 1) (by simp)
+        simp [XVals.x_to_index] at ancestor_a_zero
+        simp [XVals.x_to_index] at ancestor_b_zero
+
+        have root_not_supp := xvals_root_not_supp vals (newNum ancestor - 1)
+        simp [XVals.x_to_index] at root_not_supp
+
+        have eval_at := DFunLike.congr (x := (vals.x_to_index (newNum ancestor - 1))) this rfl
+        simp only [XVals.x_to_index] at eval_at
+        simp at eval_at
+        simp [ancestor_a_zero, ancestor_b_zero] at eval_at
+        simp [root_not_supp] at eval_at
+        rw [eq_comm] at eval_at
+        contradiction
 
 
 lemma common_ancestor_stuff {vals: XVals} (ancestor t1 t2: @ReverseTree vals) (left_right: t1 = ancestor.left ∧ t2 = ancestor.right)

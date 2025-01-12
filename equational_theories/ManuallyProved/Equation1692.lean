@@ -2754,12 +2754,32 @@ lemma partial_function {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_eq: t1.getD
         contradiction
       | .right t1_parent_parent =>
         simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
-        have vals_neq := basis_neq_elem_diff t1_parent_parent (vals.x_to_index (newNum t2_parent - 1)) 1 (-1) 1 (by simp) (by simp) (by simp)
-        simp only [one_smul, neg_one_smul, ← sub_eq_add_neg] at vals_neq
-        rw [eq_comm] at h_a_eq
-        simp [XVals.x_vals, newnum_neq_zero] at h_a_eq
-        simp [XVals.x_to_index] at vals_neq
-        contradiction
+
+        by_cases t_a_zero: t1_parent_parent.getData.a = 0
+        .
+          simp [t_a_zero] at h_a_eq
+          match t1_parent_parent with
+          | .root =>
+            simp [ReverseTree.getData, XVals.x_vals, XVals.x_to_index, newnum_neq_zero] at h_a_eq
+            rw [Finsupp.single_eq_single_iff] at h_a_eq
+            simp at h_a_eq
+            have newnum_parent_ge: 1 < newNum t2_parent := by
+              exact newnem_gt_one t2_parent
+            omega
+          | .left grandparent =>
+            simp [ReverseTree.getData, XVals.x_vals, XVals.x_to_index, newnum_neq_zero] at h_a_eq
+            rw [Finsupp.single_eq_single_iff] at h_a_eq
+            simp at h_a_eq
+            sorry
+          | .right grandparent =>
+            simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at t_a_zero
+        .
+          have vals_neq := basis_neq_elem_diff t1_parent_parent (vals.x_to_index (newNum t2_parent - 1)) 1 (-1) 1 (by simp) (by simp) (by simp) t_a_zero
+          simp only [one_smul, neg_one_smul, ← sub_eq_add_neg] at vals_neq
+          rw [eq_comm] at h_a_eq
+          simp [XVals.x_vals, newnum_neq_zero] at h_a_eq
+          simp [XVals.x_to_index] at vals_neq
+          contradiction
   | .right t1_parent =>
     match t2 with
     | .root =>

@@ -1222,7 +1222,7 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
             . simp [x_eq_zero, XVals.x_vals, root_elem_zero]
             . have x_gt_zero: 0 < x := by
                 omega
-              specialize this x (Finset.mem_range.mp hx)
+              specialize this x x_gt_zero (Finset.mem_range.mp hx)
               have is_zero := coords_zero (x - 1)
               have x_minus_eq: x - 1 + 1 = x := by
                 omega

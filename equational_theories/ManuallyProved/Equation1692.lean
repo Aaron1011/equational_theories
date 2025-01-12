@@ -1817,20 +1817,24 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
       linarith
 #print axioms tree_supp_disjoint
 
-lemma tree_vals_nonzero {vals: XVals} (t: @ReverseTree vals) : t.getData.a ≠ 0 ∧ t.getData.b ≠ 0 := by
-  have a_neq_zero: t.getData.a ≠ 0 := by
-    have bar := LinearIndependent.ne_zero 0 (tree_linear_independent t)
+lemma tree_vals_nonzero {vals: XVals} (t: @ReverseTree vals) : t.getData.b ≠ 0 := by
+  by_cases tree_a_zero: t.getData.a = 0
+  . match t with
+    | .root =>
+      simp [ReverseTree.getData, XVals.x_vals]
+    | .left parent =>
+      simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero]
+    | .right parent =>
+      simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero]
+      simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at tree_a_zero
+  .
+    have bar := LinearIndependent.ne_zero 1 (tree_linear_independent t tree_a_zero)
     simp at bar
     assumption
-  have b_neq_zero: t.getData.b ≠ 0 := by
-    have bar := LinearIndependent.ne_zero 1 (tree_linear_independent t)
-    simp at bar
-    assumption
-  exact ⟨a_neq_zero, b_neq_zero⟩
 
 lemma tree_b_supp_nonempty {vals: XVals} (t: @ReverseTree vals) : t.getData.b.support.Nonempty := by
   simp [Finset.nonempty_iff_ne_empty]
-  exact (tree_vals_nonzero t).2
+  exact (tree_vals_nonzero t)
 
 lemma basis_neq_elem_diff {vals: XVals} (t:@ ReverseTree vals) (a: ℕ) (b c r: ℚ) (hb: b ≠ 0) (hc: c ≠ 0) (hr: r ≠ 0): Finsupp.single a r ≠ b • t.getData.b + c • t.getData.a := by
   by_contra!
@@ -3354,7 +3358,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
                 contradiction
               | .left tb_parent =>
                 simp [ReverseTree.getData] at tb_sum
-                have b_nonzero := (tree_vals_nonzero tb_parent).2
+                have b_nonzero := (tree_vals_nonzero tb_parent)
                 contradiction
               | .right tb_parent =>
                 simp [ReverseTree.getData] at tb_sum
@@ -3394,7 +3398,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
               | .root => contradiction
               | .left tb_parent =>
                 simp [ReverseTree.getData] at tb_sum
-                have parent_b_nonzero := (tree_vals_nonzero tb_parent).2
+                have parent_b_nonzero := (tree_vals_nonzero tb_parent)
                 contradiction
               | .right tb_parent =>
                 simp [ReverseTree.getData] at tb_sum
@@ -3855,7 +3859,7 @@ theorem not_equation_23: (f (0)) + (f (- (f (0)))) ≠ 0 := by
 
 theorem not_equation_47: 0 ≠ f (f (f 0)) := by
   rw [f]
-  have vals_nonzero := (tree_vals_nonzero (latest_x_vals (g_to_num (f (f 0)))).tree).2
+  have vals_nonzero := (tree_vals_nonzero (latest_x_vals (g_to_num (f (f 0)))).tree)
   exact vals_nonzero.symm
 
 
@@ -4073,7 +4077,7 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
   have first_app_supp_nonempty: (f x_sum).support.Nonempty := by
     rw [Finsupp.support_nonempty_iff]
     simp [f]
-    have not_zero := (tree_vals_nonzero (latest_x_vals (g_to_num x_sum)).tree).2
+    have not_zero := (tree_vals_nonzero (latest_x_vals (g_to_num x_sum)).tree)
     exact not_zero
 
   have x_sum_nonpos: finsuppHasNeg x_sum := by

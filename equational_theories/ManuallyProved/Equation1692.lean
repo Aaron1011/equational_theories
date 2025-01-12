@@ -4054,98 +4054,40 @@ lemma f_zero_eq: f (0) = (fun₀ | 1 => 1) := by
   simp [ReverseTree.getData, x_vals_zero, XVals.x_vals]
   simp [x_vals_zero, latest_x_vals]
 
+lemma f_one_same_tree: (latest_x_vals (g_to_num fun₀ | 1 => 1)).cur = x_vals_zero := by
+  have tree_eq: (fun₀ | 1 => 1) = (@ReverseTree.root (x_vals_zero)).getData.a := by
+    simp [ReverseTree.getData, x_vals_zero]
+  sorry
+
+  --rw [tree_eq, new_eval_left (n := 0)]
+  --simp [ReverseTree.getData, x_vals_zero, XVals.x_vals]
+  --simp [x_vals_zero, latest_x_vals]
+
+lemma f_one_eq: f (fun₀ | 1 => 1) = (fun₀ | 7 => 1) := by
+  let root: @ReverseTree x_vals_zero := ReverseTree.root
+  have my_one_tree: root.right.left.getData.a  = fun₀ | 1 => 1 := by
+    unfold root
+    simp [ReverseTree.getData, x_vals_zero, XVals.x_vals]
+  rw [← my_one_tree, new_eval_left (n := 0)]
+  . simp [ReverseTree.getData, x_vals_zero, XVals.x_vals, newnum_neq_zero, newNum]
+  . simp [latest_x_vals]
+
+
 theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
   simp [f_zero_eq]
 
   let root: @ReverseTree x_vals_zero := ReverseTree.root
 
-  have oops_eq_one: root.right.left.getData.a  = fun₀ | 1 => 1 := by
+
+
+  have my_one_tree: root.right.left.getData.a  = fun₀ | 1 => 1 := by
     unfold root
     simp [ReverseTree.getData, x_vals_zero, XVals.x_vals]
 
-  have no_root_left: ∀ t: @ReverseTree (x_vals_zero), t.getData.a ≠ fun₀ | 1 => 1 := by
-    intro t
-    by_contra!
-    induction t with
-    | root =>
-      -- TODO - make a single lemma that does all of this
-      simp only [ReverseTree.getData] at this
-      simp only [x_vals_zero, XVals.x_vals] at this
-      rw [eq_comm] at this
-      rw [← Finsupp.support_eq_empty] at this
-      have one_in_supp: 1 ∈ (fun₀ | 1 => (1 : ℚ)).support := by
-        simp
-      have supp_nonempty: (fun₀ | 1 => (1 : ℚ)).support ≠ ∅ := by
-        exact Finset.ne_empty_of_mem one_in_supp
-      contradiction
-    | left t1_parent h_parent =>
-      simp only [ReverseTree.getData] at this
-      match t1_parent with
-      | .root =>
-        simp only [ReverseTree.getData] at this
-        simp only [x_vals_zero, XVals.x_vals] at this
-        simp at this
-        rw [Finsupp.eq_single_iff] at this
-        simp at this
-        have bad := this.2
-        contradiction
-      | .left t1_grand =>
-        simp only [ReverseTree.getData] at this
-        simp only [x_vals_zero, XVals.x_vals] at this
-        simp [newnum_neq_zero] at this
-        rw [Finsupp.eq_single_iff] at this
-        simp at this
-        rw [Finsupp.support_single_ne_zero _ (by simp)] at this
-        simp at this
-        have bad_newnum := this.1
-        have val_gt_one := newnem_gt_one t1_grand
-        omega
-      | .right t1_grand =>
-        simp only [ReverseTree.getData] at this
-        by_cases t1_grand_zero: t1_grand.getData.a = 0
-        . simp [t1_grand_zero] at this
-          have eq_root_a: t1_grand.getData.a = (@ReverseTree.root x_vals_zero).getData.a := by
-            simp [ReverseTree.getData, x_vals_zero]
-            exact t1_grand_zero
-          have trees_eq := temp_partial_function eq_root_a
-          rw [trees_eq] at this
-          simp [ReverseTree.getData, XVals.x_vals, x_vals_zero] at this
-
-        .
-          have not_comb := basis_neq_elem_diff t1_grand 1 1 (-1) 1 (by simp) (by simp) (by simp) t1_grand_zero
-          simp at this
-          simp at not_comb
-          rw [← sub_eq_add_neg] at not_comb
-          rw [eq_comm] at this
-          contradiction
-    | right t1_parent h_parent =>
-      simp only [ReverseTree.getData] at this
-      simp only [x_vals_zero, XVals.x_vals, newnum_neq_zero] at this
-      simp at this
-      have val_neq_one: 1 + (newNum t1_parent - 1) * 2 ≠ 1 := by
-        have t1_ne_one: newNum t1_parent > 1 := by
-          apply newnem_gt_one
-        omega
-      rw [Finsupp.eq_single_iff] at this
-      simp at this
-      rw [Finsupp.support_single_ne_zero _ (by simp)] at this
-      simp at this
-      omega
-
-  have tree_one_not_in_x_vals_0: (∃ x_vals: XVals, ∃ t: @ReverseTree x_vals, x_vals ∈ ({x_vals_zero}: Finset _) ∧ t.getData.a = g_enumerate 1) = False := by
-    rw [g_enum_one_eq_one]
-    simp [no_root_left]
-
-  have one_is_root: (latest_x_vals (g_to_num fun₀ | 1 => 1)).tree = ReverseTree.root := by
-    rw [g_num_one_eq_one]
-    simp [latest_x_vals]
-    conv =>
-      lhs
-    rw [dite_cond_eq_false tree_one_not_in_x_vals_0]
 
 
   -- MAJOR REFACTOR - generialize this to any power of 2, and make it a lemma
-  have nothing_maps_other_val: ∀ {vals: XVals}, ∀ t: @ReverseTree vals, t.getData.b ≠ -fun₀ | 2 ^ (latest_x_vals (g_to_num fun₀ | 1 => 1)).cur.i => 1 := by
+  have nothing_maps_other_val: ∀ {vals: XVals}, ∀ t: @ReverseTree vals, t.getData.b ≠ -fun₀ | 7 => 1 := by
     intro vals t
     match t with
     | .root =>
@@ -4171,19 +4113,53 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
       simp [ReverseTree.getData]
       by_contra!
       have not_eq := basis_neq_elem_diff t1_parent (2 ^ (latest_x_vals (g_to_num fun₀ | 1 => 1)).cur.i) (-1) 1 (-1) (by simp) (by simp) (by simp)
-      simp at not_eq
-      rw [neg_add_eq_sub, eq_comm] at not_eq
-      contradiction
+      by_cases parent_eq_zero: t1_parent.getData.a = 0
+      .
+        have parent_eq_root_a: t1_parent.getData.a = (ReverseTree.root (vals := x_vals_zero)).getData.a := by
+          simp [parent_eq_zero, ReverseTree.getData, x_vals_zero]
 
-  by_contra!
-  rw [eq_comm, add_comm, add_eq_zero_iff_eq_neg] at this
-  conv at this =>
-    rhs
-    rw [f, one_is_root]
-  simp only [ReverseTree.getData, XVals.x_vals] at this
-  simp at this
-  specialize nothing_maps_other_val (latest_x_vals (g_to_num ((fun₀ | 1 => 1) - f fun₀ | 1 => 1))).tree
-  exact nothing_maps_other_val this
+        simp [parent_eq_zero] at this
+        match t1_parent with
+        | .root =>
+          simp [ReverseTree.getData, XVals.x_vals] at this
+          rw [Finsupp.single_eq_single_iff] at this
+          simp at this
+          have two_pow_not_seven: 2 ^ vals.i ≠  7 := by
+            sorry
+          contradiction
+        | .left t2_parent =>
+          simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at this
+          have val_neq_seven: 2 ^ vals.i + (newNum t2_parent - 1) * 2 ^ (vals.i + 1) ≠ 7 := by
+            sorry
+          rw [Finsupp.single_eq_single_iff] at this
+          simp at this
+          contradiction
+        | .right t2_parent =>
+          simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at this
+
+
+
+
+
+      .
+        specialize not_eq parent_eq_zero
+        simp at not_eq
+        rw [neg_add_eq_sub, eq_comm] at not_eq
+        simp [f_one_same_tree, x_vals_zero] at not_eq
+        contradiction
+
+
+  rw [← my_one_tree, new_eval_left (n := 0)]
+  . simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero]
+    by_contra!
+    rw [eq_comm, add_comm, add_eq_zero_iff_eq_neg] at this
+    specialize nothing_maps_other_val (latest_x_vals (g_to_num ((fun₀ | 1 => 1) - f fun₀ | 1 => 1))).tree
+    simp [x_vals_zero, newNum] at this
+    rw [f_one_eq] at nothing_maps_other_val
+    simp [f] at this
+    contradiction
+  . simp [latest_x_vals]
+
 
 lemma sum_1_3_eq_tree: (fun₀ | 1 => (1: ℚ)) + (fun₀ | 3 => 1) = (@ReverseTree.root x_vals_zero).left.right.left.getData.a := by
   simp [ReverseTree.getData, x_vals_zero, XVals.x_vals, newnum_neq_zero, newNum]

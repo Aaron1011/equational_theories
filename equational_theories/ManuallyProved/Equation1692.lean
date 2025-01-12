@@ -4072,14 +4072,47 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
 
 
     have max_supp_not_first: max_supp ∉ (f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support := by
-      have max_supp_not_in_superset: max_supp ∉ (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support :=
-        by sorry
+      have max_supp_not_in_superset: max_supp ∉ (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support := by
+        unfold max_supp
+        apply Finset.not_mem_of_max_lt_coe
+        exact second_app_supp_increase
 
 
 
       have first_subset := Finsupp.support_sub (f := (-fun₀ | 1 => 1) - fun₀ | 3 => 1) (g := f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))
       have correct_subset : (f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support ⊆ (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support := by
-        sorry
+        have eq_add := Finsupp.support_add_eq (g₁ := (-fun₀ | 1 => (1 : ℚ)) - fun₀ | 3 => 1)  (g₂ := -f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)) ?_
+        .
+          nth_rw 1 [← sub_eq_add_neg] at eq_add
+          rw [eq_add]
+          simp
+          exact Finset.subset_union_right
+        . simp
+          simp [f]
+          match h_tree: (latest_x_vals (g_to_num (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) : Finsupp _ _))).tree with
+          | .root =>
+            simp [h_tree, ReverseTree.getData, XVals.x_vals]
+            rw [Finset.disjoint_iff_ne]
+            intro a ha b hb
+            rw [x_sum_supp] at ha
+            simp [Finsupp.support_single_ne_zero] at hb
+            have cur_i_gt:  0 < (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i := by omega
+            by_cases cur_i_one: (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i = 1
+            . simp [cur_i_one] at hb
+              rw [hb]
+              have two_not_mem: 2 ∉ ({1, 3}: Finset ℕ) := by simp
+              exact ne_of_mem_of_not_mem ha two_not_mem
+            . have cur_i_ge_two: 2 ≤ (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i := by omega
+              have pow_ge_4: 2^2 ≤ 2^((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i) := by
+                apply?
+              have a_le_3: a ≤ 3 := by
+                exact Nat.divisor_le ha
+              omega
+          | .left parent =>
+            sorry
+          | .right parent =>
+            sorry
+
 
       exact fun a ↦ max_supp_not_in_superset (correct_subset a)
 

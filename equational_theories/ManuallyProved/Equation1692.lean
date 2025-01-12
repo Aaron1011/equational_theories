@@ -3285,20 +3285,58 @@ lemma left_tree_supp_increasing {vals: XVals} (t: @ReverseTree vals): t.left.get
       simp [XVals.x_vals]
       by_cases m_minus_eq_zero: m - 1 = 0
       . simp [m_minus_eq_zero]
-        rw [Finset.max'_eq_sup', Finset.sup'_eq_sup]
-        apply sup_eq_of_isMaxOn
-        simp
-        use 0
-        simp
-        refine ⟨m_gt_zero, ?_⟩
-        apply sup_eq_of_isMaxOn
+        intro a x hx not_zero
+        by_cases x_eq_zero: x = 0
+        . simp [x_eq_zero] at not_zero
+          have in_supp := not_zero.2
+          simp at in_supp
+          rw [← ne_eq] at in_supp
+          rw [← Finsupp.mem_support_iff] at in_supp
+          apply Finset.le_max in_supp
+        . have m_eq_one: m = 1 := by omega
+          omega
       . simp [m_minus_eq_zero]
         rw [Finsupp.support_single_ne_zero]
         simp
         norm_cast
-        rw [← Finset.coe_max']
-        norm_cast
-        sorry
+        intro a x hx not_zero
+        by_cases x_eq_zero: x = 0
+        . simp [x_eq_zero] at not_zero
+          have in_supp := not_zero.2
+          rw [← ne_eq] at in_supp
+          rw [← Finsupp.mem_support_iff] at in_supp
+          have supp_lt := vals.supp_gt (m - 1 - 1)
+          simp [basis_n] at supp_lt
+          simp [Finsupp.support_single_ne_zero] at supp_lt
+          have a_le_max := Finset.le_max in_supp
+          norm_cast
+          norm_cast at supp_lt
+          exact le_trans a_le_max (le_of_lt supp_lt)
+
+
+        . simp [x_eq_zero] at not_zero
+          rw [← ne_eq] at not_zero
+          by_cases g_x_zero: g x = 0
+          .
+            simp [g_x_zero]
+            rw [g_x_zero] at not_zero
+            simp at not_zero
+          .
+            rw [← Finsupp.mem_support_iff] at not_zero
+            rw [Finsupp.support_single_ne_zero] at not_zero
+            simp at not_zero
+            rw [not_zero]
+            have x_minus_le: x - 1 ≤ m - 1 - 1 := by omega
+            -- TODO - why do we need this?
+            rw [Nat.cast_withBot]
+            norm_cast
+            rw [Nat.cast_withBot]
+            norm_cast
+            field_simp
+            omega
+            exact g_x_zero
+        simp
+
 
     have m_supp_max_lt: (vals.x_vals (m - 1)).support.max < (vals.x_vals (newNum t)).support.max := by
       by_cases m_minus_eq_zero: m - 1 = 0
@@ -3323,23 +3361,6 @@ lemma left_tree_supp_increasing {vals: XVals} (t: @ReverseTree vals): t.left.get
 
     rw [t_sum]
     exact lt_of_le_of_lt supp_max_sum m_supp_max_lt
-
-    linarith
-    rw [t_sum, supp_max_sum]
-    by_cases m_minus_eq_zero: m - 1 = 0
-    . simp [m_minus_eq_zero, XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero]
-      have supp_lt := vals.supp_gt (newNum t - 1)
-      simp [basis_n, Finsupp.support_single_ne_zero] at supp_lt
-      norm_cast
-    . simp [XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero, m_minus_eq_zero]
-      ring
-      norm_cast
-      rw [← WithBot.coe_natCast]
-      rw [← WithBot.coe_ofNat]
-      norm_cast
-      have m_gt_one: 1 < m := by omega
-      field_simp
-      omega
 
   --simp [XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero]
 

@@ -2901,7 +2901,11 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
       distinct_i := prev_x_vals.distinct_i
       distinct_trees := prev_x_vals.distinct_trees
       supp_max_pos := by
-
+        match Classical.choose (Classical.choose_spec has_tree) with
+        | .root =>
+          simp [ReverseTree.getData, XVals.x_vals, Finsupp.support_single_ne_zero]
+        | .left parent => sorry
+        | .right parent => sorry
         sorry
       supp_increasing := by
         match Classical.choose (Classical.choose_spec has_tree) with
@@ -3132,7 +3136,10 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           have le_getd : (g_enumerate n).support.max ≤ Option.getD (g_enumerate n).support.max 0 := by
             match h_max: (g_enumerate n).support.max with
             | .some max_val =>
+              rw [← WithBot.some_eq_coe]
               simp [h_max]
+              rw [WithBot.some_eq_coe]
+              rfl
             | .none =>
               simp [h_max]
           rw [← WithBot.coe_lt_coe] at g_supp_lt

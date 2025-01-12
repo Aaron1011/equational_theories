@@ -1965,8 +1965,7 @@ lemma xseq_zero_neq_b {vals: XVals} (t: @ReverseTree vals) (s: ℚ) (hs: s ≠ 0
       contradiction
   | .left t2_parent_parent =>
       simp [ReverseTree.getData, xSeq] at this
-      rw [vals.x_to_index_eq] at this
-      simp [basis_n] at this
+      simp [XVals.x_vals, newnum_neq_zero] at this
       have fun_neq := finsupp_new_zero_newnum t2_parent_parent 1 s hs
       contradiction
     | .right t2_parent_parent =>
@@ -2360,11 +2359,14 @@ lemma partial_function {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_eq: t1.getD
         --rw [vals.x_to_index_eq] at h_a_eq
         have b_neq := xseq_zero_neq_b t2_parent (-1) (by simp)
         simp at b_neq
-        simp [XVals.x_to_index] at b_neq
         contradiction
     | .right t2_parent =>
         simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
-        have fun_neq := finsupp_new_zero_newnum t2_parent 1 1 (by simp)
+        simp [XVals.x_vals, newnum_neq_zero] at h_a_eq
+        have root_not_range := vals.root_neq
+        simp at root_not_range
+        specialize root_not_range (newNum t2_parent - 1)
+        rw [eq_comm] at h_a_eq
         contradiction
   | .left t1_parent =>
     match t2 with

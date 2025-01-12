@@ -1649,7 +1649,7 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
         have x_lt_m: x < vals.x_to_index (m) := by
           simp at x_in_range
           exact x_in_range
-        linarith
+        omega
     | .right parent =>
       -- TODO - a lot of this could probably be factored out and shared between the left and right branches
       simp [ReverseTree.getData, xSeq]
@@ -1666,8 +1666,14 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
       have one_ne_zero: (1 : ℚ) ≠ 0 := by
         simp
       have newnum_support := Finsupp.support_single_ne_zero (vals.x_to_index (newNum parent)) one_ne_zero
-      rw [vals.x_to_index_eq] at x_in_cur
-      simp [newnum_support] at x_in_cur
+      simp [XVals.x_vals, newnum_neq_zero] at x_in_cur
+      rw [← ne_eq] at x_in_cur
+      rw [← Finsupp.mem_support_iff] at x_in_cur
+      rw [Finsupp.support_single_ne_zero] at x_in_cur
+      simp at x_in_cur
+
+      --rw [vals.x_to_index_eq] at x_in_cur
+      --simp [newnum_support] at x_in_cur
       have newnum_ge_max: (max a_m b_m) ≤ newNum parent := by
         simp
         exact ⟨a_m_le_newnum, b_m_le_newnum⟩

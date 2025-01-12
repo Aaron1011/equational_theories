@@ -1469,12 +1469,17 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
               exact x_lt_max
             rw [← b_eq] at a_eq_b_sum
             rw [LinearIndependent.pair_iff'] at h_prev
-            specialize h_prev 1
-            simp at h_prev
+            have a_neq_b: prev.getData.a ≠ prev.getData.b := by
+              sorry
             contradiction
 
             -- Prove b neq zero
             by_contra!
+            have a_neq_b: prev.getData.a ≠ prev.getData.b := by
+              sorry
+            rw [this] at a_neq_b
+            simp at ne_zero
+
             rw [this] at h_prev
             have ne_zero := LinearIndependent.ne_zero 0 h_prev
             simp at ne_zero
@@ -4727,40 +4732,6 @@ theorem not_equation_3456: f 0 ≠ f ((f 0) + f (- (f 0))) := by
   simp
   simp [latest_x_vals]
   rfl
-
-lemma nothing_maps_some_val {vals: XVals} (t: @ReverseTree vals) (i: ℕ): t.getData.b ≠ -fun₀ | 3 => 1 := by
-  match t with
-  | .root =>
-    simp only [ReverseTree.getData]
-    simp only [XVals.x_vals]
-    simp
-    by_contra!
-    rw [← Finsupp.single_neg] at this
-    rw [Finsupp.single_eq_single_iff] at this
-    simp at this
-    have bad := this.2
-    contradiction
-  | .left t1_parent =>
-    simp [ReverseTree.getData]
-    by_contra!
-    simp [XVals.x_vals, newnum_neq_zero] at this
-    rw [← Finsupp.single_neg] at this
-    rw [Finsupp.single_eq_single_iff] at this
-    simp at this
-    have bad := this.2
-    contradiction
-  | .right t1_parent =>
-    simp [ReverseTree.getData]
-    by_contra!
-    by_cases parent_a_zero: t1_parent.getData.a = 0
-    . simp [parent_a_zero] at this
-      sorry
-    .
-      have not_eq := basis_neq_elem_diff t1_parent 3 (-1) 1 (-1) (by simp) (by simp) (by simp) parent_a_zero
-      simp at not_eq
-      rw [neg_add_eq_sub, eq_comm] at not_eq
-      contradiction
-
 
 theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0) - f (-f 0))) := by
   rw [neg_f_zero, new_eval_left (n := 0)]

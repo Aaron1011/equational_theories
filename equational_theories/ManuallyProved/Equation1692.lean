@@ -1615,9 +1615,13 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
       have one_ne_zero: (1: ℚ) ≠ 0:= by
         simp
 
-      rw [Finsupp.support_single_ne_zero (vals.x_to_index 0) one_ne_zero]
-      rw [Finsupp.support_single_ne_zero (vals.x_to_index 1) one_ne_zero]
-      simp [other_one_ne_zero]
+      simp [XVals.x_to_index]
+      simp [Finsupp.support_single_ne_zero]
+      have root_supp_lt := vals.supp_gt 0
+      simp at root_supp_lt
+      simp [Finsupp.support_single_ne_zero] at root_supp_lt
+      refine Finset.singleton_inter_of_not_mem ?H
+      exact Finset.not_mem_of_max_lt_coe root_supp_lt
     | .left parent =>
         simp [ReverseTree.getData, xSeq]
         obtain ⟨_, g, m, m_le_newnum, m_supp_lt, b_linear_comb⟩ := tree_linear_comb parent
@@ -1633,8 +1637,7 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
         have one_ne_zero: (1 : ℚ) ≠ 0 := by
           simp
         have bar := Finsupp.support_single_ne_zero (vals.x_to_index (newNum parent)) one_ne_zero
-        rw [vals.x_to_index_eq] at x_in_cur
-        simp [bar] at x_in_cur
+        simp [XVals.x_vals, newnum_neq_zero] at x_in_cur
 
         have x_lt_max := Finset.le_max x_in_parent
         have support_subset := Finsupp.support_finset_sum (s := Finset.range m) (f := fun i => g i • vals.x_vals i)
@@ -2206,11 +2209,11 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
                   have is_t1_le: newNum t1_parent ≤ newNum t2_parent := by
                     linarith
                   simp [ReverseTree.getData] at h_eq
-                  have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t2_parent)) rfl
+                  have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t2_parent - 1)) rfl
                   simp at fun_congr
-                  have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t2_parent) is_t1_le
-                  have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent) (by simp)
-                  have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
+                  have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t2_parent - 1) is_t1_le
+                  have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent - 1) (by simp)
+                  have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent - 1) (by simp)
                   simp [t1_b_zero, t2_a_zero, t2_b_zero, xSeq] at fun_congr
                   repeat rw [vals.x_to_index_eq] at fun_congr
                   simp [basis_n] at fun_congr
@@ -2772,6 +2775,7 @@ lemma g_countable: Countable (@Set.univ G) := by
   exact Set.countable_univ
 
 @[irreducible] noncomputable def g_denumerable: Denumerable G := by
+  -- TODO - maybe use 'nonempty_equiv_of_countable' instead
   have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
   exact Classical.choice nonempty_denum
 
@@ -2960,7 +2964,20 @@ lemma left_tree_supp_increasing {vals: XVals} (t: @ReverseTree vals): t.left.get
     sorry
 
   rw [t_sum, supp_max_sum]
-  sorry
+  by_cases m_minus_eq_zero: m - 1 = 0
+  . simp [m_minus_eq_zero, XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero]
+    have supp_lt := vals.supp_gt (newNum t - 1)
+    simp [basis_n, Finsupp.support_single_ne_zero] at supp_lt
+    norm_cast
+  . simp [XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero, m_minus_eq_zero]
+    ring
+    norm_cast
+    rw [← WithBot.coe_natCast]
+    rw [← WithBot.coe_ofNat]
+    norm_cast
+    have m_gt_one: 1 < m := by omega
+    field_simp
+    omega
 
   --simp [XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero]
 

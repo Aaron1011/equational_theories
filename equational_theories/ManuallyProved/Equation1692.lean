@@ -3225,6 +3225,9 @@ attribute [local instance] Classical.propDecidable
 
 def finsuppHasNeg (g: G) := ∃ x ∈ (Set.range g), x < 0
 
+lemma finset_is_max (a: Finset ℕ) (ha: a.Nonempty) (x: ℕ) (hx: x ∈ a) (x_gt: ∀ z ∈ a, z ≤ x): a.max' ha = x := by
+  apply?
+
 lemma left_tree_supp_increasing {vals: XVals} (t: @ReverseTree vals): t.left.getData.a.support.max < t.left.getData.b.support.max := by
   simp [ReverseTree.getData]
   obtain ⟨g, m, m_le_newnum, supp_max_lt, t_sum⟩ := (tree_linear_comb t).2
@@ -3269,26 +3272,74 @@ lemma left_tree_supp_increasing {vals: XVals} (t: @ReverseTree vals): t.left.get
             simp [g_b_zero]
         simp [g_a_zero]
 
+  by_cases m_eq_zero: m = 0
+  . rw [t_sum]
+    simp [m_eq_zero]
+    simp [XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero]
+    exact Batteries.compareOfLessAndEq_eq_lt.mp rfl
+  .
+    have m_gt_zero: 0 < m := by omega
 
-  have supp_max_sum: (∑ i ∈ Finset.range m, g i • vals.x_vals i).support.max = (vals.x_vals (m - 1)).support.max := by
-    rw [eq_union]
-    sorry
+    have supp_max_sum: (∑ i ∈ Finset.range m, g i • vals.x_vals i).support.max ≤ (vals.x_vals (m - 1)).support.max := by
+      rw [eq_union]
+      simp [XVals.x_vals]
+      by_cases m_minus_eq_zero: m - 1 = 0
+      . simp [m_minus_eq_zero]
+        rw [Finset.max'_eq_sup', Finset.sup'_eq_sup]
+        apply sup_eq_of_isMaxOn
+        simp
+        use 0
+        simp
+        refine ⟨m_gt_zero, ?_⟩
+        apply sup_eq_of_isMaxOn
+      . simp [m_minus_eq_zero]
+        rw [Finsupp.support_single_ne_zero]
+        simp
+        norm_cast
+        rw [← Finset.coe_max']
+        norm_cast
+        sorry
 
-  rw [t_sum, supp_max_sum]
-  by_cases m_minus_eq_zero: m - 1 = 0
-  . simp [m_minus_eq_zero, XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero]
-    have supp_lt := vals.supp_gt (newNum t - 1)
-    simp [basis_n, Finsupp.support_single_ne_zero] at supp_lt
-    norm_cast
-  . simp [XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero, m_minus_eq_zero]
-    ring
-    norm_cast
-    rw [← WithBot.coe_natCast]
-    rw [← WithBot.coe_ofNat]
-    norm_cast
-    have m_gt_one: 1 < m := by omega
-    field_simp
-    omega
+    have m_supp_max_lt: (vals.x_vals (m - 1)).support.max < (vals.x_vals (newNum t)).support.max := by
+      by_cases m_minus_eq_zero: m - 1 = 0
+      .
+        simp [m_minus_eq_zero]
+        simp [XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero]
+        have supp_gt := vals.supp_gt (newNum t - 1)
+        simp [basis_n] at supp_gt
+        simp [Finsupp.support_single_ne_zero] at supp_gt
+        norm_cast
+      .
+        simp [XVals.x_vals, newnum_neq_zero]
+        simp [m_minus_eq_zero]
+        simp [Finsupp.support_single_ne_zero]
+        norm_cast
+        --rw [WithBot.some] at supp_gt
+        rw [Nat.cast_withBot]
+        rw [Nat.cast_withBot]
+        norm_cast
+        field_simp
+        omega
+
+    rw [t_sum]
+    exact lt_of_le_of_lt supp_max_sum m_supp_max_lt
+
+    linarith
+    rw [t_sum, supp_max_sum]
+    by_cases m_minus_eq_zero: m - 1 = 0
+    . simp [m_minus_eq_zero, XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero]
+      have supp_lt := vals.supp_gt (newNum t - 1)
+      simp [basis_n, Finsupp.support_single_ne_zero] at supp_lt
+      norm_cast
+    . simp [XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero, m_minus_eq_zero]
+      ring
+      norm_cast
+      rw [← WithBot.coe_natCast]
+      rw [← WithBot.coe_ofNat]
+      norm_cast
+      have m_gt_one: 1 < m := by omega
+      field_simp
+      omega
 
   --simp [XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero]
 

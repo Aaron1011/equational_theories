@@ -2804,6 +2804,7 @@ structure LatestXVals (g: G) where
   tree: @ReverseTree cur
   a_val: tree.getData.a = g
   supp_increasing: finsuppHasNeg tree.getData.a → tree.getData.a.support.max < tree.getData.b.support.max' (tree_b_supp_nonempty tree)
+  supp_max_pos: finsuppHasNeg tree.getData.a → tree.getData.b (tree.getData.b.support.max' (tree_b_supp_nonempty tree)) > 0
   -- new_cur_maximal: cur.i = (vals.image XVals.i).max' (by
   --   simp
   --   simp [Finset.Nonempty]
@@ -2834,6 +2835,8 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
       distinct_trees := by simp
       vals_has_zero := by simp
       supp_increasing := by
+        simp [ReverseTree.getData, finsuppHasNeg, x_vals, x_vals_zero]
+      supp_max_pos := by
         simp [ReverseTree.getData, finsuppHasNeg, x_vals, x_vals_zero]
       --cur_maximal := sorry
       -- tree_agree := by
@@ -3859,8 +3862,6 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
   simp [f_zero_eq]
   simp [newNum]
 
-  simp [f]
-
   have x_sum_supp: x_sum.support = {1, 3} := by
     unfold x_sum
     rw [← Finsupp.single_neg, sub_eq_add_neg, ← Finsupp.single_neg]
@@ -3873,7 +3874,8 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
 
 
   by_cases same_vals: (latest_x_vals (g_to_num (x_sum))).cur = x_vals_zero
-  . match h_tree: (latest_x_vals (g_to_num (x_sum))).tree with
+  . simp [f]
+    match h_tree: (latest_x_vals (g_to_num (x_sum))).tree with
     | .root =>
       unfold x_sum at h_tree
       rw [h_tree] at f_supp_increasing
@@ -4021,33 +4023,63 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
     rw [eq_comm] at same_vals
     specialize cur_i_not_zero same_vals
     simp [x_vals_zero] at cur_i_not_zero
+    unfold x_sum at cur_i_not_zero
 
+    have first_app_supp_pos := (latest_x_vals (g_to_num x_sum)).supp_max_pos
+    simp_rw [(latest_x_vals (g_to_num x_sum)).a_val, g_enum_inverse] at first_app_supp_pos
+    specialize first_app_supp_pos x_sum_nonpos
 
-    sorry
+    have second_app_has_neg: finsuppHasNeg (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)) := by
+      simp [finsuppHasNeg]
+      use (latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)
 
+      have three_lt_max: 3 < ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)) := by
+        rw [x_sum_supp] at f_supp_increasing
+        simp at f_supp_increasing
+        exact f_supp_increasing
 
+      have three_neq_max: 3 ≠ ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)) := by omega
+      have one_neq_max: 1 ≠ ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)) := by
+        omega
 
+      simp [three_neq_max, one_neq_max]
+      simp [f, x_sum]
+      exact first_app_supp_pos
 
+    have second_app_supp_increase := (latest_x_vals (g_to_num (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)))).supp_increasing
+    have a_val := (latest_x_vals ((g_to_num (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))))).a_val
+    simp_rw [a_val, g_enum_inverse] at second_app_supp_increase
+    specialize second_app_supp_increase second_app_has_neg
 
-  let f_first_max := (f x_sum).support.max' first_app_supp_nonempty
-  have first_supp_lt: 3 < f_first_max := by
-    simp [f_first_max, f, x_sum]
-    -- TODO - why can't I do `rw [latest_x_vals]`
+    let max_supp := (latest_x_vals
+                  (g_to_num
+                    (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) -
+                      f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)))).tree.getData.b.support.max' (tree_b_supp_nonempty _)
 
+    by_contra!
+    have app_eq:= DFunLike.congr (x := max_supp) this rfl
+    have max_supp_gt_three: 3 < max_supp := by
+      unfold max_supp
+      sorry
 
+    have max_supp_not_first: max_supp ∉ (f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support := by
+      apply Finset.not_mem_of_max_lt_coe
+      sorry
 
+    have max_supp_neg_1: 1 ≠ max_supp := by omega
+    have max_supp_neq_3: 3 ≠ max_supp := by omega
 
-    by_cases same_vals: (latest_x_vals (g_to_num x_sum)).cur = x_vals_zero
+    have max_supp_in: max_supp ∈ (f (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).support := by
+      unfold max_supp
+      apply Finset.max'_mem
 
-
-  --have first_app_max_supp: (f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support.max' first_app_supp_nonempty := by
-  --  simp [f, latest_x_vals]
-
-
-  sorry
-
-
-
+    simp [max_supp_neg_1, max_supp_neq_3] at app_eq
+    rw [Finsupp.not_mem_support_iff] at max_supp_not_first
+    rw [max_supp_not_first] at app_eq
+    simp at app_eq
+    simp [mt Finsupp.not_mem_support_iff.mpr] at max_supp_in
+    rw [eq_comm] at max_supp_in
+    contradiction
 
 
 

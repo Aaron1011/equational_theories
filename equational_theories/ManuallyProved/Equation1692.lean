@@ -1932,9 +1932,15 @@ lemma xseq_zero_neq_b {vals: XVals} (t: @ReverseTree vals) (s: ℚ) (hs: s ≠ 0
   | .left t2_parent_parent =>
       simp [ReverseTree.getData, xSeq] at this
       simp [XVals.x_vals, newnum_neq_zero] at this
-      have fun_neq := finsupp_new_zero_newnum t2_parent_parent 1 s hs
-      simp [XVals.x_to_index] at fun_neq
+      have eval_at := DFunLike.congr (x := (vals.x_to_index (newNum t2_parent_parent - 1))) this rfl
+      simp [XVals.x_to_index] at eval_at
+
+      have root_not_supp := xvals_root_not_supp vals (newNum t2_parent_parent - 1)
+      simp [XVals.x_to_index] at root_not_supp
+      simp [root_not_supp] at eval_at
+      rw [← eval_at] at hs
       contradiction
+
     | .right t2_parent_parent =>
       simp [ReverseTree.getData, xSeq] at this
       have neg_s_neq_zero: (-s) ≠ 0 := by

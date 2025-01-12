@@ -4057,6 +4057,12 @@ lemma f_zero_eq: f (0) = (fun₀ | 1 => 1) := by
 theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
   simp [f_zero_eq]
 
+  let root: @ReverseTree x_vals_zero := ReverseTree.root
+
+  have oops_eq_one: root.right.left.getData.a  = fun₀ | 1 => 1 := by
+    unfold root
+    simp [ReverseTree.getData, x_vals_zero, XVals.x_vals]
+
   have no_root_left: ∀ t: @ReverseTree (x_vals_zero), t.getData.a ≠ fun₀ | 1 => 1 := by
     intro t
     by_contra!
@@ -4096,12 +4102,22 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
         omega
       | .right t1_grand =>
         simp only [ReverseTree.getData] at this
-        have not_comb := basis_neq_elem_diff t1_grand 1 1 (-1) 1 (by simp) (by simp) (by simp)
-        simp at this
-        simp at not_comb
-        rw [← sub_eq_add_neg] at not_comb
-        rw [eq_comm] at this
-        contradiction
+        by_cases t1_grand_zero: t1_grand.getData.a = 0
+        . simp [t1_grand_zero] at this
+          have eq_root_a: t1_grand.getData.a = (@ReverseTree.root x_vals_zero).getData.a := by
+            simp [ReverseTree.getData, x_vals_zero]
+            exact t1_grand_zero
+          have trees_eq := temp_partial_function eq_root_a
+          rw [trees_eq] at this
+          simp [ReverseTree.getData, XVals.x_vals, x_vals_zero] at this
+
+        .
+          have not_comb := basis_neq_elem_diff t1_grand 1 1 (-1) 1 (by simp) (by simp) (by simp) t1_grand_zero
+          simp at this
+          simp at not_comb
+          rw [← sub_eq_add_neg] at not_comb
+          rw [eq_comm] at this
+          contradiction
     | right t1_parent h_parent =>
       simp only [ReverseTree.getData] at this
       simp only [x_vals_zero, XVals.x_vals, newnum_neq_zero] at this

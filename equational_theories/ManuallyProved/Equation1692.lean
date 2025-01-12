@@ -2903,10 +2903,15 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
       supp_max_pos := by
         match Classical.choose (Classical.choose_spec has_tree) with
         | .root =>
+          intro has_neg
           simp [ReverseTree.getData, XVals.x_vals, Finsupp.support_single_ne_zero]
-        | .left parent => sorry
-        | .right parent => sorry
-        sorry
+        | .left parent =>
+          intro has_neg
+          simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero]
+        | .right parent =>
+          intro has_neg
+          have not_right := nonpos_not_tree_right _ has_neg
+          simp at not_right
       supp_increasing := by
         match Classical.choose (Classical.choose_spec has_tree) with
         | .root =>

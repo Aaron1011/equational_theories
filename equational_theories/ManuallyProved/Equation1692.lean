@@ -2533,30 +2533,43 @@ lemma partial_function {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_eq: t1.getD
           apply eq_neg_iff_add_eq_zero.mp at h_a_eq
           have basis_indep: LinearIndependent ℚ n_q_basis := Basis.linearIndependent n_q_basis
           simp [n_q_basis] at basis_indep
-          have linear_indep: LinearIndependent ℚ ![fun₀ | (vals.x_to_index (newNum t1_parent)) => (1 : ℚ), fun₀ | (vals.x_to_index (newNum t2_parent_parent)) => 1] := by
+          have linear_indep: LinearIndependent ℚ ![fun₀ | (vals.x_to_index (newNum t1_parent - 1)) => (1 : ℚ), fun₀ | (vals.x_to_index (newNum t2_parent_parent - 1)) => 1] := by
             apply LinearIndependent.pair_iff.mpr
             intro s t h_sum_zero
 
             simp [linearIndependent_iff'] at basis_indep
-            specialize basis_indep {vals.x_to_index (newNum t1_parent), vals.x_to_index (newNum t2_parent_parent)}
+            specialize basis_indep {vals.x_to_index (newNum t1_parent - 1), vals.x_to_index (newNum t2_parent_parent - 1)}
             have parents_neq: t1_parent ≠ t2_parent_parent := by
               by_contra! other_parents_eq
               simp [other_parents_eq] at h_a_eq
               simp [add_eq_zero_iff_eq_neg] at h_a_eq
-              have eq_zero: (fun₀ | (vals.x_to_index (newNum t2_parent_parent)) => 1) = 0 := by
-                simp [vals.x_to_index_eq] at h_a_eq
-                simp [← Finsupp.single_neg] at h_a_eq
-                simp [Finsupp.single] at h_a_eq
+              have eq_zero: (fun₀ | (vals.x_to_index (newNum t2_parent_parent - 1)) => 1) = 0 := by
+                simp [XVals.x_vals, newnum_neq_zero] at h_a_eq
+                rw [← Finsupp.single_neg] at h_a_eq
+                rw [Finsupp.single_eq_single_iff] at h_a_eq
+                simp at h_a_eq
                 contradiction
               simp at eq_zero
 
-            have nums_not_eq: newNum t1_parent ≠  newNum t2_parent_parent := by
+            have base_nums_not_eq: newNum t1_parent ≠  newNum t2_parent_parent := by
               apply Function.Injective.ne newnum_injective parents_neq
-            have num_reverse: newNum t2_parent_parent ≠ newNum t1_parent := by
+
+            have newnum_t1_neq_zero := newnum_neq_zero t1_parent
+            have newnum_t2_neq_zero := newnum_neq_zero t2_parent_parent
+
+            have nums_not_eq: newNum t1_parent - 1 ≠ newNum t2_parent_parent - 1 := by
+              by_contra!
+              apply_fun (fun y => y + 1) at this
+              have minus_plus_t1: newNum t1_parent - 1 + 1 = newNum t1_parent := by omega
+              have minus_plus_t2: newNum t2_parent_parent - 1 + 1 = newNum t2_parent_parent := by omega
+              rw [minus_plus_t1, minus_plus_t2] at this
+              contradiction
+
+            have num_reverse: newNum t2_parent_parent - 1 ≠ newNum t1_parent - 1 := by
               exact id (Ne.symm nums_not_eq)
-            have val_newnums_neq: vals.x_to_index (newNum t2_parent_parent) ≠ vals.x_to_index (newNum t1_parent) := by
+            have val_newnums_neq: vals.x_to_index (newNum t2_parent_parent - 1) ≠ vals.x_to_index (newNum t1_parent - 1) := by
               apply Function.Injective.ne vals.x_to_index_inj num_reverse
-            let g : ℕ → ℚ := fun n => if n = vals.x_to_index (newNum t1_parent) then s else if n = (vals.x_to_index (newNum t2_parent_parent)) then t else 0
+            let g : ℕ → ℚ := fun n => if n = vals.x_to_index (newNum t1_parent - 1) then s else if n = (vals.x_to_index (newNum t2_parent_parent - 1)) then t else 0
             have finsum_to_pair := Finset.sum_pair (f := fun x => fun₀ | x => g x) val_newnums_neq.symm
             specialize basis_indep g
             simp only [g] at basis_indep
@@ -2565,20 +2578,23 @@ lemma partial_function {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_eq: t1.getD
             simp only [val_newnums_neq] at basis_indep
             simp at h_sum_zero
             specialize basis_indep h_sum_zero
-            have s_eq_zero := basis_indep (vals.x_to_index (newNum t1_parent))
+            have s_eq_zero := basis_indep (vals.x_to_index (newNum t1_parent - 1))
             simp at s_eq_zero
-            have t_eq_zero := basis_indep (vals.x_to_index (newNum t2_parent_parent))
+            have t_eq_zero := basis_indep (vals.x_to_index (newNum t2_parent_parent - 1))
             simp [val_newnums_neq] at t_eq_zero
             exact ⟨s_eq_zero, t_eq_zero⟩
           simp [LinearIndependent.pair_iff] at linear_indep
-          simp [vals.x_to_index_eq, basis_n] at h_a_eq
+          simp [XVals.x_vals, newnum_neq_zero, basis_n] at h_a_eq
+          simp [XVals.x_to_index] at linear_indep
           specialize linear_indep 1 1 h_a_eq
           contradiction
       | .right t2_parent_parent =>
         --  b = p - q for some p and q. We know that p and q have disjoint coordinates, and q is not zero, so we have two different representations for 'a' - impossible.
         simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
-        have vals_neq := basis_neq_elem_diff t2_parent_parent (vals.x_to_index (newNum t1_parent)) 1 (-1) 1 (by simp) (by simp) (by simp)
+        have vals_neq := basis_neq_elem_diff t2_parent_parent (vals.x_to_index (newNum t1_parent - 1)) 1 (-1) 1 (by simp) (by simp) (by simp)
         simp only [one_smul, neg_one_smul, ← sub_eq_add_neg] at vals_neq
+        simp [XVals.x_vals, newnum_neq_zero] at h_a_eq
+        simp [XVals.x_to_index] at vals_neq
         contradiction
     | .right t2_parent =>
       -- If they're both right trees, contradiction - all right trees have unique 'a' values

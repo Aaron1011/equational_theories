@@ -3133,7 +3133,9 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         cur := new_x_vals,
         cur_in_vals := by simp,
         tree := ReverseTree.root,
-        supp_max_pos := by sorry,
+        supp_max_pos := by
+          intro has_neg
+          simp [ReverseTree.getData, XVals.x_vals, Finsupp.support_single_ne_zero]
         supp_increasing := by
           simp [ReverseTree.getData, XVals.x_vals]
           simp [Finsupp.support_single_ne_zero]

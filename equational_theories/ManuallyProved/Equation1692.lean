@@ -2279,20 +2279,34 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
                     omega
 
                   simp [vals_neq] at fun_congr
-                . have is_t2_le: newNum t2_parent ≤ newNum t1_parent := by
+                . have is_t2_le: newNum t2_parent - 1 ≤ newNum t1_parent - 1 := by
                     linarith
                   simp [ReverseTree.getData] at h_eq
-                  have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t1_parent)) rfl
+                  have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t1_parent - 1)) rfl
                   simp at fun_congr
-                  have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t1_parent) is_t2_le
-                  have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t1_parent) is_t2_le
-                  have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t1_parent) (by simp)
+                  have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t1_parent - 1) is_t2_le
+                  have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t1_parent - 1) is_t2_le
+                  have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t1_parent - 1) (by simp)
+                  simp [XVals.x_to_index] at t1_b_zero
+                  simp [XVals.x_to_index] at t2_a_zero
+                  simp [XVals.x_to_index] at t2_b_zero
+
+                  simp [XVals.x_to_index, XVals.x_vals, newnum_neq_zero] at fun_congr
+
                   simp [t1_b_zero, t2_a_zero, t2_b_zero, xSeq] at fun_congr
-                  repeat rw [vals.x_to_index_eq] at fun_congr
-                  simp [basis_n] at fun_congr
-                  have vals_newnum_neq: vals.x_to_index (newNum t1_parent) ≠ vals.x_to_index (newNum t2_parent) := by
-                    apply Function.Injective.ne vals.x_to_index_inj this
-                  simp [Finsupp.single_eq_of_ne vals_newnum_neq.symm] at fun_congr
+
+                  have newnum_t1_gt: 1 < newNum t1_parent := by
+                    exact newnem_gt_one t1_parent
+                  have newnum_t2_gt: 1 < newNum t2_parent := by
+                    exact newnem_gt_one t2_parent
+
+                  have vals_neq: 2 ^ vals.i + (newNum t1_parent - 1) * 2 ^ (vals.i + 1) ≠ 2 ^ vals.i + (newNum t2_parent - 1) * 2 ^ (vals.i + 1) := by
+                    by_contra!
+                    simp at this
+
+                    omega
+
+                  simp [vals_neq.symm] at fun_congr
               have parents_eq: t1_parent = t2_parent := by
                 exact newnum_injective t1_parent t2_parent newnums_eq
               use t1_parent

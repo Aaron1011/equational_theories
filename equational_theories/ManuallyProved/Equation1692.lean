@@ -4734,6 +4734,7 @@ lemma nothing_maps_some_val {vals: XVals} (t: @ReverseTree vals) (i: ℕ): t.get
       rw [neg_add_eq_sub, eq_comm] at not_eq
       contradiction
 
+
 theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0) - f (-f 0))) := by
   rw [neg_f_zero, new_eval_left (n := 0)]
   nth_rw 1 [f_zero_eq]
@@ -4890,20 +4891,16 @@ theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0)
           have cur_i_gt:  0 < (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i := by omega
           by_cases cur_i_one: (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i = 1
           . simp [cur_i_one] at hb
-            rw [hb]
-            have two_not_mem: 2 ∉ ({1, 3}: Finset ℕ) := by simp
-            exact ne_of_mem_of_not_mem ha two_not_mem
+            omega
           . have cur_i_ge_two: 2 ≤ (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i := by omega
             have pow_ge_4: 2^2 ≤ 2^((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i) := by
               refine Nat.pow_le_pow_of_le_right (by simp) cur_i_ge_two
-            have a_le_3: a ≤ 3 := by
-              exact Nat.divisor_le ha
             omega
         | .left parent =>
           simp [h_tree, ReverseTree.getData, XVals.x_vals, newnum_neq_zero]
           rw [Finset.disjoint_iff_ne]
           intro a ha b hb
-          rw [x_sum_supp] at ha
+          simp [Finsupp.support_single_ne_zero] at ha
           simp [Finsupp.support_single_ne_zero] at hb
 
           have term_ge_4: 2^2 ≤ 2^((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i + 1) := by
@@ -4924,14 +4921,7 @@ theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0)
             rw [hb]
             omega
 
-
-          by_cases a_eq_one: a = 1
-          . omega
-          .
-            simp [a_eq_one] at ha
-            rw [ha]
-            rw [hb]
-            omega
+          omega
         | .right parent =>
           have a_eq := (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).a_val
           simp [g_enum_inverse] at a_eq

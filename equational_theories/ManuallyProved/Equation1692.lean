@@ -4054,10 +4054,6 @@ lemma f_zero_eq: f (0) = (fun₀ | 1 => 1) := by
   simp [ReverseTree.getData, x_vals_zero, XVals.x_vals]
   simp [x_vals_zero, latest_x_vals]
 
-lemma f_one_same_tree: (latest_x_vals (g_to_num fun₀ | 1 => 1)).cur = x_vals_zero := by
-  have tree_eq: (fun₀ | 1 => 1) = (@ReverseTree.root (x_vals_zero)).getData.a := by
-    simp [ReverseTree.getData, x_vals_zero]
-  sorry
 
   --rw [tree_eq, new_eval_left (n := 0)]
   --simp [ReverseTree.getData, x_vals_zero, XVals.x_vals]
@@ -4123,6 +4119,7 @@ theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
 
   rw [eq_comm] at eval_at
   contradiction
+  simp [latest_x_vals]
 
 
 lemma sum_1_3_eq_tree: (fun₀ | 1 => (1: ℚ)) + (fun₀ | 3 => 1) = (@ReverseTree.root x_vals_zero).left.right.left.getData.a := by

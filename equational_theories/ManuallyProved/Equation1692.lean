@@ -2929,11 +2929,6 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           intro has_neg
           have not_right := nonpos_not_tree_right _ has_neg
           simp at not_right
-          specialize not_right parent
-          rw [eq_comm] at not_right
-          contradiction
-          sorry
-
     }
     .
       have prev_x_vals_nonempty: prev_x_vals.vals.Nonempty := by
@@ -3128,7 +3123,11 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         cur_in_vals := by simp,
         tree := ReverseTree.root,
         supp_max_pos := by sorry,
-        supp_increasing := by sorry,
+        supp_increasing := by
+          simp [ReverseTree.getData, XVals.x_vals]
+          simp [Finsupp.support_single_ne_zero]
+          intro has_neg
+
         a_val := by
           simp only [ReverseTree.getData, new_x_vals, XVals.root_elem, hn]
 

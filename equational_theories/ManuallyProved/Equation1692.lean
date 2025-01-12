@@ -3236,7 +3236,16 @@ lemma left_tree_supp_increasing {vals: XVals} (t: @ReverseTree vals): t.left.get
     . simp [a_eq_zero, XVals.x_vals]
       have b_neq_zero: b ≠ 0 := by omega
       simp [b_neq_zero]
-      sorry
+      by_cases g_zero_eq_zero: g 0 = 0
+      . simp [g_zero_eq_zero]
+      . simp [g_zero_eq_zero]
+        by_cases g_b_eq_zero: g b = 0
+        . simp [g_b_eq_zero]
+        .
+          rw [Finsupp.support_single_ne_zero]
+          simp
+          apply xvals_root_not_supp
+          exact g_b_eq_zero
     .
       simp [XVals.x_vals, a_eq_zero]
       by_cases g_a_zero: g a = 0
@@ -3248,7 +3257,7 @@ lemma left_tree_supp_increasing {vals: XVals} (t: @ReverseTree vals): t.left.get
         by_cases b_eq_zero: b = 0
         . simp [b_eq_zero]
           right
-          sorry
+          apply xvals_root_not_supp
         . simp [b_eq_zero]
           rw [← Finsupp.not_mem_support_iff]
           by_cases g_b_zero: g b = 0
@@ -3263,7 +3272,7 @@ lemma left_tree_supp_increasing {vals: XVals} (t: @ReverseTree vals): t.left.get
 
   have supp_max_sum: (∑ i ∈ Finset.range m, g i • vals.x_vals i).support.max = (vals.x_vals (m - 1)).support.max := by
     rw [eq_union]
-    apply?
+    sorry
 
   rw [t_sum, supp_max_sum]
   by_cases m_minus_eq_zero: m - 1 = 0

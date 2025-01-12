@@ -1324,7 +1324,9 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
     simp only [← smul_assoc] at hs_t
     simp only [← add_smul] at hs_t
 
+
     simp [n_q_basis] at basis_x_val_indep
+
     have new_indep := vals.root_indep (sorry)
     rw [linearIndependent_iff'] at new_indep
     apply (new_indep _) at hs_t
@@ -1599,13 +1601,14 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
 
         have x_lt_max := Finset.le_max x_in_parent
         have support_subset := Finsupp.support_finset_sum (s := Finset.range m) (f := fun i => g i • vals.x_vals i)
+
         --simp [basis_n] at support_subset
 
         have supp_single: ∀ x ∈ Finset.range m, ((g x) • vals.x_vals x).support ⊆ Finset.range (vals.x_to_index m) := by
           intro x hx
           have old_foo := Finsupp.support_single_subset (a := x) (b := ( 1: ℚ))
           have single_supp: (vals.x_vals x).support ⊆ {vals.x_to_index x} := by
-            rw [vals.x_to_index_eq]
+            simp [XVals.x_vals, XVals.x_to_index]
             simp only [basis_n]
             apply Finsupp.support_single_subset
           have x_val_subset: {vals.x_to_index x} ⊆ Finset.range (vals.x_to_index m) := by
@@ -2757,11 +2760,16 @@ lemma partial_function {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_eq: t1.getD
       | .right t2_parent_parent =>
         --  b = p - q for some p and q. We know that p and q have disjoint coordinates, and q is not zero, so we have two different representations for 'a' - impossible.
         simp [ReverseTree.getData, vals.x_to_index_eq, basis_n] at h_a_eq
-        have vals_neq := basis_neq_elem_diff t2_parent_parent (vals.x_to_index (newNum t1_parent - 1)) 1 (-1) 1 (by simp) (by simp) (by simp)
-        simp only [one_smul, neg_one_smul, ← sub_eq_add_neg] at vals_neq
-        simp [XVals.x_vals, newnum_neq_zero] at h_a_eq
-        simp [XVals.x_to_index] at vals_neq
-        contradiction
+        by_cases tree_a_zero: t2_parent_parent.getData.a = 0
+        .
+          simp [tree_a_zero] at h_a_eq
+
+        .
+          have vals_neq := basis_neq_elem_diff t2_parent_parent (vals.x_to_index (newNum t1_parent - 1)) 1 (-1) 1 (by simp) (by simp) (by simp) tree_a_zero
+          simp only [one_smul, neg_one_smul, ← sub_eq_add_neg] at vals_neq
+          simp [XVals.x_vals, newnum_neq_zero] at h_a_eq
+          simp [XVals.x_to_index] at vals_neq
+          contradiction
     | .right t2_parent =>
       -- If they're both right trees, contradiction - all right trees have unique 'a' values
       simp [ReverseTree.getData] at h_a_eq

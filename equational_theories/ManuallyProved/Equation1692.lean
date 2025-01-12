@@ -1943,7 +1943,7 @@ lemma finsupp_new_one_newnum {vals: XVals} (t: @ReverseTree vals) (a b: ℚ) (hb
   rw [eq_comm] at eval_at
   contradiction
 
-lemma xseq_zero_neq_b {vals: XVals} (t: @ReverseTree vals) (s: ℚ) (hs: s ≠ 0): basis_n (vals.x_to_index 0) ≠ s • t.getData.b := by
+lemma xseq_zero_neq_b {vals: XVals} (t: @ReverseTree vals) (s: ℚ) (hs: s ≠ 0): vals.root_elem ≠ s • t.getData.b := by
   by_contra!
   match t with
   | .root =>
@@ -1951,11 +1951,18 @@ lemma xseq_zero_neq_b {vals: XVals} (t: @ReverseTree vals) (s: ℚ) (hs: s ≠ 0
       simp [ReverseTree.getData, xSeq] at this
       have eval_at := DFunLike.congr (x := (vals.x_to_index 0)) (y := (vals.x_to_index 0)) this rfl
       rw [vals.x_to_index_eq] at eval_at
-      simp [basis_n] at eval_at
-      have vals_neq: vals.x_to_index 1 ≠ vals.x_to_index 0 := by
-        apply Function.Injective.ne vals.x_to_index_inj
+      simp [basis_n, XVals.x_to_index] at eval_at
+      have root_supp := vals.supp_gt 0
+      simp at root_supp
+      simp [Finsupp.support_single_ne_zero] at root_supp
+      have two_i_not_supp: 2^vals.i ∉ vals.root_elem.support := by
+        apply Finset.not_mem_of_max_lt_coe
         simp
-      simp [vals_neq] at eval_at
+        exact root_supp
+
+      rw [Finsupp.not_mem_support_iff] at two_i_not_supp
+      rw [eval_at] at two_i_not_supp
+      contradiction
   | .left t2_parent_parent =>
       simp [ReverseTree.getData, xSeq] at this
       rw [vals.x_to_index_eq] at this

@@ -2871,6 +2871,8 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         exact tree_eq
       distinct_i := prev_x_vals.distinct_i
       distinct_trees := prev_x_vals.distinct_trees
+      supp_max_pos := by
+        sorry
       supp_increasing := by
         match Classical.choose (Classical.choose_spec has_tree) with
         | .root =>
@@ -3086,6 +3088,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         cur := new_x_vals,
         cur_in_vals := by simp,
         tree := ReverseTree.root,
+        supp_max_pos := by sorry,
         supp_increasing := by sorry,
         a_val := by
           simp only [ReverseTree.getData, new_x_vals, XVals.root_elem, hn]

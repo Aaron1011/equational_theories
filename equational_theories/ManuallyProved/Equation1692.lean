@@ -1179,6 +1179,9 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
       have newnum_prev_gt_zero: 0 < newNum prev := by
         omega
 
+      have sub_plus_eq : newNum prev - 1 + 1 = newNum prev := by
+        omega
+
       have other_b_nonzero: ∃n, 0 < n ∧ n < max_num ∧ b_coords n ≠ 0 := by
         by_contra!
 
@@ -1196,22 +1199,57 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
 
         simp [coords_zero] at hs_t
         specialize hs_t (newNum prev - 1)
-        simp [newnum_prev_gt_zero] at hs_t
+        simp [newnum_prev_gt_zero, sub_plus_eq] at hs_t
+
+        by_cases prev_a_zero: prev.getData.a = 0
+        . simp [ReverseTree.getData] at ht
+          have sum_eq_zero: ∑ i ∈ Finset.range max_num, b_coords i • vals.x_vals i = 0 := by
+            apply Finset.sum_eq_zero
+            intro x hx
+            by_cases x_eq_zero: x = 0
+            . simp [x_eq_zero, XVals.x_vals, root_elem_zero]
+            . have x_gt_zero: 0 < x := by
+                omega
+              specialize this x x_gt_zero (Finset.mem_range.mp hx)
+              simp [this]
+          rw [sum_eq_zero] at b_eq
+          contradiction
+        .
+          have sum_eq_zero: ∑ i ∈ Finset.range max_num, b_coords i • vals.x_vals i = 0 := by
+            apply Finset.sum_eq_zero
+            intro x hx
+            by_cases x_eq_zero: x = 0
+            . simp [x_eq_zero, XVals.x_vals, root_elem_zero]
+            . have x_gt_zero: 0 < x := by
+                omega
+              specialize this x (Finset.mem_range.mp hx)
+              have is_zero := coords_zero (x - 1)
+              have x_minus_eq: x - 1 + 1 = x := by
+                omega
+              rw [x_minus_eq] at is_zero
+              simp [is_zero]
+          rw [sum_eq_zero] at b_eq
+          rw [b_eq] at h_prev
+
+          specialize h_prev prev_a_zero
+          have foo := LinearIndependent.ne_zero 1 h_prev
+          simp at foo
 
 
 
 
 
-
-        --specialize hs_t n
-        simp [this] at hs_t
 
 
       -- TODO - deduplite this with the other 'root_elem_zero' branch
-      obtain ⟨b_nonzero, h_b_lt, h_b_zeronzero⟩ := nonzero_b_coord
+      obtain ⟨b_nonzero, b_gt_zero, h_b_lt, h_b_zeronzero⟩ := other_b_nonzero
       have s_eq_zero := hs_t (b_nonzero - 1)
       have b_nonzero_lt: b_nonzero < newNum prev := by omega
-      simp [b_nonzero_lt] at s_eq_zero
+      have b_minus_one_lt: b_nonzero - 1 < newNum prev := by
+        omega
+      have b_minus_plus: b_nonzero - 1 + 1 = b_nonzero := by
+        omega
+
 
 
 
@@ -1222,14 +1260,6 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
 
       have newnum_prev_neq_one: newNum prev ≠ 1 := by
         omega
-
-      by_cases b_nonzero_eq_zero: b_nonzero = 0
-      . simp [b_nonzero_eq_zero, newnum_prev_neq_one, newnum_prev_gt_zero] at s_eq_zero
-        by_cases maxnum_gt_one: max_num > 1
-        . simp [maxnum_gt_one] at s_eq_zero
-          sorry
-        . sorry
-
 
 
 
@@ -1248,18 +1278,17 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
 
 
 
-      --simp [neq_zero, b_nonzero_lt, n_nonzero_neq, h_b_lt, h_b_zeronzero] at s_eq_zero
+      simp [b_minus_plus] at s_eq_zero
+      simp [neq_zero, b_minus_one_lt, n_nonzero_neq, h_b_lt, h_b_zeronzero] at s_eq_zero
       have foo: ¬(newNum prev < max_num) := by
         linarith
 
       have t_eq_zero := hs_t (newNum prev - 1)
       have gt_zero: 0 < newNum prev := by
         linarith
-      have sub_plus_eq : newNum prev - 1 + 1 = newNum prev := by
-        omega
+
       simp [foo, gt_zero, sub_plus_eq] at t_eq_zero
-      --refine ⟨s_eq_zero, t_eq_zero⟩
-      sorry
+      refine ⟨s_eq_zero, t_eq_zero⟩
     . specialize new_basis_indep root_elem_zero
       rw [linearIndependent_iff'] at new_basis_indep
       apply (new_basis_indep _) at hs_t

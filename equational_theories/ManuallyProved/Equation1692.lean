@@ -2815,7 +2815,7 @@ structure LatestXVals (g: G) where
 
 
 
-set_option trace.profiler true
+--set_option trace.profiler true
 set_option maxHeartbeats 5000000
 
 noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
@@ -4035,7 +4035,10 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
       exact f_supp_increasing
 
     have three_lt_max_withbot: 3 < ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max) := by
-      sorry
+      rw [← WithBot.coe_lt_coe] at three_lt_max
+      rw [Finset.coe_max'] at three_lt_max
+      simp at three_lt_max
+      exact three_lt_max
 
 
     have three_neq_max: 3 ≠ ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)) := by omega

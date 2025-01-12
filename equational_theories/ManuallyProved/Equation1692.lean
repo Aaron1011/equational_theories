@@ -2635,13 +2635,33 @@ lemma partial_function {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_eq: t1.getD
           | .root =>
             simp [ReverseTree.getData, vals.x_to_index_eq, basis_n, XVals.x_to_index] at h_a_eq
             rw [← Finsupp.single_neg] at h_a_eq
-            have vals_neq := basis_neq_elem_diff t1_parent_parent (vals.x_to_index 0) (1) (-1) (-1) (by simp) (by simp) (by simp)
-            simp only [one_smul, neg_one_smul] at vals_neq
-            simp [XVals.x_to_index] at vals_neq
-            rw [← sub_eq_add_neg] at vals_neq
-            simp at h_a_eq
-            rw [eq_comm] at h_a_eq
-            contradiction
+            by_cases t_a_zero: t1_parent_parent.getData.a = 0
+            .
+              simp [t_a_zero] at h_a_eq
+              match t1_parent_parent with
+              | .root =>
+                simp [ReverseTree.getData, XVals.x_vals, XVals.x_to_index] at h_a_eq
+                rw [← Finsupp.single_neg] at h_a_eq
+                rw [Finsupp.single_eq_single_iff] at h_a_eq
+                simp at h_a_eq
+                contradiction
+              | .left grandparent =>
+                simp [ReverseTree.getData, XVals.x_vals, XVals.x_to_index, newnum_neq_zero] at h_a_eq
+                rw [← Finsupp.single_neg] at h_a_eq
+                rw [Finsupp.single_eq_single_iff] at h_a_eq
+                simp at h_a_eq
+                have bad := h_a_eq.2
+                contradiction
+              | .right grandparent =>
+                simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at t_a_zero
+            .
+              have vals_neq := basis_neq_elem_diff t1_parent_parent (vals.x_to_index 0) (1) (-1) (-1) (by simp) (by simp) (by simp) t_a_zero
+              simp only [one_smul, neg_one_smul] at vals_neq
+              simp [XVals.x_to_index] at vals_neq
+              rw [← sub_eq_add_neg] at vals_neq
+              simp at h_a_eq
+              rw [eq_comm] at h_a_eq
+              contradiction
           | .left t2_parent_parent =>
             simp [ReverseTree.getData, vals.x_to_index_eq, basis_n, XVals.x_vals, newnum_neq_zero] at h_a_eq
             rw [← Finsupp.single_neg] at h_a_eq

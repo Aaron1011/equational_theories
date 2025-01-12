@@ -1797,7 +1797,7 @@ lemma tree_b_supp_nonempty {vals: XVals} (t: @ReverseTree vals) : t.getData.b.su
   simp [Finset.nonempty_iff_ne_empty]
   exact (tree_vals_nonzero t)
 
-lemma basis_neq_elem_diff {vals: XVals} (t:@ ReverseTree vals) (a: ℕ) (b c r: ℚ) (hb: b ≠ 0) (hc: c ≠ 0) (hr: r ≠ 0): Finsupp.single a r ≠ b • t.getData.b + c • t.getData.a := by
+lemma basis_neq_elem_diff {vals: XVals} (t:@ ReverseTree vals) (a: ℕ) (b c r: ℚ) (hb: b ≠ 0) (hc: c ≠ 0) (hr: r ≠ 0) (h_tree_a: t.getData.a ≠ 0): Finsupp.single a r ≠ b • t.getData.b + c • t.getData.a := by
   by_contra!
   have coord_intersect: t.getData.b.support ∩ t.getData.a.support = ∅ := by
     apply tree_supp_disjoint t
@@ -1812,12 +1812,8 @@ lemma basis_neq_elem_diff {vals: XVals} (t:@ ReverseTree vals) (a: ℕ) (b c r: 
   have mul_support_disjoint: Disjoint (b • t.getData.b).support (c • t.getData.a).support := by
     exact Disjoint.mono b_mul_subset c_mul_subset coord_disjoint
 
-  have a_neq_zero: t.getData.a ≠ 0 := by
-    have bar := LinearIndependent.ne_zero 0 (tree_linear_independent t)
-    simp at bar
-    assumption
   have b_neq_zero: t.getData.b ≠ 0 := by
-    have bar := LinearIndependent.ne_zero 1 (tree_linear_independent t)
+    have bar := LinearIndependent.ne_zero 1 (tree_linear_independent t h_tree_a)
     simp at bar
     assumption
   have single_card_one: (fun₀ | a => r).support.card = 1 := by
@@ -1850,7 +1846,7 @@ lemma basis_neq_elem_diff {vals: XVals} (t:@ ReverseTree vals) (a: ℕ) (b c r: 
   simp [s, g] at support_sum
 
   have a_supp_card: 1 ≤ t.getData.a.support.card := by
-    have bar := Finsupp.card_support_eq_zero.not.mpr a_neq_zero
+    have bar := Finsupp.card_support_eq_zero.not.mpr h_tree_a
     exact Nat.one_le_iff_ne_zero.mpr bar
   have b_supp_card: 1 ≤ t.getData.b.support.card := by
     have bar := Finsupp.card_support_eq_zero.not.mpr b_neq_zero

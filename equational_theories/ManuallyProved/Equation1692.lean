@@ -1988,31 +1988,67 @@ lemma common_ancestor_stuff {vals: XVals} (ancestor t1 t2: @ReverseTree vals) (l
   rw [← Finset.sum_nsmul] at sub_b
   rw [← Finset.sum_sub_distrib] at sub_b
   apply n_q_basis.ext_elem_iff.mp at sub_b
-  specialize sub_b (vals.x_to_index (newNum ancestor))
+  specialize sub_b (vals.x_to_index (newNum ancestor - 1))
   simp only [n_q_basis, Finsupp.basisSingleOne_repr, Finsupp.coe_basisSingleOne, Finsupp.smul_single, nsmul_eq_mul, Nat.cast_ofNat, mul_one, LinearEquiv.refl_apply, Finsupp.single_eq_same, Finset.mem_range, smul_eq_mul, smul_ite, Finsupp.single_mul, smul_zero, Finsupp.coe_sub, Finsupp.coe_finset_sum, Pi.sub_apply, Finset.sum_apply] at sub_b
   -- TODO - avoid copy-pasting the entire sum
-  have sum_eq_zero: ∑ x ∈ Finset.range (newNum ancestor), (((if x < m_a then (g_a x • vals.x_vals x) else 0) (vals.x_to_index (newNum ancestor)) - (if x < m_b then 2 • g_b x • vals.x_vals x else 0) ((vals.x_to_index (newNum ancestor))))) = ∑ x ∈ Finset.range (newNum ancestor), 0 := by
+  have sum_eq_zero: ∑ x ∈ Finset.range (newNum ancestor), (((if x < m_a then (g_a x • vals.x_vals x) else 0) (vals.x_to_index (newNum ancestor - 1)) - (if x < m_b then 2 • g_b x • vals.x_vals x else 0) ((vals.x_to_index (newNum ancestor - 1))))) = ∑ x ∈ Finset.range (newNum ancestor), 0 := by
     apply Finset.sum_congr rfl
     intro x hx
     simp at hx
-    have x_neq_newnum: x ≠ newNum ancestor := by
-      linarith
-    have index_x_neq_newnum: vals.x_to_index x ≠ vals.x_to_index (newNum ancestor) := by
-      apply Function.Injective.ne vals.x_to_index_inj
-      exact x_neq_newnum
-    -- TODO - can we simplify this?
-    by_cases x_lt_a: x < m_a
-    . by_cases x_lt_b: x < m_b
-      .
-        simp [x_lt_a, x_lt_b, vals.x_to_index_eq, index_x_neq_newnum]
-      . simp [x_lt_a, x_lt_b, vals.x_to_index_eq, index_x_neq_newnum]
-    . by_cases x_lt_b: x < m_b
-      . simp [x_lt_a, x_lt_b, vals.x_to_index_eq, index_x_neq_newnum]
-      . simp [x_lt_a, x_lt_b, vals.x_to_index_eq, index_x_neq_newnum]
+    have newnum_ancestor_gt: 1 < newNum ancestor := by
+      exact newnem_gt_one ancestor
+    have x_neq_newnum: x - 1 < newNum ancestor - 1 := by
+      omega
+    have index_x_neq_newnum: vals.x_to_index (x - 1) ≠ vals.x_to_index (newNum ancestor - 1) := by
+      simp [XVals.x_to_index]
+      omega
+
+    -- TODO - can we simplify this? Use <;> in some way
+
+    have root_not_supp := xvals_root_not_supp vals (newNum ancestor - 1)
+    simp [XVals.x_to_index] at root_not_supp
+
+    by_cases x_eq_zero: x = 0
+    .
+      by_cases x_lt_a: x < m_a
+      . by_cases x_lt_b: x < m_b
+        .
+          simp [x_lt_a, x_lt_b, vals.x_to_index_eq, index_x_neq_newnum]
+          simp [x_eq_zero, XVals.x_vals, XVals.x_to_index]
+          simp [root_not_supp]
+        .
+          simp [x_lt_a, x_lt_b, vals.x_to_index_eq, index_x_neq_newnum]
+          simp [XVals.x_vals, XVals.x_to_index, x_eq_zero]
+          simp [root_not_supp]
+      . by_cases x_lt_b: x < m_b
+        .
+          simp [x_lt_a, x_lt_b, vals.x_to_index_eq, index_x_neq_newnum]
+          simp [x_eq_zero, XVals.x_vals, XVals.x_to_index]
+          simp [root_not_supp]
+        .
+          simp [x_lt_a, x_lt_b, vals.x_to_index_eq, index_x_neq_newnum]
+    .
+      simp only [XVals.x_to_index] at index_x_neq_newnum
+      by_cases x_lt_a: x < m_a
+      . by_cases x_lt_b: x < m_b
+        .
+          simp [x_lt_a, x_lt_b, vals.x_to_index_eq, index_x_neq_newnum]
+          simp [x_eq_zero, XVals.x_vals, XVals.x_to_index]
+          simp [index_x_neq_newnum]
+        .
+          simp [x_lt_a, x_lt_b, vals.x_to_index_eq, index_x_neq_newnum]
+          simp [XVals.x_vals, XVals.x_to_index, x_eq_zero]
+          simp [index_x_neq_newnum]
+      . by_cases x_lt_b: x < m_b
+        .
+          simp [x_lt_a, x_lt_b, vals.x_to_index_eq, index_x_neq_newnum]
+          simp [x_eq_zero, XVals.x_vals, XVals.x_to_index]
+          simp [index_x_neq_newnum]
+        .
+          simp [x_lt_a, x_lt_b, vals.x_to_index_eq, index_x_neq_newnum]
 
   rw [sum_eq_zero] at sub_b
-  rw [vals.x_to_index_eq] at sub_b
-  simp at sub_b
+  simp [XVals.x_vals, XVals.x_to_index, newnum_neq_zero] at sub_b
 
   -- TODO - move these up earlier when we do `Finset.sum_subset a_subset_newnum ?_`
   . intro x hx x_not_in

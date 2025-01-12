@@ -4888,14 +4888,33 @@ theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0)
           intro a ha b hb
           simp [Finsupp.support_single_ne_zero] at ha
           simp [Finsupp.support_single_ne_zero] at hb
-          have cur_i_gt:  0 < (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i := by omega
-          by_cases cur_i_one: (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i = 1
-          . simp [cur_i_one] at hb
-            omega
-          . have cur_i_ge_two: 2 ≤ (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i := by omega
-            have pow_ge_4: 2^2 ≤ 2^((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i) := by
-              refine Nat.pow_le_pow_of_le_right (by simp) cur_i_ge_two
-            omega
+          by_cases cur_i_zero: (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i = 0
+          .
+            have cur_eq_zero_vals: (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur = x_vals_zero := by
+              have distinct_i := (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).distinct_i
+              have i_vals_eq: (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i = x_vals_zero.i := by
+                rw [cur_i_zero]
+                simp [x_vals_zero]
+              specialize distinct_i
+                (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur_in_vals
+                x_vals_zero (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).vals_has_zero i_vals_eq
+              exact distinct_i
+
+            apply_fun (fun t => t.getData.a) at h_tree
+            simp [ReverseTree.getData] at h_tree
+            simp [cur_eq_zero_vals, x_vals_zero] at h_tree
+            have a_eq := (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).a_val
+            simp [a_eq, g_enum_inverse] at h_tree
+            have app_eq := DFunLike.congr (x := 1) h_tree rfl
+            simp at app_eq
+          .
+            by_cases cur_i_one: (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i = 1
+            . simp [cur_i_one] at hb
+              omega
+            . have cur_i_ge_two: 2 ≤ (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i := by omega
+              have pow_ge_4: 2^2 ≤ 2^((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i) := by
+                refine Nat.pow_le_pow_of_le_right (by simp) cur_i_ge_two
+              omega
         | .left parent =>
           simp [h_tree, ReverseTree.getData, XVals.x_vals, newnum_neq_zero]
           rw [Finset.disjoint_iff_ne]
@@ -4903,7 +4922,7 @@ theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0)
           simp [Finsupp.support_single_ne_zero] at ha
           simp [Finsupp.support_single_ne_zero] at hb
 
-          have term_ge_4: 2^2 ≤ 2^((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i + 1) := by
+          have term_ge_4: 2^1 ≤ 2^((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i + 1) := by
             rw [StrictMono.le_iff_le]
             omega
             exact pow_right_strictMono (a := 2) (by simp)
@@ -4914,10 +4933,10 @@ theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0)
 
           simp at term_ge_4
 
-          have full_term_ge: 4 ≤ (newNum parent - 1) * 2 ^ ((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i + 1) := by
+          have full_term_ge: 2 ≤ (newNum parent - 1) * 2 ^ ((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i + 1) := by
             exact le_mul_of_one_le_of_le newnum_ge term_ge_4
 
-          have four_le_b: 4 ≤ b := by
+          have four_le_b: 2 ≤ b := by
             rw [hb]
             omega
 

@@ -2989,6 +2989,8 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
         | none =>
           apply WithBot.none_lt_some
 
+      have lt_self_pow := Nat.lt_pow_self Nat.one_lt_two (n := (max max_i max_root_supp + 1))
+
       let new_x_vals: XVals := {
         i := ((max max_i max_root_supp) + 1)
         root_elem := g_enumerate n
@@ -3061,7 +3063,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
               have new_lt := g_supp_lt ((g_enumerate n).support.max' g_supp_nonempty) supp_max_nonzero
               omega
 
-            have lt_self_pow := Nat.lt_pow_self Nat.one_lt_two (n := (max max_i max_root_supp + 1))
+
             have max_lt_pow: (g_enumerate n).support.max' g_supp_nonempty < 2 ^ (max max_i max_root_supp + 1) := by
               omega
 
@@ -3127,6 +3129,11 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           simp [ReverseTree.getData, XVals.x_vals]
           simp [Finsupp.support_single_ne_zero]
           intro has_neg
+          have le_getd : (g_enumerate n).support.max ≤ Option.getD (g_enumerate n).support.max 0 := by
+            sorry
+          rw [← WithBot.coe_lt_coe] at g_supp_lt
+          have first_trans := LE.le.trans_lt le_getd g_supp_lt
+          have second_trans := lt_trans first_trans lt_self_pow
 
         a_val := by
           simp only [ReverseTree.getData, new_x_vals, XVals.root_elem, hn]

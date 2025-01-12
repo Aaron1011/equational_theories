@@ -2777,6 +2777,18 @@ attribute [local instance] Classical.propDecidable
 
 def finsuppHasNeg (g: G) := ∃ x ∈ (Set.range g), x < 0
 
+lemma left_tree_supp_increasing {vals: XVals} (t: @ReverseTree vals): t.left.getData.a.support.max < t.left.getData.b.support.max := by
+  simp [ReverseTree.getData]
+  obtain ⟨g, m, m_le_newnum, supp_max_lt, t_sum⟩ := (tree_linear_comb t).2
+
+  have supp_max_sum: (∑ i ∈ Finset.range m, g i • vals.x_vals i).support.max = (vals.x_vals (m - 1)).support.max := by
+    sorry
+
+  rw [t_sum, supp_max_sum]
+  sorry
+
+  --simp [XVals.x_vals, newnum_neq_zero, Finsupp.support_single_ne_zero]
+
 def x_vals_zero: XVals := {
       i := 0
       root_elem := 0
@@ -2814,6 +2826,23 @@ structure LatestXVals (g: G) where
   --tree_agree: ∀ other_vals: XVals, ∀ other_tree: @ReverseTree other_vals, other_tree.getData.a = g → tree.getData.b = other_tree.getData.b
 
 
+
+lemma nonpos_not_tree_right {vals: XVals} (t: @ReverseTree vals) (ht: finsuppHasNeg t.getData.a): ¬(∃ parent: ReverseTree, parent.right = t) := by
+  by_contra!
+  obtain ⟨parent, hparent⟩ := this
+  simp only [finsuppHasNeg] at ht
+  obtain ⟨x, hx⟩ := ht
+  rw [← hparent] at hx
+  rw [ReverseTree.getData] at hx
+  simp only [XVals.x_vals, newnum_neq_zero] at hx
+  simp at hx
+  obtain ⟨y, hy⟩ := hx.1
+  rw [Finsupp.single_apply] at hy
+  by_cases eq_val: 2 ^ vals.i + (newNum parent - 1) * 2 ^ (vals.i + 1) = y
+  . simp [eq_val] at hy
+    linarith
+  . simp [eq_val] at hy
+    linarith
 
 --set_option trace.profiler true
 set_option maxHeartbeats 5000000
@@ -2872,6 +2901,7 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
       distinct_i := prev_x_vals.distinct_i
       distinct_trees := prev_x_vals.distinct_trees
       supp_max_pos := by
+
         sorry
       supp_increasing := by
         match Classical.choose (Classical.choose_spec has_tree) with
@@ -2879,20 +2909,29 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           simp [ReverseTree.getData]
           have supp_gt := (Classical.choose has_tree).supp_gt 0
           simp [basis_n] at supp_gt
-          rw [Finsupp.support_single_ne_zero _ (by simp)] at supp_gt
+          simp [Finsupp.support_single_ne_zero _ ?_] at supp_gt
           simp [XVals.x_vals]
-          rw [Finsupp.support_single_ne_zero _ (by simp)]
-          simp at supp_gt
-          simp
-          simp [finsuppHasNeg]
-          intro x hx
-
+          simp [Finsupp.support_single_ne_zero _ ?_]
+          intro has_neg
           exact supp_gt
         | .left parent =>
-          simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero]
-          sorry
+          simp [ReverseTree.getData]
+          intro has_neg
+          have increasing := left_tree_supp_increasing parent
+          simp [ReverseTree.getData] at increasing
+          norm_cast
+          rw [← WithBot.coe_natCast]
+          simp
+          rw [Finset.coe_max']
+          exact increasing
 
         | .right parent =>
+          intro has_neg
+          have not_right := nonpos_not_tree_right _ has_neg
+          simp at not_right
+          specialize not_right parent
+          rw [eq_comm] at not_right
+          contradiction
           sorry
 
     }
@@ -3813,22 +3852,7 @@ lemma x_vals_zero_left_b: (latest_x_vals 0).tree.left.getData.b = fun₀ | 3 => 
 --     simp
 
 
-lemma nonpos_not_tree_right {vals: XVals} (t: @ReverseTree vals) (ht: finsuppHasNeg t.getData.a): ¬(∃ parent: ReverseTree, parent.right = t) := by
-  by_contra!
-  obtain ⟨parent, hparent⟩ := this
-  simp only [finsuppHasNeg] at ht
-  obtain ⟨x, hx⟩ := ht
-  rw [← hparent] at hx
-  rw [ReverseTree.getData] at hx
-  simp only [XVals.x_vals, newnum_neq_zero] at hx
-  simp at hx
-  obtain ⟨y, hy⟩ := hx.1
-  rw [Finsupp.single_apply] at hy
-  by_cases eq_val: 2 ^ vals.i + (newNum parent - 1) * 2 ^ (vals.i + 1) = y
-  . simp [eq_val] at hy
-    linarith
-  . simp [eq_val] at hy
-    linarith
+
 
 
 

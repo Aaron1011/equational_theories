@@ -4155,7 +4155,15 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
               rw [hb]
               omega
           | .right parent =>
-            sorry
+            have a_eq := (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).a_val
+            simp [g_enum_inverse] at a_eq
+            unfold x_sum at x_sum_nonpos
+            rw [← a_eq] at x_sum_nonpos
+            have not_right := nonpos_not_tree_right _ x_sum_nonpos
+            simp at not_right
+            specialize not_right parent
+            rw [eq_comm] at not_right
+            contradiction
 
 
       exact fun a ↦ max_supp_not_in_superset (correct_subset a)

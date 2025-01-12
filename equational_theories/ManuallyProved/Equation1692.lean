@@ -2416,27 +2416,26 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
             .
               have is_t2_le: newNum t2_parent - 1 ≤ newNum t1_parent - 1 := by
                 linarith
-              have is_t2_le_succ: newNum t2_parent - 1 ≤ newNum t1_parent := by
-                linarith
               simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at h_eq
               have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t1_parent - 1)) rfl
               have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t1_parent - 1) is_t2_le
               have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t1_parent - 1) is_t2_le
               have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t1_parent - 1) (by simp)
               have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t1_parent - 1) (by simp)
+              simp [XVals.x_to_index] at t1_a_zero
+              simp [XVals.x_to_index] at t1_b_zero
+              simp [XVals.x_to_index] at t2_a_zero
+              simp [XVals.x_to_index] at t2_b_zero
+
+              simp [XVals.x_to_index, XVals.x_vals, newnum_neq_zero] at fun_congr
               simp [t2_a_zero, t2_b_zero, t1_a_zero, t1_b_zero, xSeq] at fun_congr
-              repeat rw [vals.x_to_index_eq] at fun_congr
-              simp [basis_n] at fun_congr
-              rw [Finsupp.single_apply, eq_comm] at fun_congr
-              simp at fun_congr
-              apply vals.x_to_index_inj at fun_congr
-              have parents_eq: t2_parent = t1_parent := by
-                exact newnum_injective t2_parent t1_parent fun_congr
-              have t1_eq_t2: t1 = t2 := by
-                rw [parents_eq.symm] at h_t1
-                rwa [← h_t2] at h_t1
-              rw [← h_t1, ← h_t2, t1_eq_t2] at h_a_neq
-              contradiction
+
+              have vals_neq: 2 ^ vals.i + (newNum t1_parent - 1) * 2 ^ (vals.i + 1) ≠ 2 ^ vals.i + (newNum t2_parent - 1) * 2 ^ (vals.i + 1) := by
+                by_contra!
+                simp at this
+                omega
+
+              simp [vals_neq.symm] at fun_congr
             .
               have is_t1_minus_le: newNum t1_parent - 1 ≤ newNum t2_parent - 1 := by
                 omega
@@ -2447,6 +2446,13 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
               have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t2_parent - 1) is_t1_minus_le
               have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent - 1) (by simp)
               have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent - 1) (by simp)
+
+              simp [XVals.x_to_index] at t1_a_zero
+              simp [XVals.x_to_index] at t1_b_zero
+              simp [XVals.x_to_index] at t2_a_zero
+              simp [XVals.x_to_index] at t2_b_zero
+
+              simp [XVals.x_to_index, XVals.x_vals, newnum_neq_zero] at fun_congr
               simp [t1_a_zero, t1_b_zero, t2_a_zero, t2_b_zero, xSeq] at fun_congr
               repeat rw [vals.x_to_index_eq] at fun_congr
               simp [XVals.x_vals, XVals.x_to_index, newnum_neq_zero] at fun_congr

@@ -2960,7 +2960,16 @@ lemma left_tree_supp_increasing {vals: XVals} (t: @ReverseTree vals): t.left.get
   simp [ReverseTree.getData]
   obtain ⟨g, m, m_le_newnum, supp_max_lt, t_sum⟩ := (tree_linear_comb t).2
 
+  have eq_union := Finsupp.support_sum_eq_biUnion (Finset.range m) ?_ (g := fun i => g i • vals.x_vals i)
+  rotate_left
+  . intro a b a_neq_b
+    by_cases a_eq_zero: a = 0
+    . simp [a_eq_zero, XVals.x_vals]
+      sorry
+    . sorry
+
   have supp_max_sum: (∑ i ∈ Finset.range m, g i • vals.x_vals i).support.max = (vals.x_vals (m - 1)).support.max := by
+    apply?
     sorry
 
   rw [t_sum, supp_max_sum]

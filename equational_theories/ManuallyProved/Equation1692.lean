@@ -3130,10 +3130,17 @@ noncomputable def latest_x_vals (n: ℕ): LatestXVals (g_enumerate n) := by
           simp [Finsupp.support_single_ne_zero]
           intro has_neg
           have le_getd : (g_enumerate n).support.max ≤ Option.getD (g_enumerate n).support.max 0 := by
-            sorry
+            match h_max: (g_enumerate n).support.max with
+            | .some max_val =>
+              simp [h_max]
+            | .none =>
+              simp [h_max]
           rw [← WithBot.coe_lt_coe] at g_supp_lt
+          rw [← WithBot.coe_lt_coe] at lt_self_pow
           have first_trans := LE.le.trans_lt le_getd g_supp_lt
           have second_trans := lt_trans first_trans lt_self_pow
+          simp at second_trans
+          exact second_trans
 
         a_val := by
           simp only [ReverseTree.getData, new_x_vals, XVals.root_elem, hn]

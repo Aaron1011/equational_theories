@@ -891,12 +891,12 @@ lemma tree_linear_comb {vals: XVals} (t: @ReverseTree vals):
       intro x _ m_lt_x
       simp [m_lt_x]
 
-lemma eval_larger_a_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: newNum t ≤ n) : t.getData.a (vals.x_to_index n) = 0 := by
+lemma eval_larger_a_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: newNum t - 1 ≤ n) : t.getData.a (vals.x_to_index n) = 0 := by
   obtain ⟨⟨g, m, m_le, g_card, h_g⟩, _⟩ := tree_linear_comb t
 
-  have val_newnum_le: vals.x_to_index (newNum t) ≤ vals.x_to_index n := by
-    simp [StrictMono.le_iff_le vals.x_to_index_increasing]
-    exact hn
+  have val_newnum_le: vals.x_to_index (newNum t - 1) ≤ vals.x_to_index n := by
+    simp [XVals.x_to_index]
+    omega
 
   have n_not_supp: ∀ i, i < m → vals.x_to_index n ∉ (vals.x_vals i).support := by
     intro i hi
@@ -935,12 +935,12 @@ lemma eval_larger_a_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: n
   exact fun_congr
 
 -- TODO - this is almost identical to 'eval_larger_a_eq_zero'
-lemma eval_larger_b_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: newNum t ≤ n) : t.getData.b (vals.x_to_index n) = 0 := by
+lemma eval_larger_b_eq_zero {vals: XVals} (t: @ReverseTree vals) (n: ℕ) (hn: newNum t - 1 ≤ n) : t.getData.b (vals.x_to_index n) = 0 := by
   obtain ⟨_, ⟨g, m, m_le, g_card, h_g⟩⟩ := tree_linear_comb t
 
-  have val_newnum_le: vals.x_to_index (newNum t) ≤ vals.x_to_index n := by
-    simp [StrictMono.le_iff_le vals.x_to_index_increasing]
-    exact hn
+  have val_newnum_le: vals.x_to_index (newNum t - 1) ≤ vals.x_to_index n := by
+    simp [XVals.x_to_index]
+    omega
 
   have n_not_supp: ∀ i, i < m → vals.x_to_index n ∉ (vals.x_vals i).support := by
     intro i hi
@@ -2100,47 +2100,59 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
       | .left t2_parent =>
           -- TODO - deduplicate this with the '.left t1_parent' 't2 root' case belo
           simp [ReverseTree.getData] at h_eq
-          have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t2_parent)) rfl
-          have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent) (by simp)
-          simp at fun_congr
-          have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
+          have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t2_parent - 1)) rfl
+          simp [XVals.x_vals, XVals.x_to_index, newnum_neq_zero] at fun_congr
+
+          have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent - 1) (by simp)
+          have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent - 1) (by simp)
+          simp [XVals.x_to_index] at t2_a_zero
+          simp [XVals.x_to_index] at t2_b_zero
+          simp [t2_a_zero, t2_b_zero] at fun_congr
           have t2_gt_one: 1 < newNum t2_parent := by
             exact newnem_gt_one t2_parent
-          have t2_neq_zero: 0 ≠ newNum t2_parent := by linarith
-          have index_zero_neq: vals.x_to_index 0 ≠ vals.x_to_index (newNum t2_parent) := by
-            apply Function.Injective.ne vals.x_to_index_inj t2_neq_zero
-          have t2_neq_one: 1 ≠ newNum t2_parent := by linarith
-          have index_one_neq: vals.x_to_index 1 ≠ vals.x_to_index (newNum t2_parent) := by
-            apply Function.Injective.ne vals.x_to_index_inj t2_neq_one
-          repeat rw [vals.x_to_index_eq] at fun_congr
-          --rw [t2_a_zero] at fun_congr
-          --simp [t2_a_zero, xSeq] at fun_congr
-          --rw [Finsupp.single_apply] at fun_congr
-          --rw [Finsupp.single_apply] at fun_congr
-          -- Implicit contradiction
-          simp [index_zero_neq, index_one_neq, t2_b_zero] at fun_congr
+
+          have pow_pow_ge_one: 1 ≤ 2 ^ (vals.i + 1) := by
+            exact Nat.one_le_two_pow
+
+          have t2_sub_gt: 1 ≤ newNum t2_parent - 1 := by omega
+          have mul_ge_one: 1 ≤ (newNum t2_parent - 1) * 2 ^ (vals.i + 1) := by
+            apply one_le_mul_of_one_le_of_one_le t2_sub_gt pow_pow_ge_one
+          have vals_neq: 2 ^ vals.i ≠ (2 ^ vals.i + (newNum t2_parent - 1) * 2 ^ (vals.i + 1)) := by
+            linarith
+
+          simp [vals_neq] at fun_congr
+          have root_not_supp := xvals_root_not_supp vals (newNum t2_parent - 1)
+          simp [XVals.x_to_index] at root_not_supp
+            -- Implicit contradiction
+          simp [root_not_supp] at fun_congr
       | .right t2_parent =>
           -- TODO - this is virtually identical to the '.left t2_parent' block above
           simp [ReverseTree.getData] at h_eq
-          have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t2_parent)) rfl
-          have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent) (by simp)
-          simp at fun_congr
-          have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
+          have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t2_parent - 1)) rfl
+          have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent - 1) (by simp)
+          simp [XVals.x_vals, XVals.x_to_index, newnum_neq_zero] at fun_congr
+          have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent - 1) (by simp)
+          simp [XVals.x_to_index] at t2_a_zero
+          simp [XVals.x_to_index] at t2_b_zero
+          simp [t2_a_zero, t2_b_zero] at fun_congr
+
           have t2_gt_one: 1 < newNum t2_parent := by
             exact newnem_gt_one t2_parent
-          have t2_neq_zero: 0 ≠ newNum t2_parent := by linarith
-          have index_zero_neq: vals.x_to_index 0 ≠ vals.x_to_index (newNum t2_parent) := by
-            apply Function.Injective.ne vals.x_to_index_inj t2_neq_zero
-          have t2_neq_one: 1 ≠ newNum t2_parent := by linarith
-          have index_one_neq: vals.x_to_index 1 ≠ vals.x_to_index (newNum t2_parent) := by
-            apply Function.Injective.ne vals.x_to_index_inj t2_neq_one
-          repeat rw [vals.x_to_index_eq] at fun_congr
-          --rw [t2_a_zero] at fun_congr
-          --simp [t2_a_zero, xSeq] at fun_congr
-          --rw [Finsupp.single_apply] at fun_congr
-          --rw [Finsupp.single_apply] at fun_congr
-          -- Implicit contradiction
-          simp [index_zero_neq, index_one_neq, t2_b_zero, t2_a_zero] at fun_congr
+
+          have pow_pow_ge_one: 1 ≤ 2 ^ (vals.i + 1) := by
+            exact Nat.one_le_two_pow
+
+          have t2_sub_gt: 1 ≤ newNum t2_parent - 1 := by omega
+          have mul_ge_one: 1 ≤ (newNum t2_parent - 1) * 2 ^ (vals.i + 1) := by
+            apply one_le_mul_of_one_le_of_one_le t2_sub_gt pow_pow_ge_one
+          have vals_neq: 2 ^ vals.i ≠ (2 ^ vals.i + (newNum t2_parent - 1) * 2 ^ (vals.i + 1)) := by
+            linarith
+
+          simp [vals_neq] at fun_congr
+          have root_not_supp := xvals_root_not_supp vals (newNum t2_parent - 1)
+          simp [XVals.x_to_index] at root_not_supp
+            -- Implicit contradiction
+          simp [root_not_supp] at fun_congr
     | .left t1_parent =>
         match h_t2: t2 with
           | .root =>
@@ -2310,16 +2322,18 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
               rw [parents_eq]
               refine ⟨rfl, rfl⟩
         | .right t2_parent =>
-            by_cases is_t2_lt: newNum t2_parent < newNum t1_parent
+            by_cases is_t2_lt: newNum t2_parent - 1 < newNum t1_parent - 1
             .
-              have is_t2_le: newNum t2_parent ≤ newNum t1_parent := by
+              have is_t2_le: newNum t2_parent - 1 ≤ newNum t1_parent - 1 := by
                 linarith
-              simp [ReverseTree.getData] at h_eq
-              have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t1_parent)) rfl
-              have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t1_parent) is_t2_le
-              have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t1_parent) is_t2_le
-              have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t1_parent) (by simp)
-              have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t1_parent) (by simp)
+              have is_t2_le_succ: newNum t2_parent - 1 ≤ newNum t1_parent := by
+                linarith
+              simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at h_eq
+              have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t1_parent - 1)) rfl
+              have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t1_parent - 1) is_t2_le
+              have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t1_parent - 1) is_t2_le
+              have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t1_parent - 1) (by simp)
+              have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t1_parent - 1) (by simp)
               simp [t2_a_zero, t2_b_zero, t1_a_zero, t1_b_zero, xSeq] at fun_congr
               repeat rw [vals.x_to_index_eq] at fun_congr
               simp [basis_n] at fun_congr
@@ -2334,18 +2348,18 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
               rw [← h_t1, ← h_t2, t1_eq_t2] at h_a_neq
               contradiction
             .
-              have is_t1_le: newNum t1_parent ≤ newNum t2_parent := by
-                linarith
+              have is_t1_minus_le: newNum t1_parent - 1 ≤ newNum t2_parent - 1 := by
+                omega
               simp [ReverseTree.getData] at h_eq
-              have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t2_parent)) rfl
-              simp at fun_congr
-              have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t2_parent) is_t1_le
-              have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t2_parent) is_t1_le
-              have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent) (by simp)
-              have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent) (by simp)
+              have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (newNum t2_parent - 1)) rfl
+              simp [XVals.x_to_index, XVals.x_vals, newnum_neq_zero] at fun_congr
+              have t1_a_zero := eval_larger_a_eq_zero t1_parent (newNum t2_parent - 1) is_t1_minus_le
+              have t1_b_zero := eval_larger_b_eq_zero t1_parent (newNum t2_parent - 1) is_t1_minus_le
+              have t2_a_zero := eval_larger_a_eq_zero t2_parent (newNum t2_parent - 1) (by simp)
+              have t2_b_zero := eval_larger_b_eq_zero t2_parent (newNum t2_parent - 1) (by simp)
               simp [t1_a_zero, t1_b_zero, t2_a_zero, t2_b_zero, xSeq] at fun_congr
               repeat rw [vals.x_to_index_eq] at fun_congr
-              simp [basis_n] at fun_congr
+              simp [XVals.x_vals, XVals.x_to_index, newnum_neq_zero] at fun_congr
               rw [Finsupp.single_apply] at fun_congr
               simp at fun_congr
               apply vals.x_to_index_inj at fun_congr
@@ -2968,9 +2982,10 @@ lemma left_tree_supp_increasing {vals: XVals} (t: @ReverseTree vals): t.left.get
       sorry
     . sorry
 
+
   have supp_max_sum: (∑ i ∈ Finset.range m, g i • vals.x_vals i).support.max = (vals.x_vals (m - 1)).support.max := by
+    rw [eq_union]
     apply?
-    sorry
 
   rw [t_sum, supp_max_sum]
   by_cases m_minus_eq_zero: m - 1 = 0

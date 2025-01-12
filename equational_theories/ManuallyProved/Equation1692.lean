@@ -2237,10 +2237,13 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_neq: t1
                     rwa [← h_t2] at h_t1
                   rw [← h_t1, ← h_t2, t1_eq_t2] at h_a_neq
                   contradiction
-                . have newnum_t2_lt: newNum t2_parent - 1 < newNum t1_parent - 1 := by omega
+                . have newnum_t1_gt: 1 < newNum t1_parent := by
+                    exact newnem_gt_one t1_parent
+                  have newnum_t2_gt: 1 < newNum t2_parent := by
+                    exact newnem_gt_one t2_parent
 
                   have newnums_neq: newNum t1_parent - 1 ≠ newNum t2_parent - 1 := by
-                    linarith
+                    omega
 
                   have vals_neq: 2 ^ vals.i + (newNum t1_parent - 1) * 2 ^ (vals.i + 1) ≠ 2 ^ vals.i + (newNum t2_parent - 1) * 2 ^ (vals.i + 1) := by
                     by_contra!

@@ -1340,8 +1340,8 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
 
     let f := λ x => s • (vals.x_vals x)
 
-    have x_val_basis: vals.x_vals (newNum prev) ∈ Set.range basis_n := Set.mem_of_mem_of_subset (by simp) vals.x_basis
-    obtain ⟨newnum_val, h_newnum_val⟩ := x_val_basis
+    --have x_val_basis: vals.x_vals (newNum prev) ∈ Set.range basis_n := Set.mem_of_mem_of_subset (by simp) vals.x_basis
+    --obtain ⟨newnum_val, h_newnum_val⟩ := x_val_basis
 
     have ite_eq: (if (newNum prev) ∈ Finset.range (newNum prev + 1) then f (newNum prev) else 0) = s • (vals.x_vals (newNum prev)) := by
       simp [f]
@@ -1365,10 +1365,12 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
     simp only [← ite_zero_smul] at hs_t
     simp only [← smul_assoc] at hs_t
     simp only [← add_smul] at hs_t
-    simp only [vals.x_to_index_eq] at hs_t
-    simp only [basis_n] at hs_t
 
-    apply (basis_x_val_indep _) at hs_t
+    simp [n_q_basis] at basis_x_val_indep
+    have new_indep := vals.root_indep (sorry)
+    rw [linearIndependent_iff'] at new_indep
+    apply (new_indep _) at hs_t
+
     refine ⟨?_, ?_⟩
 
     have a_max_num_lt: a_max_num < newNum prev + 1 := by
@@ -1401,7 +1403,7 @@ lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getDat
           rw [this]
         rw [← b_eq] at a_eq_sum_b
         rw [LinearIndependent.pair_iff'] at h_prev
-        specialize h_prev 1
+        specialize h_prev (sorry) 1
         simp at h_prev
         contradiction
 

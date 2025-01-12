@@ -1909,6 +1909,7 @@ lemma finsupp_new_one_newnum {vals: XVals} (t: @ReverseTree vals) (a b: ℚ) (hb
   rw [eq_comm] at eval_at
   contradiction
 
+-- TODO - clean up a lot of duplication here
 lemma xseq_zero_neq_b {vals: XVals} (t: @ReverseTree vals) (s: ℚ) (hs: s ≠ 0): vals.root_elem ≠ s • t.getData.b := by
   by_contra!
   match t with
@@ -1966,8 +1967,10 @@ lemma xseq_zero_neq_b {vals: XVals} (t: @ReverseTree vals) (s: ℚ) (hs: s ≠ 0
         simp [XVals.x_to_index] at root_not_supp
         simp [XVals.x_to_index] at eval_at
         simp [root_not_supp] at eval_at
-        have ancestor_zero := eval_larger_b_eq_zero ancestor (newNum t1_parent - 1) (by simp)
-        sorry
+        have ancestor_b_zero := eval_larger_b_eq_zero ancestor (newNum ancestor - 1) (by simp)
+        simp [XVals.x_to_index] at ancestor_b_zero
+        simp [ancestor_b_zero] at eval_at
+        contradiction
       | .right ancestor =>
         simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at this
         have ancestor_a_zero := eval_larger_a_eq_zero ancestor (newNum ancestor - 1) (by simp)

@@ -4694,4 +4694,39 @@ theorem Equation1692_not_implies_Equation2441 :
     simp
     exact not_equation_2441
 
+@[equational_result]
+theorem Equation1692_not_implies_Equation3050 :
+  ∃ (T : Type) (_ : Magma T), Equation1692 T ∧ ¬ Equation3050 T := by
+  let magG : Magma G := ⟨fun x y ↦ x + (f (y - x))⟩
+  use G, magG
+  refine ⟨?_, ?_⟩
+  . simp only [Equation1692]
+    simp [magG]
+    intro x y
+    have foo := diamond_real_f x y
+    simp [diamond] at foo
+    exact foo
+  . simp only [magG]
+    simp
+    use 0
+    simp
+    have foo := not_equation_3050
+    conv =>
+      pattern f (-f (-f 0) + -f 0)
+      rw [add_comm, ← sub_eq_add_neg]
+    conv =>
+      pattern f (-f (-f (-f 0) + -f 0) + (-f (-f 0) + -f 0))
+      rw [add_comm]
+      arg 1
+      arg 1
+      rw [add_comm]
+    conv =>
+      rw [← sub_eq_add_neg]
+      rw [← sub_eq_add_neg]
+    conv =>
+      pattern f (-f (-f 0) + -f 0)
+      rw [add_comm]
+      rw [← sub_eq_add_neg]
+    exact foo
+
 #min_imports

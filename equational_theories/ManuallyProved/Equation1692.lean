@@ -2606,16 +2606,6 @@ lemma g_countable: Countable (@Set.univ G) := by
   simp [G]
   exact Set.countable_univ
 
-@[irreducible] noncomputable def g_denumerable: Denumerable G := by
-  -- TODO - maybe use 'nonempty_equiv_of_countable' instead
-  have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
-  exact Classical.choice nonempty_denum
-
-@[irreducible] noncomputable def g_enumerate: ℕ → G := by
-  have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
-  have bar := Classical.choice nonempty_denum
-  exact Denumerable.ofNat G
-
 def g_exclude := {g: G // g ≠ 0 ∧ g ≠ fun₀ | 1 => 1 }
 
 noncomputable def customEquiv: Equiv G ℕ := by
@@ -2698,34 +2688,47 @@ noncomputable def customEquiv: Equiv G ℕ := by
           omega
   }
 
+
+@[irreducible] noncomputable def g_denumerable: Denumerable G := Denumerable.mk' customEquiv
+@[irreducible] noncomputable def g_enumerate: ℕ → G := customEquiv.symm
+
+
+
 lemma g_enum_zero_eq_zero: g_enumerate 0 = 0 := by
-  sorry
+  simp [g_enumerate, customEquiv]
 
 lemma g_enum_nonzero_eq_nonzero (n: ℕ) (hn: n > 0): g_enumerate n ≠ 0 := by
-  sorry
+  simp [g_enumerate, customEquiv]
+  refine ⟨by omega, ?_⟩
+  by_cases n_eq_1: n = 1
+  . simp [n_eq_1]
+  . simp [n_eq_1]
+    sorry
+
 lemma g_enum_one_eq_one: g_enumerate 1 = fun₀ | 1 => 1 := by
-  sorry
+  simp [g_enumerate, customEquiv]
 
 
-@[irreducible] noncomputable def g_to_num (g: G): ℕ := by
-  have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
-  have bar := Classical.choice nonempty_denum
-  exact bar.toEncodable.encode g
+@[irreducible] noncomputable def g_to_num (g: G): ℕ := customEquiv g
 
 def g_num_inverse (n: ℕ): g_to_num (g_enumerate n) = n := by
-  sorry
+  simp [g_enumerate, g_to_num]
 
 def g_enum_inverse (g: G): g_enumerate (g_to_num g) = g := by
-  sorry
+  simp [g_enumerate, g_to_num]
 
 lemma g_num_zero_eq_zero: g_to_num 0 = 0 := by
-  sorry
+  simp [g_to_num, customEquiv]
 
 lemma g_num_one_eq_one: g_to_num (fun₀ | 1 => 1) = 1 := by
-  sorry
+  simp [g_to_num]
 
 lemma g_to_num_nonzero_eq_nonzero (g: G) (hg: g ≠ 0): g_to_num g ≠ 0 := by
-  sorry
+  simp [g_to_num, customEquiv]
+  simp [hg]
+  by_cases g_eq_one: g = fun₀ | 1 => 1
+  . simp [g_eq_one]
+  . simp [g_eq_one]
 
 
 

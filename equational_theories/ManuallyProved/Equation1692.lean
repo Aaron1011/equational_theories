@@ -1012,7 +1012,7 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
 
         --simp [basis_n] at support_subset
 
-        have supp_single: ∀ x ∈ Finset.range m, ((g x) • vals.x_vals x).support ⊆ Finset.range (vals.x_to_index m) := by
+        have supp_single: ∀ x ∈ Finset.range m, ((g x) • vals.x_vals x).support ⊆ Finset.range (vals.x_to_index (m - 1)) := by
           intro x hx
           simp [XVals.x_vals]
           by_cases x_eq_zero: x = 0
@@ -1071,14 +1071,14 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
 
         simp only [basis_n, Finsupp.coe_basisSingleOne] at x_in_biunion
         -- TODO - this seems wrong. x is in range 'm' - we need to map this to the potentnial larger 'x_to_index'
-        have x_in_range: x ∈ Finset.range (vals.x_to_index m) := by
+        have x_in_range: x ∈ Finset.range (vals.x_to_index (m - 1)) := by
           apply Finset.mem_of_subset bar x_in_biunion
 
         have index_m_lt_newnum: vals.x_to_index m ≤ vals.x_to_index (newNum parent) := by
           simp [StrictMono.le_iff_le vals.x_to_index_increasing]
           linarith
 
-        have x_lt_m: x < vals.x_to_index (m) := by
+        have x_lt_m: x < vals.x_to_index (m - 1) := by
           simp at x_in_range
           exact x_in_range
 
@@ -1094,7 +1094,7 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
 
 
 
-        have newnum_val_gt: 2 ^ vals.i + m * 2 ^ (vals.i + 1) ≤ 2 ^ vals.i + (newNum parent - 1) * 2 ^ (vals.i + 1) := by
+        have newnum_val_gt: 2 ^ vals.i + (m - 1) * 2 ^ (vals.i + 1) ≤ 2 ^ vals.i + (newNum parent - 1) * 2 ^ (vals.i + 1) := by
           field_simp
           omega
 

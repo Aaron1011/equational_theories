@@ -1012,7 +1012,7 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
 
         --simp [basis_n] at support_subset
 
-        have supp_single: ∀ x ∈ Finset.range (m - 1), ((g x) • vals.x_vals x).support ⊆ Finset.range (vals.x_to_index m) := by
+        have supp_single: ∀ x ∈ Finset.range m, ((g x) • vals.x_vals x).support ⊆ Finset.range (vals.x_to_index m) := by
           intro x hx
           simp [XVals.x_vals]
           by_cases x_eq_zero: x = 0
@@ -1065,13 +1065,13 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
 
 
 
-        have bar := (Finset.biUnion_subset (s := Finset.range (m - 1)) (t := fun x => (g x • vals.x_vals x).support)).mpr supp_single
-        have x_in_biunion: x ∈ ((Finset.range (m - 1)).biUnion fun x ↦ (g x • vals.x_vals x).support) := by
+        have bar := (Finset.biUnion_subset (s := Finset.range (m)) (t := fun x => (g x • vals.x_vals x).support)).mpr supp_single
+        have x_in_biunion: x ∈ ((Finset.range m).biUnion fun x ↦ (g x • vals.x_vals x).support) := by
           apply Finset.mem_of_subset support_subset x_in_parent
 
         simp only [basis_n, Finsupp.coe_basisSingleOne] at x_in_biunion
         -- TODO - this seems wrong. x is in range 'm' - we need to map this to the potentnial larger 'x_to_index'
-        have x_in_range: x ∈ Finset.range (vals.x_to_index (m - 1)) := by
+        have x_in_range: x ∈ Finset.range (vals.x_to_index m) := by
           apply Finset.mem_of_subset bar x_in_biunion
 
         have index_m_lt_newnum: vals.x_to_index m ≤ vals.x_to_index (newNum parent) := by

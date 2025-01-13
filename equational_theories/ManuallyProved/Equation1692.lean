@@ -1,4 +1,13 @@
-import Mathlib
+import Mathlib.Analysis.Normed.Module.Basic
+import Mathlib.Data.Finsupp.Encodable
+import Mathlib.Data.Finsupp.Notation
+import Mathlib.Data.Finsupp.Pointwise
+import Mathlib.Data.Rat.Encodable
+import Mathlib.Data.Rat.Star
+import Mathlib.NumberTheory.NumberField.Basic
+import Mathlib.RingTheory.SimpleModule
+import equational_theories.Equations.All
+import equational_theories.FactsSyntax
 
 -- https://leanprover.zulipchat.com/user_uploads/3121/ASjTo5huToAvNGcg7pOGOOSy/Equation1692.pdf
 
@@ -4613,5 +4622,26 @@ theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0)
 --     exact t.getData.b
 --   . exact total_function x
 --     -- nonempty_denumerable_iff
+
+@[equational_result]
+theorem Equation1692_not_implies_Equation23 :
+  ∃ (T : Type) (_ : Magma T), Equation1692 T ∧ ¬ Equation23 T := by
+  let magG : Magma G := ⟨fun x y ↦ x + (f (y - x))⟩
+  use G, magG
+  refine ⟨?_, ?_⟩
+  . simp only [Equation1692]
+    simp [magG]
+    intro x y
+    have foo := diamond_real_f x y
+    simp [diamond] at foo
+    exact foo
+  . simp only [Equation23, magG]
+    simp
+    use 0
+    simp
+    have foo := not_equation_23
+    exact foo.symm
+
+
 
 #min_imports

@@ -2318,7 +2318,9 @@ lemma partial_function {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_eq: t1.getD
             simp [ReverseTree.getData, XVals.x_vals, XVals.x_to_index, newnum_neq_zero] at h_a_eq
             rw [Finsupp.single_eq_single_iff] at h_a_eq
             simp at h_a_eq
-            sorry
+            simp [ReverseTree.getData] at t_a_zero
+            have grandparent_b_not_zero := tree_vals_nonzero grandparent
+            contradiction
           | .right grandparent =>
             simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at t_a_zero
         .

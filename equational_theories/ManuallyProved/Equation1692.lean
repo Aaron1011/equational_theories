@@ -1275,6 +1275,61 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
       simp
 #print axioms tree_supp_disjoint
 
+lemma new_tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getData.a ≠ 0): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by
+  simp [LinearIndependent.pair_iff]
+  have supp_disjoint := tree_supp_disjoint t
+  intro a b h_sum_zero
+  have supp_nonempty: t.getData.a.support.Nonempty := by
+    simp [Finsupp.support_nonempty_iff]
+    exact ht
+  obtain ⟨x, hx⟩ := supp_nonempty
+
+  have new_supp_disjoint: Disjoint t.getData.b.support t.getData.a.support := by
+    apply Finset.disjoint_iff_inter_eq_empty.mpr supp_disjoint
+
+  have x_not_b_supp: x ∉ t.getData.b.support := by
+    apply Finset.disjoint_right.mp new_supp_disjoint hx
+
+  rw [Finsupp.not_mem_support_iff] at x_not_b_supp
+  rw [Finsupp.mem_support_iff] at hx
+
+  have eval_at := DFunLike.congr h_sum_zero (x := x) rfl
+  simp [x_not_b_supp, hx] at eval_at
+  have a_eq_zero := eval_at
+
+  simp [a_eq_zero] at h_sum_zero
+  match t with
+  | .root =>
+    simp [ReverseTree.getData, XVals.x_vals] at h_sum_zero
+    exact ⟨a_eq_zero, h_sum_zero⟩
+  | .left prev =>
+    simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at h_sum_zero
+    exact ⟨a_eq_zero, h_sum_zero⟩
+  | .right prev =>
+    simp [ReverseTree.getData, XVals.x_vals] at h_sum_zero
+    have not_eq: prev.getData.a - prev.getData.b ≠ 0 := by
+      by_contra!
+      apply eq_of_sub_eq_zero at this
+
+      have prev_disjoint := tree_supp_disjoint prev
+      rw [this] at prev_disjoint
+      simp at prev_disjoint
+      rw [prev_disjoint] at this
+      match prev with
+      | .root =>
+        simp [ReverseTree.getData, XVals.x_vals] at prev_disjoint
+      | .left grandparent =>
+        simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at prev_disjoint
+      | .right grandparent =>
+        simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at this
+    simp [not_eq] at h_sum_zero
+    exact ⟨a_eq_zero, h_sum_zero⟩
+
+#print axioms new_tree_linear_independent
+
+
+
+
 lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getData.a ≠ 0): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by
   induction t with
   | root =>

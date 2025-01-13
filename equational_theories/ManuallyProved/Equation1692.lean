@@ -2611,7 +2611,7 @@ lemma g_countable: Countable (@Set.univ G) := by
   have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
   exact Classical.choice nonempty_denum
 
-@[irreducible] noncomputable abbrev g_enumerate: ℕ → G := by
+@[irreducible] noncomputable def g_enumerate: ℕ → G := by
   have nonempty_denum := (nonempty_denumerable_iff (α := G)).mpr ⟨(by infer_instance), (by infer_instance)⟩
   have bar := Classical.choice nonempty_denum
   exact Denumerable.ofNat G

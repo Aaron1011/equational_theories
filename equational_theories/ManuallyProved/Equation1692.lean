@@ -4379,7 +4379,7 @@ theorem not_equation_3456: f 0 ≠ f ((f 0) + f (- (f 0))) := by
   simp [latest_x_vals]
   rfl
 
-theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0) - f (-f 0))) := by
+theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0))) := by
   rw [neg_f_zero, new_eval_left (n := 0)]
   nth_rw 1 [f_zero_eq]
   simp [x_vals_zero_left_a, x_vals_zero_left_b]
@@ -4485,143 +4485,20 @@ theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0)
                     f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)))).tree.getData.b.support.max' (tree_b_supp_nonempty _)
 
 
-  have app_eq:= DFunLike.congr (x := max_supp) this rfl
-  have max_supp_gt_three: 3 < max_supp := by
-    have foo := lt_trans three_lt_second_term_max second_app_supp_increase
-    unfold max_supp
-    rw [← WithBot.coe_lt_coe]
-    simp
-    exact foo
+  have app_eq := DFunLike.congr (x :=  ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _))) this rfl
+  simp at app_eq
+  have three_neq_supp: 3 ≠  ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)) := by omega
+  simp [three_neq_supp] at app_eq
 
+  simp [f] at app_eq
 
-  have max_supp_not_first: max_supp ∉ (f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support := by
-    have max_supp_not_in_superset: max_supp ∉ (((-fun₀ | 1 => 1)) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support := by
-      unfold max_supp
-      apply Finset.not_mem_of_max_lt_coe
-      exact second_app_supp_increase
-
-
-
-    have first_subset := Finsupp.support_sub (f := (-fun₀ | 1 => 1)) (g := f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))
-    have correct_subset : (f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support ⊆ (((-fun₀ | 1 => 1)) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)).support := by
-      have eq_add := Finsupp.support_add_eq (g₁ := (-fun₀ | 1 => (1 : ℚ)))  (g₂ := -f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1)) ?_
-      .
-        nth_rw 1 [← sub_eq_add_neg] at eq_add
-        rw [eq_add]
-        simp
-      . simp
-        simp [f]
-
-        have three_neq_two_n: ∀ n, 3 ≠ 2^n := by
-          intro n
-          by_cases n_eq_zero: n = 0
-          . simp [n_eq_zero]
-          . by_cases n_eq_one: n = 1
-            . simp [n_eq_one]
-            . have n_gt_two: 2 ≤ n := by
-                omega
-              have two_n_ge_4: 2^2 ≤ 2^n := by
-                exact Nat.pow_le_pow_of_le_right (by simp) n_gt_two
-              omega
-
-        match h_tree: (latest_x_vals (g_to_num (((-fun₀ | 1 => 1) - fun₀ | 3 => 1) : Finsupp _ _))).tree with
-        | .root =>
-          simp [h_tree, ReverseTree.getData, XVals.x_vals]
-          rw [Finset.disjoint_iff_ne]
-          intro a ha b hb
-          simp [Finsupp.support_single_ne_zero] at ha
-          simp [Finsupp.support_single_ne_zero] at hb
-          by_cases cur_i_zero: (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i = 0
-          .
-            have cur_eq_zero_vals: (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur = x_vals_zero := by
-              have distinct_i := (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).distinct_i
-              have i_vals_eq: (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i = x_vals_zero.i := by
-                rw [cur_i_zero]
-                simp [x_vals_zero]
-              specialize distinct_i
-                (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur_in_vals
-                x_vals_zero (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).vals_has_zero i_vals_eq
-              exact distinct_i
-
-            apply_fun (fun t => t.getData.a) at h_tree
-            simp [ReverseTree.getData] at h_tree
-            simp [cur_eq_zero_vals, x_vals_zero] at h_tree
-            have a_eq := (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).a_val
-            simp [a_eq, g_enum_inverse] at h_tree
-            have app_eq := DFunLike.congr (x := 1) h_tree rfl
-            simp at app_eq
-          .
-            by_cases cur_i_one: (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i = 1
-            . simp [cur_i_one] at hb
-              omega
-            . have cur_i_ge_two: 2 ≤ (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i := by omega
-              have pow_ge_4: 2^2 ≤ 2^((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i) := by
-                refine Nat.pow_le_pow_of_le_right (by simp) cur_i_ge_two
-              omega
-        | .left parent =>
-          simp [h_tree, ReverseTree.getData, XVals.x_vals, newnum_neq_zero]
-          rw [Finset.disjoint_iff_ne]
-          intro a ha b hb
-          simp [Finsupp.support_single_ne_zero] at ha
-          simp [Finsupp.support_single_ne_zero] at hb
-
-          have term_ge_4: 2^1 ≤ 2^((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i + 1) := by
-            rw [StrictMono.le_iff_le]
-            omega
-            exact pow_right_strictMono (a := 2) (by simp)
-
-          have newnum_ge: 1 ≤ (newNum parent - 1) := by
-            have val_ge := newnem_gt_one parent
-            omega
-
-          simp at term_ge_4
-
-          have full_term_ge: 2 ≤ (newNum parent - 1) * 2 ^ ((latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).cur.i + 1) := by
-            exact le_mul_of_one_le_of_le newnum_ge term_ge_4
-
-          have four_le_b: 2 ≤ b := by
-            rw [hb]
-            omega
-
-          omega
-        | .right parent =>
-          have a_eq := (latest_x_vals (g_to_num ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).a_val
-          simp [g_enum_inverse] at a_eq
-          unfold x_sum at x_sum_nonpos
-          rw [← a_eq] at x_sum_nonpos
-          have not_right := nonpos_not_tree_right _ x_sum_nonpos
-          simp at not_right
-          specialize not_right parent
-          rw [eq_comm] at not_right
-          contradiction
-
-
-    exact fun a ↦ max_supp_not_in_superset (correct_subset a)
-
-  have max_supp_neg_1: 1 ≠ max_supp := by omega
-  have max_supp_neq_3: 3 ≠ max_supp := by omega
-
-  have max_supp_in: max_supp ∈ (f (((-fun₀ | 1 => 1)) - f ((-fun₀ | 1 => 1) - fun₀ | 3 => 1))).support := by
-    unfold max_supp
+  have max_in: ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support.max' (tree_b_supp_nonempty _)) ∈ ((latest_x_vals (g_to_num x_sum)).tree.getData.b.support) := by
     apply Finset.max'_mem
 
-  simp [max_supp_neg_1, max_supp_neq_3] at app_eq
-  rw [Finsupp.not_mem_support_iff] at max_supp_not_first
-  --rw [max_supp_not_first] at app_eq
-  --simp at app_eq
-  simp [mt Finsupp.not_mem_support_iff.mpr] at max_supp_in
-  rw [eq_comm] at max_supp_in
+  rw [Finsupp.mem_support_iff] at max_in
+  rw [eq_comm] at app_eq
   contradiction
-  . rfl
-
-
--- noncomputable def total_function (x: G): G := by
---   by_cases x_in_tree: ∃ t: ReverseTree, x = t.getData.a
---   . let t := Classical.choose x_in_tree
---     have ht:= Classical.choose_spec x_in_tree
---     exact t.getData.b
---   . exact total_function x
---     -- nonempty_denumerable_iff
+  rfl
 
 @[equational_result]
 theorem Equation1692_not_implies_Equation23 :
@@ -4746,5 +4623,28 @@ theorem Equation1692_not_implies_Equation3456 :
     use 0
     simp
     exact not_equation_3456
+
+@[equational_result]
+theorem Equation1692_not_implies_Equation4065 :
+  ∃ (T : Type) (_ : Magma T), Equation1692 T ∧ ¬ Equation4065 T := by
+  let magG : Magma G := ⟨fun x y ↦ x + (f (y - x))⟩
+  use G, magG
+  refine ⟨?_, ?_⟩
+  . simp only [Equation1692]
+    simp [magG]
+    intro x y
+    have foo := diamond_real_f x y
+    simp [diamond] at foo
+    exact foo
+  . simp only [magG]
+    simp
+    use 0
+    simp
+    have foo := not_equation_4065
+    field_simp at foo
+    conv =>
+      pattern f (-f (-f 0) + -f 0)
+      rw [add_comm, ← sub_eq_add_neg]
+    exact foo
 
 #min_imports

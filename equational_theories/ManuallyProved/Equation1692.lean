@@ -4642,6 +4642,22 @@ theorem Equation1692_not_implies_Equation23 :
     have foo := not_equation_23
     exact foo.symm
 
+@[equational_result]
+theorem Equation1692_not_implies_Equation47 :
+  ∃ (T : Type) (_ : Magma T), Equation1692 T ∧ ¬ Equation47 T := by
+  let magG : Magma G := ⟨fun x y ↦ x + (f (y - x))⟩
+  use G, magG
+  refine ⟨?_, ?_⟩
+  . simp only [Equation1692]
+    simp [magG]
+    intro x y
+    have foo := diamond_real_f x y
+    simp [diamond] at foo
+    exact foo
+  . simp only [Equation47, magG]
+    simp
+    exact not_equation_47.symm
+
 
 
 #min_imports

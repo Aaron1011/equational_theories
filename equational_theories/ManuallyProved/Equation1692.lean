@@ -2622,7 +2622,32 @@ noncomputable def customEquiv: Equiv G ℕ := by
   haveI g_exclude_countable: Countable g_exclude := Subtype.countable
   haveI g_exclude_infinite: Infinite g_exclude := by
     unfold g_exclude
-    sorry
+    by_contra!
+    simp at this
+    have g_eq_union : @Set.univ G = Set.range (fun g: g_exclude => g.val) ∪ {0, fun₀ | 1 => 1} := by
+      apply Set.Subset.antisymm_iff.mpr
+      refine ⟨?_, ?_⟩
+      . intro g hg
+        by_cases g_zero: g = 0
+        . simp [g_zero]
+        . by_cases g_one: g = fun₀ | 1 => 1
+          . simp [g_one]
+          .
+            apply Set.mem_union_left
+            simp
+            use ⟨g, ⟨g_zero, g_one⟩⟩
+      . intro g hg
+        simp
+    have pair_finite: Set.Finite ({0, fun₀ | 1 => 1}: Set G) := by simp
+    have range_finite: Set.Finite (Set.range fun g: g_exclude ↦ g.val) := by
+      apply @Set.finite_range _ _ _ this
+    have finite_union := Set.Finite.union range_finite pair_finite
+    rw [← g_eq_union] at finite_union
+    have g_infinite: Set.Infinite (@Set.univ G) := by
+      apply Set.infinite_univ
+    contradiction
+
+
 
   let default_equiv := Classical.choice (nonempty_equiv_of_countable (α := g_exclude) (β := ℕ))
   exact {

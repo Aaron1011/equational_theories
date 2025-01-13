@@ -2616,6 +2616,63 @@ lemma g_countable: Countable (@Set.univ G) := by
   have bar := Classical.choice nonempty_denum
   exact Denumerable.ofNat G
 
+def g_exclude := {g: G // g ≠ 0 ∧ g ≠ fun₀ | 1 => 1 }
+
+noncomputable def customEquiv: Equiv G ℕ := by
+  haveI g_exclude_countable: Countable g_exclude := Subtype.countable
+  haveI g_exclude_infinite: Infinite g_exclude := by
+    unfold g_exclude
+    sorry
+
+  let default_equiv := Classical.choice (nonempty_equiv_of_countable (α := g_exclude) (β := ℕ))
+  exact {
+    toFun := fun g => by
+      by_cases g_eq_zero: g = 0
+      . exact 0
+      . by_cases g_eq_one: g = fun₀ | 1 => 1
+        . exact 1
+        . exact 2 + default_equiv.toFun ⟨g, ⟨g_eq_zero, g_eq_one⟩⟩
+    invFun := fun n => by
+      by_cases n_eq_zero: n = 0
+      . exact 0
+      . by_cases n_eq_one: n = 1
+        . exact fun₀ | 1 => 1
+        . exact (default_equiv.invFun (n - 2)).val
+
+    left_inv := by
+      rw [Function.LeftInverse]
+      intro x
+      by_cases x_zero: x = 0
+      . simp [x_zero]
+      . simp [x_zero]
+        by_cases x_one: x = fun₀ | 1 => 1
+        . simp [x_one]
+        .
+          let x_val: g_exclude := ⟨x, ⟨x_zero, x_one⟩⟩
+          simp only [x_one]
+          simp
+          omega
+
+    right_inv := by
+      rw [Function.RightInverse]
+      intro x
+      by_cases x_zero: x = 0
+      . simp [x_zero]
+      .
+        by_cases x_one: x = 1
+        . simp [x_one]
+        . simp only [x_zero]
+          simp
+          simp only [x_one]
+          simp
+          have val_neq_zero: (default_equiv.symm (x - 2)).val ≠ 0 := by
+            exact (default_equiv.symm (x - 2)).property.1
+          have val_neq_one := (default_equiv.symm (x - 2)).property.2
+          simp [val_neq_zero]
+          simp [val_neq_one]
+          omega
+  }
+
 lemma g_enum_zero_eq_zero: g_enumerate 0 = 0 := by
   sorry
 

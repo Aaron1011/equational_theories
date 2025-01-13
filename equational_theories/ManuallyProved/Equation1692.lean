@@ -1099,6 +1099,7 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
           omega
 
         omega
+        simp
     | .right parent =>
       -- TODO - a lot of this could probably be factored out and shared between the left and right branches
       simp [ReverseTree.getData, xSeq]
@@ -1154,13 +1155,12 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
       rw [a_sum_extend, b_sum_extend] at x_in_sum
       rw [← Finset.sum_sub_distrib] at x_in_sum
 
-      have supp_single: ∀ g: ℕ →₀ ℚ, ∀ x ∈ Finset.range (max a_m b_m), ((g x) • vals.x_vals x).support ⊆ Finset.range (max (vals.x_to_index a_m) (vals.x_to_index b_m)) := by
+      have supp_single: ∀ g: ℕ →₀ ℚ, ∀ x ∈ Finset.range (max a_m b_m), ((g x) • vals.x_vals x).support ⊆ Finset.range (max (vals.x_to_index (a_m - 1)) (vals.x_to_index (b_m - 1))) := by
         intro g x hx
         --have foo := Finsupp.support_single_subset (a := vals.x_vals x) (b := ( 1: ℚ))
-        have single_supp: (vals.x_vals x).support ⊆ {vals.x_to_index x} := by
-          rw [vals.x_to_index_eq]
-          simp only [basis_n]
-          apply Finsupp.support_single_subset
+        -- have single_supp: (vals.x_vals x).support ⊆ {vals.x_to_index x} := by
+        --   simp only [basis_n]
+        --   apply Finsupp.support_single_subset
         have x_single_subset: {vals.x_to_index x} ⊆ Finset.range (max (vals.x_to_index a_m) (vals.x_to_index b_m)) := by
           simp
           simp at hx
@@ -1174,17 +1174,49 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
             right
             apply vals.x_to_index_increasing
             exact x_right
-        have mul_support := Finsupp.support_smul (b := g x) (g := vals.x_vals x)
-        have first_trans := Finset.Subset.trans mul_support single_supp
-        have second_trans := Finset.Subset.trans first_trans x_single_subset
-        exact second_trans
+
+        by_cases x_eq_zero: x = 0
+        . simp [x_eq_zero]
+          simp [XVals.x_to_index]
+          have root_supp_gt := vals.supp_gt 0
+          intro a ha
+          by_cases g_0_eq_zero: g 0 = 0
+          . simp [g_0_eq_zero] at ha
+          .
+            have a_le := Finset.le_max' _ a ha
+            simp
+            simp [basis_n, Finsupp.support_single_ne_zero] at root_supp_gt
+            have supp_nonempty : (g 0 • vals.root_elem).support.Nonempty := by
+              rw [Finset.nonempty_iff_ne_empty]
+              exact Finset.ne_empty_of_mem ha
+            have supp_eq: (g 0 • vals.root_elem).support = vals.root_elem.support := by
+              exact Finsupp.support_smul_eq g_0_eq_zero
+            rw [← supp_eq] at root_supp_gt
+            rw [← Finset.coe_max' supp_nonempty] at root_supp_gt
+            norm_cast at root_supp_gt
+            rw [Nat.cast_withBot] at root_supp_gt
+            norm_cast at root_supp_gt
+            have a_lt := LE.le.trans_lt a_le root_supp_gt
+            omega
+
+        . simp [XVals.x_vals, XVals.x_to_index]
+          simp [x_eq_zero]
+          by_cases g_x_eq_zero: g x = 0
+          . simp [g_x_eq_zero]
+          .
+            rw [Finsupp.support_single_ne_zero]
+            simp [XVals.x_to_index]
+            simp at hx
+            omega
+            exact g_x_eq_zero
+
 
 
       have mul_supp_subset: ∀ g: ℕ →₀ ℚ, ∀ i ∈ Finset.range (max a_m b_m), (g i • vals.x_vals i).support ⊆ (vals.x_vals i).support := by
         intro g i hi
         exact Finsupp.support_smul
 
-      have combined_supp_subset: ∀ x ∈ Finset.range (max a_m b_m), ((if x ∈ Finset.range a_m then a_g x • vals.x_vals x else 0) - if x ∈ Finset.range b_m then b_g x • vals.x_vals x else 0).support ⊆ Finset.range (max (vals.x_to_index a_m) (vals.x_to_index b_m)) := by
+      have combined_supp_subset: ∀ x ∈ Finset.range (max a_m b_m), ((if x ∈ Finset.range a_m then a_g x • vals.x_vals x else 0) - if x ∈ Finset.range b_m then b_g x • vals.x_vals x else 0).support ⊆ Finset.range (max (vals.x_to_index (a_m - 1)) (vals.x_to_index (b_m - 1))) := by
         intro x hx
         by_cases x_lt_a: x < a_m
         . by_cases x_lt_b: x < b_m
@@ -1217,7 +1249,7 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
 
       simp only [basis_n, Finsupp.coe_basisSingleOne] at x_in_biunion
       have other := Finset.mem_of_subset biunion_subset x_in_biunion
-      have x_in_range: x ∈ Finset.range (max (vals.x_to_index a_m) (vals.x_to_index b_m)) := by
+      have x_in_range: x ∈ Finset.range (max (vals.x_to_index (a_m - 1)) (vals.x_to_index (b_m - 1))) := by
         apply Finset.mem_of_subset biunion_subset x_in_biunion
 
       have max_le_newnum: (max (vals.x_to_index a_m) (vals.x_to_index b_m)) ≤ vals.x_to_index (newNum parent) := by
@@ -1228,12 +1260,18 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
         . simp [StrictMono.le_iff_le vals.x_to_index_increasing]
           linarith
 
-      have x_lt_m: x < (max (vals.x_to_index a_m) (vals.x_to_index b_m)) := by
+      have x_lt_m: x < (max (vals.x_to_index (a_m - 1)) (vals.x_to_index (b_m - 1))) := by
         simp at x_in_range
         simp
         exact x_in_range
 
-      linarith
+      have newnum_val_gt: max (vals.x_to_index (a_m - 1)) (vals.x_to_index (b_m - 1)) ≤ 2 ^ vals.i + (newNum parent - 1) * 2 ^ (vals.i + 1) := by
+        simp [XVals.x_to_index]
+        refine ⟨?_, ?_⟩
+        omega
+        omega
+
+      omega
 #print axioms tree_supp_disjoint
 
 lemma tree_linear_independent {vals: XVals} (t: @ReverseTree vals) (ht: t.getData.a ≠ 0): LinearIndependent ℚ ![t.getData.a, t.getData.b] := by

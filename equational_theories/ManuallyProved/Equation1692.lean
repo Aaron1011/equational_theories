@@ -4,7 +4,6 @@ import Mathlib.Algebra.Module.Equiv.Defs
 -- https://leanprover.zulipchat.com/user_uploads/3121/ASjTo5huToAvNGcg7pOGOOSy/Equation1692.pdf
 
 -- TODO - re-enable lints
-set_option linter.unusedVariables false
 
 
 
@@ -2417,8 +2416,20 @@ lemma partial_function {vals: XVals} {t1 t2: @ReverseTree vals} (h_a_eq: t1.getD
         by_cases tree_a_zero: t2_parent_parent.getData.a = 0
         .
           simp [tree_a_zero] at h_a_eq
-
-          sorry
+          match h_ancestor: t2_parent_parent with
+          | .root =>
+            simp [ReverseTree.getData] at tree_a_zero
+            simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at h_a_eq
+            simp [Finsupp.single_eq_single_iff] at h_a_eq
+            have newnum_t1_gt: 1 < newNum t1_parent := by
+              exact newnem_gt_one t1_parent
+            omega
+          | .left ancestor =>
+            simp [ReverseTree.getData] at tree_a_zero
+            have b_nonzero := tree_vals_nonzero ancestor
+            contradiction
+          | .right ancestor =>
+            simp [ReverseTree.getData, XVals.x_vals, newnum_neq_zero] at tree_a_zero
 
         .
           have vals_neq := basis_neq_elem_diff t2_parent_parent (vals.x_to_index (newNum t1_parent - 1)) 1 (-1) 1 (by simp) (by simp) (by simp) tree_a_zero

@@ -1012,22 +1012,44 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
 
         --simp [basis_n] at support_subset
 
-        have supp_single: ∀ x ∈ Finset.range m, ((g x) • vals.x_vals x).support ⊆ Finset.range (vals.x_to_index m) := by
+        have supp_single: ∀ x ∈ Finset.range (m - 1), ((g x) • vals.x_vals x).support ⊆ Finset.range (vals.x_to_index m) := by
           intro x hx
-          have old_foo := Finsupp.support_single_subset (a := x) (b := ( 1: ℚ))
-          have single_supp: (vals.x_vals x).support ⊆ {vals.x_to_index x} := by
-            simp [XVals.x_vals, XVals.x_to_index]
-            simp only [basis_n]
-            apply Finsupp.support_single_subset
-          have x_val_subset: {vals.x_to_index x} ⊆ Finset.range (vals.x_to_index m) := by
-            simp
-            simp at hx
-            apply vals.x_to_index_increasing
-            exact hx
-          have mul_support := Finsupp.support_smul (b := g x) (g := vals.x_vals x)
-          have first_trans := Finset.Subset.trans mul_support single_supp
-          have second_trans := Finset.Subset.trans first_trans x_val_subset
-          exact second_trans
+          simp [XVals.x_vals]
+          by_cases x_eq_zero: x = 0
+          . simp [x_eq_zero]
+            simp [XVals.x_to_index]
+            have root_supp_gt := vals.supp_gt 0
+            intro a ha
+            by_cases g_0_eq_zero: g 0 = 0
+            . simp [g_0_eq_zero] at ha
+            .
+              have a_le := Finset.le_max' _ a ha
+              simp
+              simp [basis_n, Finsupp.support_single_ne_zero] at root_supp_gt
+              have supp_nonempty : (g 0 • vals.root_elem).support.Nonempty := by
+                rw [Finset.nonempty_iff_ne_empty]
+                exact Finset.ne_empty_of_mem ha
+              have supp_eq: (g 0 • vals.root_elem).support = vals.root_elem.support := by
+                exact Finsupp.support_smul_eq g_0_eq_zero
+              rw [← supp_eq] at root_supp_gt
+              rw [← Finset.coe_max' supp_nonempty] at root_supp_gt
+              norm_cast at root_supp_gt
+              rw [Nat.cast_withBot] at root_supp_gt
+              norm_cast at root_supp_gt
+              have a_lt := LE.le.trans_lt a_le root_supp_gt
+              omega
+
+          .
+            simp [x_eq_zero]
+            by_cases g_x_eq_zero: g x = 0
+            . simp [g_x_eq_zero]
+            .
+              rw [Finsupp.support_single_ne_zero]
+              simp [XVals.x_to_index]
+              simp at hx
+              omega
+              exact g_x_eq_zero
+
 
 
         have mul_supp_subset: ∀ i ∈ Finset.range m, (g i • basis_n i).support ⊆ (basis_n i).support := by
@@ -1041,13 +1063,15 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
 
 
 
-        have bar := (Finset.biUnion_subset (s := Finset.range (m)) (t := fun x => (g x • vals.x_vals x).support)).mpr supp_single
-        have x_in_biunion: x ∈ ((Finset.range m).biUnion fun x ↦ (g x • vals.x_vals x).support) := by
+
+
+        have bar := (Finset.biUnion_subset (s := Finset.range (m - 1)) (t := fun x => (g x • vals.x_vals x).support)).mpr supp_single
+        have x_in_biunion: x ∈ ((Finset.range (m - 1)).biUnion fun x ↦ (g x • vals.x_vals x).support) := by
           apply Finset.mem_of_subset support_subset x_in_parent
 
         simp only [basis_n, Finsupp.coe_basisSingleOne] at x_in_biunion
         -- TODO - this seems wrong. x is in range 'm' - we need to map this to the potentnial larger 'x_to_index'
-        have x_in_range: x ∈ Finset.range (vals.x_to_index m) := by
+        have x_in_range: x ∈ Finset.range (vals.x_to_index (m - 1)) := by
           apply Finset.mem_of_subset bar x_in_biunion
 
         have index_m_lt_newnum: vals.x_to_index m ≤ vals.x_to_index (newNum parent) := by
@@ -1057,6 +1081,23 @@ lemma tree_supp_disjoint {vals: XVals} (t: @ReverseTree vals): t.getData.b.suppo
         have x_lt_m: x < vals.x_to_index (m) := by
           simp at x_in_range
           exact x_in_range
+
+        rw [← ne_eq] at x_in_cur
+        rw [← Finsupp.mem_support_iff] at x_in_cur
+        rw [Finsupp.support_single_ne_zero] at x_in_cur
+        simp at x_in_cur
+        simp [XVals.x_to_index] at x_lt_m
+
+        simp [XVals.x_to_index] at index_m_lt_newnum
+        simp  [XVals.x_to_index] at x_in_range
+
+
+
+
+        have newnum_val_gt: 2 ^ vals.i + m * 2 ^ (vals.i + 1) ≤ 2 ^ vals.i + (newNum parent - 1) * 2 ^ (vals.i + 1) := by
+          field_simp
+          omega
+
         omega
     | .right parent =>
       -- TODO - a lot of this could probably be factored out and shared between the left and right branches

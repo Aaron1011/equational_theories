@@ -1,5 +1,3 @@
-import equational_theories.Equations.All
-import equational_theories.MagmaOp
 import Mathlib
 
 -- https://leanprover.zulipchat.com/user_uploads/3121/ASjTo5huToAvNGcg7pOGOOSy/Equation1692.pdf
@@ -3656,7 +3654,6 @@ lemma latest_x_vals_set (a b: ℕ) (hab: a ≤ b): (latest_x_vals a).vals ⊆ (l
           simp [has_tree]
         . rw [dite_cond_eq_false]
           . simp
-            exact Finset.subset_union_left
           . simp [has_tree]
 
       exact Finset.Subset.trans (h_prev a_le_new_b) new_b_in
@@ -4242,7 +4239,6 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
           nth_rw 1 [← sub_eq_add_neg] at eq_add
           rw [eq_add]
           simp
-          exact Finset.subset_union_right
         . simp
           simp [f]
 
@@ -4504,7 +4500,6 @@ theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0)
         nth_rw 1 [← sub_eq_add_neg] at eq_add
         rw [eq_add]
         simp
-        exact Finset.subset_union_right
       . simp
         simp [f]
 
@@ -4618,3 +4613,5 @@ theorem not_equation_4065: f 0 ≠ (f 0) + (f (- f 0)) + f ((- f 0) - f (- (f 0)
 --     exact t.getData.b
 --   . exact total_function x
 --     -- nonempty_denumerable_iff
+
+#min_imports

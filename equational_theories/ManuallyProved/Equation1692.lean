@@ -2703,7 +2703,10 @@ lemma g_enum_nonzero_eq_nonzero (n: ℕ) (hn: n > 0): g_enumerate n ≠ 0 := by
   by_cases n_eq_1: n = 1
   . simp [n_eq_1]
   . simp [n_eq_1]
-    sorry
+    have exclude_not_zero: ∀ g: g_exclude, g.val ≠ 0 := by
+      intro g
+      exact g.property.1
+    simp [exclude_not_zero]
 
 lemma g_enum_one_eq_one: g_enumerate 1 = fun₀ | 1 => 1 := by
   simp [g_enumerate, customEquiv]
@@ -2721,7 +2724,7 @@ lemma g_num_zero_eq_zero: g_to_num 0 = 0 := by
   simp [g_to_num, customEquiv]
 
 lemma g_num_one_eq_one: g_to_num (fun₀ | 1 => 1) = 1 := by
-  simp [g_to_num]
+  simp [g_to_num, customEquiv]
 
 lemma g_to_num_nonzero_eq_nonzero (g: G) (hg: g ≠ 0): g_to_num g ≠ 0 := by
   simp [g_to_num, customEquiv]

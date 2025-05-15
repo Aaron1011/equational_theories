@@ -2164,37 +2164,43 @@ lemma f_zero_eq: f (0) = (fun₀ | 1 => 1) := by
 theorem not_equation_1832: 0 ≠ f (f (0)) + f ((f (0)) - f (f (0))) := by
   rw [f_zero_eq, ne_eq]
   let root_tree: @TreeNode x_vals_zero := TreeNode.root
-  have my_one_tree: root_tree.right.left.getData.a  = fun₀ | 1 => 1 := by simp [TreeNode.getData, x_vals_zero, XVals.x_vals]
+  have my_one_tree: root_tree.right.left.getData.a  = fun₀ | 1 => 1 := by simp [root_tree, TreeNode.getData, x_vals_zero, XVals.x_vals]
   rw [← my_one_tree, f_eval_at (n := 0)]
-  simp [TreeNode.getData, x_vals_zero, XVals.x_vals, treeNum_neq_zero, treeNum]
-  have x_diff_has_neg: finsuppHasNeg ((fun₀ | 1 => (1 : ℚ)) - fun₀ | 7 => 1) := by
-    simp [finsuppHasNeg]
-    use 7
-    simp
-  have x_diff_supp: ((fun₀ | 1 => (1 : ℚ)) - fun₀ | 7 => 1).support = {1, 7} := by
-    rw [ sub_eq_add_neg, ← Finsupp.single_neg]
-    have disjoint_supp: Disjoint (fun₀ | 1 => (1 : ℚ)).support (fun₀ | 7 => (-1 : ℚ)).support := by
-      simp [Finsupp.support_single_ne_zero]
-    rw [Finsupp.support_add_eq disjoint_supp]
-    simp
-    rw [Finsupp.support_single_ne_zero _ (by simp), Finsupp.support_single_ne_zero _ (by simp)]
-    exact rfl
-  have supp_increasing := (f_data (g_to_num ((fun₀ | 1 => (1 : ℚ)) - fun₀ | 7 => 1))).supp_increasing
-  have a_eq := (f_data (g_to_num ((fun₀ | 1 => (1 : ℚ)) - fun₀ | 7 => 1))).a_val
-  simp [a_eq, g_enum_inverse] at supp_increasing
-  specialize supp_increasing x_diff_has_neg
-  simp [x_diff_supp] at supp_increasing
-  let max_supp := (f_data (g_to_num ((fun₀ | 1 => 1) - fun₀ | 7 => 1))).tree.getData.b.support.max' (tree_b_supp_nonempty _)
-  have seven_neq_max: 7 ≠ max_supp := by omega
-  by_contra!
-  have eval_at := DFunLike.congr (x := max_supp) this rfl
-  simp [seven_neq_max] at eval_at
-  have eval_max_nonzero: (f ((fun₀ | 1 => 1) - fun₀ | 7 => 1)) max_supp ≠ 0 := by
-    rw [← Finsupp.mem_support_iff]
-    apply Finset.max'_mem _ _
-  rw [eq_comm] at eval_at
-  contradiction
-  simp [f_data]
+  .
+    simp [TreeNode.getData, x_vals_zero, XVals.x_vals, treeNum_neq_zero, treeNum]
+    have x_diff_has_neg: finsuppHasNeg ((fun₀ | 1 => (1 : ℚ)) - fun₀ | 7 => 1) := by
+      simp [finsuppHasNeg]
+      use 7
+      simp
+    have x_diff_supp: ((fun₀ | 1 => (1 : ℚ)) - fun₀ | 7 => 1).support = {1, 7} := by
+      rw [ sub_eq_add_neg, ← Finsupp.single_neg]
+      have disjoint_supp: Disjoint (fun₀ | 1 => (1 : ℚ)).support (fun₀ | 7 => (-1 : ℚ)).support := by
+        simp [Finsupp.support_single_ne_zero]
+      rw [Finsupp.support_add_eq disjoint_supp]
+      simp
+      rw [Finsupp.support_single_ne_zero _ (by simp), Finsupp.support_single_ne_zero _ (by simp)]
+      exact rfl
+    have supp_increasing := (f_data (g_to_num ((fun₀ | 1 => (1 : ℚ)) - fun₀ | 7 => 1))).supp_increasing
+    have a_eq := (f_data (g_to_num ((fun₀ | 1 => (1 : ℚ)) - fun₀ | 7 => 1))).a_val
+    simp [a_eq, g_enum_inverse] at supp_increasing
+    specialize supp_increasing x_diff_has_neg
+    simp [x_diff_supp] at supp_increasing
+    let max_supp := (f_data (g_to_num ((fun₀ | 1 => 1) - fun₀ | 7 => 1))).tree.getData.b.support.max' (tree_b_supp_nonempty _)
+    have seven_neq_max: 7 ≠ max_supp := by omega
+    by_contra!
+    have eval_at := DFunLike.congr (x := max_supp) this rfl
+    simp only [Finsupp.coe_zero, Pi.zero_apply, treeNum, Nat.reduceMul, Nat.add_one_sub_one,
+      Nat.reduceAdd, TreeNode.getData, XVals.x_vals, one_ne_zero, ↓reduceIte,
+      Finsupp.coe_basisSingleOne, pow_zero, tsub_self, zero_add, pow_one, zero_mul, add_zero,
+      sub_zero, Finsupp.coe_add, Pi.add_apply, Finsupp.single_eq_of_ne seven_neq_max,
+      root_tree] at eval_at
+    have eval_max_nonzero: (f ((fun₀ | 1 => 1) - fun₀ | 7 => 1)) max_supp ≠ 0 := by
+      rw [← Finsupp.mem_support_iff]
+      apply Finset.max'_mem _ _
+    rw [eq_comm] at eval_at
+    contradiction
+
+  . simp [f_data]
 
 lemma sum_1_3_eq_tree: (fun₀ | 1 => (1: ℚ)) + (fun₀ | 3 => 1) = (@TreeNode.root x_vals_zero).left.right.left.getData.a := by
   simp [TreeNode.getData, x_vals_zero, XVals.x_vals, treeNum_neq_zero, treeNum, add_comm]

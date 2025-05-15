@@ -889,7 +889,10 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @TreeNode vals} (h_a_neq: t1.ge
                     by_contra!
                     simp at this
                     omega
-                  simp [vals_neq.symm] at fun_congr
+                  rw [eq_comm, Finsupp.single_apply, ite_eq_iff] at fun_congr
+                  simp at fun_congr
+                  have bad := fun_congr.2
+                  omega
               exact ⟨t1_parent, Or.inl ((treeNum_injective t1_parent t2_parent treeNums_eq) ▸ ⟨rfl, rfl⟩)⟩
     | .right t1_parent =>
       match h_t2: t2 with
@@ -906,10 +909,10 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @TreeNode vals} (h_a_neq: t1.ge
           have t1_sub_gt: 1 ≤ treeNum t1_parent - 1 := by omega
           have mul_ge_one: 1 ≤ (treeNum t1_parent - 1) * 2 ^ (vals.i + 1) := one_le_mul_of_one_le_of_one_le t1_sub_gt Nat.one_le_two_pow
           have vals_neq: 2 ^ vals.i ≠ (2 ^ vals.i + (treeNum t1_parent - 1) * 2 ^ (vals.i + 1)) := by linarith
-          simp [vals_neq] at fun_congr
+          rw [Finsupp.single_eq_of_ne vals_neq] at fun_congr
           have root_not_supp := xvals_root_not_supp vals (treeNum t1_parent - 1)
           simp [XVals.x_to_index] at root_not_supp
-          simp [root_not_supp] at fun_congr
+          simp [vals_neq, root_not_supp] at fun_congr
         | .left t2_parent =>
             have treeNums_eq: treeNum t1_parent = treeNum t2_parent := by
               by_contra!

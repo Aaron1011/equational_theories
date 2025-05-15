@@ -935,7 +935,7 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @TreeNode vals} (h_a_neq: t1.ge
                   by_contra!
                   simp at this
                   omega
-                simp [vals_neq] at fun_congr
+                simp [Finsupp.single_eq_of_ne vals_neq] at fun_congr
               · simp [TreeNode.getData] at h_eq
                 have fun_congr := DFunLike.congr h_eq (x := vals.x_to_index (treeNum t1_parent - 1)) rfl
                 simp at fun_congr
@@ -954,7 +954,7 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @TreeNode vals} (h_a_neq: t1.ge
                   by_contra!
                   simp at this
                   omega
-                simp [vals_neq.symm] at fun_congr
+                simp [Finsupp.single_eq_of_ne vals_neq.symm] at fun_congr
             exact ⟨t1_parent, Or.inr (treeNum_injective t1_parent t2_parent treeNums_eq ▸ ⟨rfl, rfl⟩)⟩
         | .right t2_parent =>
             by_cases is_t2_lt: treeNum t2_parent - 1 < treeNum t1_parent - 1
@@ -974,7 +974,7 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @TreeNode vals} (h_a_neq: t1.ge
                 by_contra!
                 simp at this
                 omega
-              simp [vals_neq.symm] at fun_congr
+              simp [Finsupp.single_eq_of_ne vals_neq.symm] at fun_congr
             · by_cases treeNums_eq: treeNum t1_parent = treeNum t2_parent
               · have t1_eq_t2: t1 = t2 := by rwa [treeNum_injective t1_parent t2_parent treeNums_eq, ← h_t2] at h_t1
                 rw [← h_t1, ← h_t2, t1_eq_t2] at h_a_neq
@@ -996,7 +996,7 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @TreeNode vals} (h_a_neq: t1.ge
                   by_contra!
                   simp at this
                   omega
-                simp [vals_neq] at fun_congr
+                simp [Finsupp.single_eq_of_ne vals_neq] at fun_congr
 
 -- The main part of proving that 'f' is a partial function:
 -- We cannot have two distinct nodes (in the same `XVals` tree) with the same 'a' value.

@@ -1691,7 +1691,6 @@ lemma nonpos_not_tree_right {vals: XVals} (t: @TreeNode vals) (ht: finsuppHasNeg
 noncomputable def f_data (n: ℕ): FData (g_enumerate n) := by
   match hn: n with
   | 0 =>
-    let x_vals := x_vals_zero
     exact {
       vals := {x_vals_zero},
       cur := x_vals_zero,
@@ -1707,7 +1706,10 @@ noncomputable def f_data (n: ℕ): FData (g_enumerate n) := by
       supp_max_pos := by simp [TreeNode.getData, finsuppHasNeg, x_vals_zero]
   }
   | a + 1 =>
-    let prev_x_vals := f_data a
+    -- Note - this would normally be a 'let', but this causes ea weird interaction with
+    -- later 'omega' uses in this function:
+    -- https://leanprover.zulipchat.com/#narrow/channel/113488-general/topic/'unexpected.20occurrence.20of.20recursive.20application'.20with.20omega
+    have prev_x_vals := f_data a
     by_cases has_tree: ∃ x_vals: XVals, ∃ t: @TreeNode x_vals, x_vals ∈ prev_x_vals.vals ∧ t.getData.a = g_enumerate n
     · exact {
       vals := prev_x_vals.vals,
@@ -2146,9 +2148,8 @@ theorem not_equation_23: 0 ≠ (f (0)) + (f (- (f (0)))) := by
   have app_eq := DFunLike.congr (x := 1) this rfl
   simp [x_vals_zero] at app_eq
   have val_neq_1: 1 + (treeNum (@TreeNode.root x_vals_zero) - 1) * 2 ≠ 1 := by omega
-  simp [val_neq_1] at app_eq
   rw [g_num_zero_eq_zero] at app_eq
-  simp [f_data, TreeNode.getData, x_vals_zero, XVals.x_vals] at app_eq
+  simp [f_data, TreeNode.getData, x_vals_zero, XVals.x_vals, Finsupp.single_eq_of_ne val_neq_1, add_zero] at app_eq
 
 theorem not_equation_47: f (f (f 0)) ≠ 0 := by
   rw [f]

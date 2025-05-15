@@ -1693,18 +1693,18 @@ noncomputable def f_data (n: ℕ): FData (g_enumerate n) := by
   | 0 =>
     let x_vals := x_vals_zero
     exact {
-      vals := {x_vals},
-      cur := x_vals,
+      vals := {x_vals_zero},
+      cur := x_vals_zero,
       cur_in_vals := by simp,
       tree := TreeNode.root,
       a_val := by
-        simp only [TreeNode.getData, x_vals, XVals.root_elem, hn]
+        simp only [TreeNode.getData, XVals.root_elem, hn]
         rw [g_enum_zero_eq_zero, x_vals_zero]
       distinct_i := by simp
       distinct_trees := by simp
       vals_has_zero := by simp
-      supp_increasing := by simp [TreeNode.getData, finsuppHasNeg, x_vals, x_vals_zero]
-      supp_max_pos := by simp [TreeNode.getData, finsuppHasNeg, x_vals, x_vals_zero]
+      supp_increasing := by simp [TreeNode.getData, finsuppHasNeg, x_vals_zero]
+      supp_max_pos := by simp [TreeNode.getData, finsuppHasNeg, x_vals_zero]
   }
   | a + 1 =>
     let prev_x_vals := f_data a

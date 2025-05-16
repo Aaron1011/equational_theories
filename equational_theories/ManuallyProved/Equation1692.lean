@@ -2251,6 +2251,9 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
       --unfold x_sum at h_tree
       rw [h_tree] at f_supp_increasing
       simp [TreeNode.getData] at f_supp_increasing
+      rw [same_vals] at f_supp_increasing
+      simp [x_vals_zero, XVals.x_vals] at f_supp_increasing
+      simp [Finsupp.support_single_ne_zero 1] at f_supp_increasing
 
       --conv =>
       --  pattern TreeNode.root.getData.b

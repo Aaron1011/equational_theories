@@ -2248,6 +2248,14 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
       simp [h_tree, XVals.x_vals, TreeNode.getData, same_vals, x_vals_zero] at f_supp_increasing
       rw [x_sum_supp] at f_supp_increasing
       simp [Finsupp.support_single_ne_zero _] at f_supp_increasing
+      --unfold x_sum at h_tree
+      rw [h_tree] at f_supp_increasing
+      simp [TreeNode.getData] at f_supp_increasing
+
+      --conv =>
+      --  pattern TreeNode.root.getData.b
+      --  simp [TreeNode.getData]
+
     | .left parent =>
       by_contra!
       have i_same := same_vals
@@ -2255,12 +2263,12 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
       simp [TreeNode.getData, same_vals, x_vals_zero, XVals.x_vals, treeNum_neq_zero] at this
       rw [ite_cond_eq_false, basis_n, n_q_basis, Finsupp.basisSingleOne, i_same, x_vals_zero, XVals.i] at this
       have second_sum_has_neg : finsuppHasNeg ((-fun₀ | 1 => (1 : ℚ)) - (fun₀ | 3 => (1 : ℚ)) - (fun₀ | 1 + (treeNum parent - 1) * 2 => (1 : ℚ))) := by
-        simp [finsuppHasNeg]
+        simp only [finsuppHasNeg, Finsupp.coe_sub, Finsupp.coe_neg, Set.mem_range, Pi.sub_apply,
+          Pi.neg_apply, exists_exists_eq_and, sub_neg]
         use 1
-        simp
         by_cases val_eq_one: 1 + (treeNum parent - 1) * 2 = 1
         · simp [val_eq_one]
-        · simp [val_eq_one]
+        · simp [Finsupp.single_eq_of_ne val_eq_one]
       have second_supp_increase := (f_data (g_to_num ((((-fun₀ | 1 => 1) - fun₀ | 3 => 1) - fun₀ | 1 + (treeNum parent - 1) * 2 => 1)))).supp_increasing
       simp [(f_data _).a_val, g_enum_inverse] at second_supp_increase
       specialize second_supp_increase second_sum_has_neg
@@ -2296,10 +2304,11 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
               Finset.disjoint_insert_left, Finsupp.mem_support_iff, ne_eq, Decidable.not_not,
               Finset.disjoint_singleton_left]
             rw [Finsupp.single_apply]
-            simp only [add_right_eq_self, mul_eq_zero, OfNat.ofNat_ne_zero, or_false,
+            simp only [add_eq_left, mul_eq_zero, OfNat.ofNat_ne_zero, or_false,
               ite_eq_right_iff, one_ne_zero, imp_false]
+            have treeNum_parent_gt := treeNum_gt_one parent
             refine ⟨?_, ?_⟩
-            · omega
+            . omega
             · rw [Finsupp.single_apply]
               simp only [ite_eq_right_iff, one_ne_zero, imp_false]
               omega

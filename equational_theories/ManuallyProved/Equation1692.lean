@@ -890,8 +890,10 @@ lemma cross_eq_same_parent {vals: XVals} {t1 t2: @TreeNode vals} (h_a_neq: t1.ge
                     simp at this
                     omega
                   rw [eq_comm, Finsupp.single_apply, ite_eq_iff] at fun_congr
-                  simp at fun_congr
-                  have bad := fun_congr.2
+                  simp only [Nat.add_left_cancel_iff, mul_eq_mul_right_iff, Nat.pow_eq_zero,
+                    OfNat.ofNat_ne_zero, ne_eq, Nat.add_eq_zero, one_ne_zero, and_false,
+                    not_false_eq_true, and_true, or_false, zero_eq_neg] at fun_congr
+                  have := fun_congr.2
                   omega
               exact ⟨t1_parent, Or.inl ((treeNum_injective t1_parent t2_parent treeNums_eq) ▸ ⟨rfl, rfl⟩)⟩
     | .right t1_parent =>

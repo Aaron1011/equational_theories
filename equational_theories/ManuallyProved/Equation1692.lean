@@ -71,7 +71,7 @@ lemma XVals.x_inj (vals: XVals): Function.Injective vals.x_vals := by
   rw [Function.Injective]
   intro a1 a2 funs_eq
   simp only [x_vals, Finsupp.coe_basisSingleOne] at funs_eq
-  match ha1: a1 with
+  match a1 with
   | 0 =>
     simp only at funs_eq
     match a2 with
@@ -104,7 +104,6 @@ lemma XVals.x_inj (vals: XVals): Function.Injective vals.x_vals := by
         OfNat.ofNat_ne_zero, or_false] at apply_eq
       rw [eq_comm] at apply_eq
       simp only [add_left_inj]
-      have new_a1_neq: new_a1 ≠ a1 := by linarith
       simp only [ite_eq_left_iff, zero_ne_one, imp_false, Decidable.not_not] at apply_eq
       exact apply_eq.symm
 
@@ -233,13 +232,13 @@ noncomputable def tree_linear_comb {vals: XVals} (t: @TreeNode vals): TreeLinear
       a_eq := by
         rw [TreeNode.getData, treeNum, Finset.sum_eq_single 0]
         · simp [XVals.x_vals]
-        · intro b hb b_neq_zero
+        · intro b _ b_neq_zero
           simp [Finsupp.single_apply, b_neq_zero.symm]
         · simp
       b_eq := by
         rw [TreeNode.getData, treeNum, Finset.sum_eq_single 1]
         · simp [XVals.x_vals]
-        · intro b hb b_neq_zero
+        · intro b _ b_neq_zero
           simp [Finsupp.single_apply, b_neq_zero.symm]
         · simp
     }
@@ -312,7 +311,7 @@ noncomputable def tree_linear_comb {vals: XVals} (t: @TreeNode vals): TreeLinear
           exact Nat.le_of_succ_le real_lt
         rw [← Finset.sum_extend_by_zero, Finset.sum_subset prev_subset_mul_two]
         apply Finset.sum_congr rfl
-        · intro x hx
+        · intro x _
           by_cases x_lt_treeNum: x < treeNum prev
           · simp only [Finset.mem_range, x_lt_treeNum]
             exact Eq.symm (sub_smul (h_prev.a_coords x) (h_prev.b_coords x) (vals.x_vals x))
@@ -2302,7 +2301,6 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
             rw [Finsupp.single_apply]
             simp only [add_eq_left, mul_eq_zero, OfNat.ofNat_ne_zero, or_false,
               ite_eq_right_iff, one_ne_zero, imp_false]
-            have treeNum_parent_gt := treeNum_gt_one parent
             refine ⟨?_, ?_⟩
             . omega
             · rw [Finsupp.single_apply]

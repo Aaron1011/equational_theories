@@ -2247,20 +2247,8 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
   · simp [f]
     match h_tree: (f_data (g_to_num (x_sum))).tree with
     | .root =>
-      simp [h_tree, XVals.x_vals, TreeNode.getData, same_vals, x_vals_zero] at f_supp_increasing
-      rw [x_sum_supp] at f_supp_increasing
-      simp [Finsupp.support_single_ne_zero _] at f_supp_increasing
-      --unfold x_sum at h_tree
-      rw [h_tree] at f_supp_increasing
-      simp [TreeNode.getData] at f_supp_increasing
-      rw [same_vals] at f_supp_increasing
-      simp [x_vals_zero, XVals.x_vals] at f_supp_increasing
-      simp [Finsupp.support_single_ne_zero 1] at f_supp_increasing
-
-      --conv =>
-      --  pattern TreeNode.root.getData.b
-      --  simp [TreeNode.getData]
-
+      rw [x_sum_supp, h_tree, same_vals] at f_supp_increasing
+      simp [TreeNode.getData, x_vals_zero, XVals.x_vals, Finsupp.support_single_ne_zero 1] at f_supp_increasing
     | .left parent =>
       by_contra!
       have i_same := same_vals

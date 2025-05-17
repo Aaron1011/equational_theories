@@ -2271,10 +2271,11 @@ theorem not_equation_3050: 0 ≠ (f 0) + (f (- (f 0))) + (f (- (f 0) - f (- f 0)
         simp at app_eq
         have largest_gt_three: 3 < largest_supp_n ∧ 1 + (treeNum parent - 1) * 2 < largest_supp_n := by
           rw [h_tree] at f_supp_increasing
-          simp [TreeNode.getData] at f_supp_increasing
+          simp only [TreeNode.getData] at f_supp_increasing
           unfold x_sum at same_vals
           simp_rw [same_vals] at f_supp_increasing
-          simp [x_vals_zero, XVals.x_vals, treeNum_neq_zero] at f_supp_increasing
+          simp only [XVals.x_vals, treeNum_neq_zero, ↓reduceIte, Finsupp.coe_basisSingleOne,
+            x_vals_zero, pow_zero, zero_add, pow_one] at f_supp_increasing
           unfold x_sum at x_sum_supp
           simp [x_sum_supp] at f_supp_increasing
           simp [Finsupp.support_single_ne_zero _] at f_supp_increasing

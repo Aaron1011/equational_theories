@@ -1,0 +1,8 @@
+-- Word norm (gives us metric space topology, locally compact due to being finitely generated group)
+-- Haar measure
+-- Integral (via haar measure)
+-- L-p norm on function on group G (relies on Haar mmeasure)
+--Young's convolution inequality
+-- The discrete convolution exists
+-- The laplacian exists
+-- We have harmonic functions
